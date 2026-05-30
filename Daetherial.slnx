@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Daetherial.vcxproj" Id="3f096b35-ad07-4cda-9a7d-ea89709017b0" />
+</Solution>
