@@ -1,0 +1,13 @@
+# Temporales pesados de Visual Studio
+.vs/
+Debug/
+x64/
+
+# Archivos de configuración local del usuario
+*.user
+*.aps
+*.opendb
+*.VC.db
+
+# Ignorar ejecutables generados en la raíz
+*.exe
