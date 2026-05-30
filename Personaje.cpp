@@ -42,11 +42,11 @@ Personaje::Personaje() {
 }
 
 // Lee las teclas W, A, S, D, cambia la textura según la dirección y mueve el personaje
+// Maneja entrada; recibe el mapa por referencia para resolver colisiones
 void Personaje::manejarInput(Map& mapa, sf::RenderWindow& ventana) {
     sf::Vector2f movimiento(0.f, 0.f);
 
     // 1. CAPTURAMOS EL INPUT Y CONFIGURAMOS TEXTURAS / GIROS FIRST
-    // Hacemos esto primero para que getGlobalBounds() se actualice con la dirección correcta
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
         movimiento.y -= velocidad;
         sprite_del_personaje.setTexture(textura_arriba);
@@ -66,6 +66,15 @@ void Personaje::manejarInput(Map& mapa, sf::RenderWindow& ventana) {
         sprite_del_personaje.setTexture(textura_izquierda);
         sprite_del_personaje.setScale(-1.f, 1.f);
         sprite_del_personaje.setOrigin(64, -15);
+    }
+
+    // 🔥 MUDADO ACÁ: Control de la habilidad con Click Izquierdo
+    // CORREGIDO: Cambiado '_bolaDeFuego' por 'primeraHabilidad'
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+        sf::Vector2i mousePantalla = sf::Mouse::getPosition(ventana);
+        sf::Vector2f mouseMundo = ventana.mapPixelToCoords(mousePantalla, ventana.getView());
+
+        _bolaDeFuego.activar(this->getPosicion(), mouseMundo);
     }
 
     // =================================================================================================================================
@@ -110,25 +119,19 @@ void Personaje::manejarInput(Map& mapa, sf::RenderWindow& ventana) {
     }
 
     // 3. NACHO - Tecla de acción (Espacio) para lanzar habilidad 1
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space)) 
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
     {
-		sf::Vector2f posicionPersonaje = getPosicion();
+        sf::Vector2f posicionPersonaje = getPosicion();
         sf::Vector2i mousePantalla = sf::Mouse::getPosition(ventana);
-		sf::Vector2f mouseMundo = ventana.mapPixelToCoords(mousePantalla);
-        // Llamada para activar la primera habilidad (Bola de fuego)
-        // - activa: posiciona el sprite, calcula la dirección y dispara el cooldown
-        // - NO mueve el proyectil en este momento; el movimiento ocurre en actualizar(dt)
-        primeraHabilidad.activar(posicionPersonaje, mouseMundo);
+        sf::Vector2f mouseMundo = ventana.mapPixelToCoords(mousePantalla, ventana.getView()); // Agregado getView() por prolijidad
+        _bolaDeFuego.activar(posicionPersonaje, mouseMundo);
     }
-}
+} // 👁️ ¡AQUÍ cerraba la función de verdad!
 
 // NACHO - Actualiza las habilidades del personaje
-void Personaje::actualizarHabilidades(float dt) 
+void Personaje::actualizarHabilidades(float dt)
 {
-    //  llamamos al método actualizar(dt) de la habilidad
-    //  - Esto actualiza el cooldown (cdActualizar), mueve el proyectil si está activo
-    //  - y desactiva el proyectil cuando alcanza su rango
-    primeraHabilidad.actualizar(dt);
+    _bolaDeFuego.actualizar(dt);
 }
 
 // NACHO - Devuelve la posición actual del personaje como par de coordenadas X e Y
@@ -139,24 +142,20 @@ sf::Vector2f Personaje::getPosicion() {
 // NACHO - Dibuja el sprite del personaje en la ventana
 void Personaje::dibujar(sf::RenderWindow& ventana) {
     ventana.draw(sprite_del_personaje);
-	primeraHabilidad.dibujar(ventana);
+    _bolaDeFuego.dibujar(ventana);
 }
 
 // Función de debug para dibujar la hitbox real del personaje (caja 16x16) en verde con opacidad
 void Personaje::dibujarDebug(sf::RenderWindow& ventana) {
-    // 1. Le pedimos a nuestro propio método los límites reales del sprite (AABB)
     sf::FloatRect limites = this->getBounds();
 
-    // 2. Creamos el rectángulo con el tamaño exacto de la hitbox
     sf::RectangleShape rectDebug(sf::Vector2f(limites.width, limites.height));
     rectDebug.setPosition(limites.left, limites.top);
 
-    // 3. Le damos facha de Debug: Verde con 100 de opacidad (el máximo es 255)
     rectDebug.setFillColor(sf::Color(0, 255, 0, 100));
     rectDebug.setOutlineColor(sf::Color::Green);
-    rectDebug.setOutlineThickness(-1.f); // Un borde finito para que se note el límite exacto
+    rectDebug.setOutlineThickness(-1.f);
 
-    // 4. Lo mandamos a la pantalla
     ventana.draw(rectDebug);
 }
 

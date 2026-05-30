@@ -13,6 +13,7 @@
 #include "ObjectsManager.h" // 🌟 Nuevo: Para manejar el mapa
 #include "UI_Inventario.h"  // 🌟 Nuevo: La interfaz del inventario
 #include "DebugManager.h"   // 🌟 Nuevo: Para activar el modo debug y mover cosas en caliente
+#include "BolaDeFuego.h"    // 🌟 Nuevo: Una habilidad de ejemplo para el personaje
 
 // Estados del juego
 enum GameState {
@@ -23,7 +24,11 @@ enum GameState {
 
 class GameManager {
 private:
-	// Debug Manager para controlar el modo debug y mover cosas en caliente
+	
+	// Habilidad de ejemplo para el personaje (puedes expandir esto con más habilidades y un sistema de gestión de habilidades)
+    habilidad_1 _bolaDeFuego;
+    
+    // Debug Manager para controlar el modo debug y mover cosas en caliente
     DebugManager _debug;
     
     // Ventana principal

@@ -149,6 +149,11 @@ void GameManager::actualizar() {
         // Actualizamos las habilidades del personaje (mueve proyectiles y actualiza cooldowns)
         _personaje.actualizarHabilidades(dt);
 
+        // ============================================================
+        // 🔥 INYECTADO PARA PROBAR LA BOLA DE FUEGO
+        // ============================================================
+        _bolaDeFuego.actualizar(dt);
+
         _mascota.seguir(_personaje.getPosicion());
         _golem.actualizar(_personaje.getPosicion(), dt);
         _niebla.actualizar(dt);

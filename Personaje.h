@@ -3,7 +3,7 @@
 #include "map.h"
 #include "Colisionable.h" // 🌟 1. Incluimos el contrato de colisiones
 #include "Inventario.h"
-#include "habilidad_1.h"
+#include "BolaDeFuego.h"
 
 // Clase que representa al personaje controlado por el jugador
 // 🌟 2. Hacemos que herede de Colisionable de forma pública
@@ -16,7 +16,7 @@ private:
     sf::Texture textura_izquierda;      // Imagen cuando mira hacia la izquierda
     float velocidad = 0.f;              // Cuántos píxeles se mueve por frame, empieza en 0
     Inventario _inventario;                // Inventario del personaje
-	habilidad_1 primeraHabilidad;       // Primera habilidad del personaje
+    habilidad_1 _bolaDeFuego;       // Primera habilidad del personaje
 public:
     // Constructor: se ejecuta automáticamente al crear el objeto Personaje
     Personaje();

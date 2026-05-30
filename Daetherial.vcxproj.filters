@@ -7,7 +7,7 @@
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="Personaje.cpp" />
     <ClCompile Include="habilidades.cpp" />
-    <ClCompile Include="habilidad_1.cpp" />
+    <ClCompile Include="BolaDeFuego.cpp" />
     <ClCompile Include="habilidad_2.cpp" />
     <ClCompile Include="habilidad_3.cpp" />
     <ClCompile Include="habilidad_4.cpp" />
@@ -30,7 +30,7 @@
     <ClInclude Include="menu.h" />
     <ClInclude Include="Personaje.h" />
     <ClInclude Include="habilidades.h" />
-    <ClInclude Include="habilidad_1.h" />
+    <ClInclude Include="BolaDeFuego.h" />
     <ClInclude Include="habilidad_2.h" />
     <ClInclude Include="habilidad_3.h" />
     <ClInclude Include="habilidad_4.h" />
@@ -691,7 +691,6 @@
     <None Include="dependencias\SFML\include\SFML\System\Utf.inl" />
     <None Include="dependencias\SFML\include\SFML\System\Vector2.inl" />
     <None Include="dependencias\SFML\include\SFML\System\Vector3.inl" />
-    <None Include="Juego Dungeon.slnx" />
     <None Include="assets\collisions_mapa_v1_background.csv" />
     <None Include="assets\mapa_v1.csv" />
     <None Include="assets\mapa_v1.tmx" />
