@@ -1,5 +1,6 @@
 #include "Personaje.h"
 #include <iostream>
+#include "InputManager.h"
 
 // Constructor: prepara el personaje antes de que empiece el juego
 Personaje::Personaje() {
@@ -41,51 +42,54 @@ Personaje::Personaje() {
     velocidad = 2.f;
 }
 
-// Lee las teclas W, A, S, D, cambia la textura según la dirección y mueve el personaje
-// Maneja entrada; recibe el mapa por referencia para resolver colisiones
-void Personaje::manejarInput(Map& mapa, sf::RenderWindow& ventana) {
-    sf::Vector2f movimiento(0.f, 0.f);
+// Esta función se llama cada frame desde el GameManager, le pasamos el manager de input para que pueda leer las teclas, 
+// el mapa para que pueda colisionar y la ventana para convertir las coordenadas del mouse
 
-    // 1. CAPTURAMOS EL INPUT Y CONFIGURAMOS TEXTURAS / GIROS FIRST
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-        movimiento.y -= velocidad;
+void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana) {
+
+    // 1. OBTENEMOS EL VECTOR DIRECCIÓN DEL MANAGER (¡Ya viene normalizado!)
+    sf::Vector2f direccion = input.getDireccionMovimiento();
+
+    // Calculamos cuánto se va a mover en este frame
+    sf::Vector2f movimiento(direccion.x * velocidad, direccion.y * velocidad);
+
+    // 2. CONFIGURAMOS TEXTURAS Y GIROS SEGÚN LA DIRECCIÓN DEL VECTOR
+    if (direccion.y < 0.f) { // Va hacia arriba (W)
         sprite_del_personaje.setTexture(textura_arriba);
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-        movimiento.y += velocidad;
+    else if (direccion.y > 0.f) { // Va hacia abajo (S)
         sprite_del_personaje.setTexture(textura_abajo);
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-        movimiento.x += velocidad;
+
+    if (direccion.x > 0.f) { // Va hacia la derecha (D)
         sprite_del_personaje.setTexture(textura_derecha);
         sprite_del_personaje.setScale(1.f, 1.f);
         sprite_del_personaje.setOrigin(0, -15);
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-        movimiento.x -= velocidad;
+    else if (direccion.x < 0.f) { // Va hacia la izquierda (A)
         sprite_del_personaje.setTexture(textura_izquierda);
         sprite_del_personaje.setScale(-1.f, 1.f);
         sprite_del_personaje.setOrigin(64, -15);
     }
 
-    // 🔥 MUDADO ACÁ: Control de la habilidad con Click Izquierdo
-    // CORREGIDO: Cambiado '_bolaDeFuego' por 'primeraHabilidad'
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-        sf::Vector2i mousePantalla = sf::Mouse::getPosition(ventana);
+    // 3. HABILIDADES (La bola de fuego de Nacho unificada)
+    // Usamos los booleanos del manager. Atacar = Clic Izquierdo, Saltar = Espacio
+    if (input.quiereAtacar() || input.quiereSaltar()) {
+        // Le pedimos la posición del mouse al manager directamente
+        sf::Vector2i mousePantalla = input.getPosicionMouse();
         sf::Vector2f mouseMundo = ventana.mapPixelToCoords(mousePantalla, ventana.getView());
 
         _bolaDeFuego.activar(this->getPosicion(), mouseMundo);
     }
 
-    // =================================================================================================================================
-    // 2. RESOLUCIÓN DE COLISIONES POR EJES SEPARADOS (ADIÓS CLIPPING)
-    // =================================================================================================================================
+    // =========================================================================
+    // 4. RESOLUCIÓN DE COLISIONES POR EJES SEPARADOS (INTACTO)
+    // =========================================================================
 
     // --- EJE X (Horizontal) ---
     if (movimiento.x != 0.f) {
-        sprite_del_personaje.move(movimiento.x, 0.f); // Damos el paso fantasma en X
+        sprite_del_personaje.move(movimiento.x, 0.f); // Paso fantasma
 
-        // Chequeamos si el rectángulo completo choca contra alguna pared del mapa
         bool chocoX = false;
         for (const auto& bloque : mapa.getBloquesSolidos()) {
             if (this->chequearColision(bloque)) {
@@ -94,15 +98,14 @@ void Personaje::manejarInput(Map& mapa, sf::RenderWindow& ventana) {
             }
         }
 
-        // Si la caja entera colisionó, lo obligamos a retroceder el paso en X
         if (chocoX) {
-            sprite_del_personaje.move(-movimiento.x, 0.f);
+            sprite_del_personaje.move(-movimiento.x, 0.f); // Retrocede
         }
     }
 
     // --- EJE Y (Vertical) ---
     if (movimiento.y != 0.f) {
-        sprite_del_personaje.move(0.f, movimiento.y); // Damos el paso fantasma en Y
+        sprite_del_personaje.move(0.f, movimiento.y); // Paso fantasma
 
         bool chocoY = false;
         for (const auto& bloque : mapa.getBloquesSolidos()) {
@@ -112,21 +115,11 @@ void Personaje::manejarInput(Map& mapa, sf::RenderWindow& ventana) {
             }
         }
 
-        // Si la caja entera colisionó, lo obligamos a retroceder el paso en Y
         if (chocoY) {
-            sprite_del_personaje.move(0.f, -movimiento.y);
+            sprite_del_personaje.move(0.f, -movimiento.y); // Retrocede
         }
     }
-
-    // 3. NACHO - Tecla de acción (Espacio) para lanzar habilidad 1
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
-    {
-        sf::Vector2f posicionPersonaje = getPosicion();
-        sf::Vector2i mousePantalla = sf::Mouse::getPosition(ventana);
-        sf::Vector2f mouseMundo = ventana.mapPixelToCoords(mousePantalla, ventana.getView()); // Agregado getView() por prolijidad
-        _bolaDeFuego.activar(posicionPersonaje, mouseMundo);
-    }
-} // 👁️ ¡AQUÍ cerraba la función de verdad!
+}
 
 // NACHO - Actualiza las habilidades del personaje
 void Personaje::actualizarHabilidades(float dt)

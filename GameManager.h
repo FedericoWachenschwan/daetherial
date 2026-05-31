@@ -14,6 +14,7 @@
 #include "UI_Inventario.h"  // 🌟 Nuevo: La interfaz del inventario
 #include "DebugManager.h"   // 🌟 Nuevo: Para activar el modo debug y mover cosas en caliente
 #include "BolaDeFuego.h"    // 🌟 Nuevo: Una habilidad de ejemplo para el personaje
+#include "InputManager.h" // 🌟 Nuevo: Para manejar el input de forma centralizada
 
 // Estados del juego
 enum GameState {
@@ -24,9 +25,12 @@ enum GameState {
 
 class GameManager {
 private:
-	
+    
+    // Manager de input para manejar las entradas del jugador de forma centralizada
+	InputManager _input; 
+
 	// Habilidad de ejemplo para el personaje (puedes expandir esto con más habilidades y un sistema de gestión de habilidades)
-    habilidad_1 _bolaDeFuego;
+    // La habilidad BolaDeFuego ahora vive en Personaje; se eliminó la instancia duplicada aquí
     
     // Debug Manager para controlar el modo debug y mover cosas en caliente
     DebugManager _debug;

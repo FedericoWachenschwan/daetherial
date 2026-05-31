@@ -5,6 +5,9 @@
 #include "Inventario.h"
 #include "BolaDeFuego.h"
 
+
+class InputManager; // Declaración adelantada para evitar dependencias circulares
+
 // Clase que representa al personaje controlado por el jugador
 // 🌟 2. Hacemos que herede de Colisionable de forma pública
 class Personaje : public Colisionable {
@@ -27,7 +30,7 @@ public:
 
     // FEDE AGREGO ESTAS FUNCIONES PARA QUE EL PERSONAJE PUEDA COMUNICARSE CON EL MAPA Y POR LO TANTO PUEDA COLISIONAR
     // 🛡️ El personaje ahora recibe el mapa por referencia para poder colisionar ("NO es NO")
-    void manejarInput(Map& mapa, sf::RenderWindow& ventana);
+	void manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana); // Maneja el input del jugador, mueve el personaje y resuelve colisiones contra el mapa
 
     // Devuelve las coordenadas X e Y actuales del personaje
     sf::Vector2f getPosicion();

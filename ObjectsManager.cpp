@@ -1,5 +1,6 @@
 #include "ObjectsManager.h"
 #include "Personaje.h"
+#include "InputManager.h" // 🌟 SOLUCIÓN AL TIPO INCOMPLETO: Acá sí va el include completo
 #include <iostream>
 
 ObjectsManager::~ObjectsManager() {
@@ -9,8 +10,12 @@ ObjectsManager::~ObjectsManager() {
     _itemsEnMundo.clear();
 }
 
-void ObjectsManager::agregarItemAlMundo(Item* nuevoItem, sf::Texture& textura, float x, float y, sf::FloatRect hitboxCustom) {
-    nuevoItem->colocarEnMundo(textura, x, y, hitboxCustom);
+void ObjectsManager::agregarItemAlMundo(Item* nuevoItem, const sf::Texture& textura, float x, float y, sf::FloatRect hitboxCustom) {
+    // La interfaz pública acepta const sf::Texture& para evitar const_cast en llamadores.
+    // Internamente necesitamos un sf::Texture& para colocar el sprite en el item; usamos const_cast aquí
+    // porque sabemos que ItemsManager mantiene la vida de la textura en memoria durante toda la ejecución.
+    sf::Texture& texRef = const_cast<sf::Texture&>(textura);
+    nuevoItem->colocarEnMundo(texRef, x, y, hitboxCustom);
     _itemsEnMundo.push_back(nuevoItem);
 }
 
@@ -20,9 +25,16 @@ void ObjectsManager::dibujarItems(sf::RenderWindow& ventana) {
     }
 }
 
-void ObjectsManager::chequearInteracciones(Personaje& jugador) {
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-        for (int i = _itemsEnMundo.size() - 1; i >= 0; i--) {
+// 🌟 ACTUALIZADO: Ahora la función implementa los 2 argumentos
+void ObjectsManager::chequearInteracciones(Personaje& jugador, const InputManager& input) {
+
+    // Cambiamos el sf::Keyboard harcodeado por la abstracción del manager
+    if (input.quiereInteractuar()) {
+
+        // 🌟 SOLUCIÓN AL SIGNED/UNSIGNED: Convertimos el size() a int con static_cast
+        int totalItems = static_cast<int>(_itemsEnMundo.size());
+
+        for (int i = totalItems - 1; i >= 0; i--) {
 
             if (jugador.getBounds().intersects(_itemsEnMundo[i]->getBounds())) {
 
@@ -30,20 +42,26 @@ void ObjectsManager::chequearInteracciones(Personaje& jugador) {
 
                 // CASO A: Es un ítem del piso (Poción, Madera, Oro)
                 if (itemActual->esAgarrable()) {
-                    // Intentamos meterlo en la mochila del personaje
                     if (jugador.getInventario().agarrarItem(itemActual)) {
                         std::cout << "🎒 Guardaste en la mochila: " << itemActual->getNombre() << std::endl;
-                        _itemsEnMundo.erase(_itemsEnMundo.begin() + i); // Desaparece del mapa
+                        _itemsEnMundo.erase(_itemsEnMundo.begin() + i);
                     }
                 }
                 // CASO B: Es una estructura fija (Horno, Caldero)
                 else {
-                    // No se guarda en la mochila, solo se activa su menú o función
                     itemActual->usar(jugador);
                 }
 
-                break; // Ya interactuamos con el objeto de este frame
+                break; // Ya interactuamos este frame
             }
         }
+    }
+}
+
+
+// Funcion para recibir un ítem que el jugador soltó del inventario al piso
+void ObjectsManager::recibirItemSoltado(Item* itemSoltado) {
+    if (itemSoltado != nullptr) {
+        _itemsEnMundo.push_back(itemSoltado); // El ítem vuelve a ser parte del piso
     }
 }

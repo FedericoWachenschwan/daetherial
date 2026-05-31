@@ -23,6 +23,7 @@
     <ClCompile Include="ItemManager.cpp" />
     <ClCompile Include="DebugManager.cpp" />
     <ClCompile Include="UI_Inventario.cpp" />
+    <ClCompile Include="InputManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="map.h" />
@@ -243,6 +244,7 @@
     <ClInclude Include="dependencias\SFML\include\SFML\Window.hpp" />
     <ClInclude Include="DebugManager.h" />
     <ClInclude Include="UI_Inventario.h" />
+    <ClInclude Include="InputManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\cat_abajo.png" />

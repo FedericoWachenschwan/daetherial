@@ -5,7 +5,7 @@
 // 1. IMPLEMENTACIÓN DE LA CLASE BASE (Item)
 // ========================================================
 
-Item::Item(int id, std::string nombre, TipoItem tipo, int cantidad, int maxStack, bool esAgarrable)
+Item::Item(int id, const std::string& nombre, TipoItem tipo, int cantidad, int maxStack, bool esAgarrable)
     : _id(id), _nombre(nombre), _tipo(tipo), _cantidad(cantidad), _maxStack(maxStack), _esAgarrable(esAgarrable), _estaEnElMundo(false) {
 }
 
@@ -36,7 +36,7 @@ void Item::dibujar(sf::RenderWindow& ventana) {
 // ========================================================
 
 // --- CONSUMIBLE ---
-Consumible::Consumible(int id, std::string nombre, float cura, int cantidad)
+Consumible::Consumible(int id, const std::string& nombre, float cura, int cantidad)
     : Item(id, nombre, TipoItem::Consumible, cantidad, 64, true), _curacion(cura) {
 
     // 🌟 La magia va ADENTRO del constructor
@@ -49,7 +49,7 @@ void Consumible::usar(Personaje& jugador) {
 }
 
 // --- MUEBLE ---
-Mueble::Mueble(int id, std::string nombre, int tipoMueble)
+Mueble::Mueble(int id, const std::string& nombre, int tipoMueble)
     : Item(id, nombre, TipoItem::Mueble, 1, 1, false), _tipoMueble(tipoMueble) {
 
     // Los muebles suelen ser más grandes
@@ -63,7 +63,7 @@ void Mueble::usar(Personaje& jugador) {
 }
 
 // --- RECURSO ---
-Recurso::Recurso(int id, std::string nombre, int tipoRecurso, int cantidad)
+Recurso::Recurso(int id, const std::string& nombre, int tipoRecurso, int cantidad)
     : Item(id, nombre, TipoItem::Recurso, cantidad, 999, true), _tipoRecurso(tipoRecurso) {
 
     // Tamaño estándar de un drop en el piso
@@ -76,7 +76,7 @@ void Recurso::usar(Personaje& jugador) {
 }
 
 // --- EQUIPAMIENTO ---
-Equipamiento::Equipamiento(int id, std::string nombre, int tipoEquipamiento, int bonusAtaque, int bonusDefensa)
+Equipamiento::Equipamiento(int id, const std::string& nombre, int tipoEquipamiento, int bonusAtaque, int bonusDefensa)
     : Item(id, nombre, TipoItem::Equipamiento, 1, 1, true), _tipoEquipamiento(tipoEquipamiento), _bonusAtaque(bonusAtaque), _bonusDefensa(bonusDefensa) {
 
     // La espada/escudo en el piso
@@ -86,4 +86,16 @@ Equipamiento::Equipamiento(int id, std::string nombre, int tipoEquipamiento, int
 
 void Equipamiento::usar(Personaje& jugador) {
     std::cout << "⚔️ Equipaste " << _nombre << ". (+Ataque: " << _bonusAtaque << " | +Defensa: " << _bonusDefensa << ")" << std::endl;
+}
+
+void Item::setPosicion(sf::Vector2f nuevaPosicion) {
+    // 1. Movemos el dibujo a los pies del personaje
+    _sprite.setPosition(nuevaPosicion);
+
+    // 2. Movemos la hitbox lógica para que puedas volver a interactuar con él
+    _hitbox.left = nuevaPosicion.x;
+    _hitbox.top = nuevaPosicion.y;
+
+    // 3. Le avisamos a la lógica interna que el ítem volvió al mapa
+    _estaEnElMundo = true;
 }

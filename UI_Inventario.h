@@ -6,6 +6,9 @@
 
 class UI_Inventario {
 private:
+	sf::Texture _texturaInventario;
+    sf::Sprite _spriteInventario;
+
     sf::RectangleShape _slotFondo;
     float _tamanioSlot;
     float _margen;
@@ -13,10 +16,10 @@ private:
     sf::Text _textoCantidad;
 
 
-    // 🌟 VARIABLES DE DEBUG: Para mover en caliente
+    // 🌟 AJUSTES EN CALIENTE (Para centrar la grilla adentro de tu dibujo)
     float _desfaseX;
     float _desfaseY;
-    float _origenX;
+    float _origenX; // Ahora este origen va a ser la posición de la ventana
     float _origenY;
 
 public:
@@ -26,5 +29,6 @@ public:
     // 🌟 MÉTODOS DE CONTROL: Para que el GameManager le avise qué cambiar
     void ajustarPosicion(float x, float y);
     void ajustarOrigen(float x, float y);
+	void detectarClicCasillero(sf::Vector2i posicionMouse, Inventario& mochila, const sf::RenderWindow& ventana);
 };
 

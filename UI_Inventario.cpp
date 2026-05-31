@@ -95,3 +95,43 @@ void UI_Inventario::dibujar(sf::RenderWindow& ventana, const Inventario& mochila
 	// 🎥 Restauramos la cámara normal para no romper el mapa
 	ventana.setView(vistaOriginal);
 }
+
+
+// ==========================================
+// DETECTAR CLIC CASILLERO (Para Hotbar de 5 Slots)
+// ==========================================
+void UI_Inventario::detectarClicCasillero(sf::Vector2i posicionMouse, Inventario& mochila, const sf::RenderWindow& ventana) {
+
+	// 🌟 LA MAGIA DE SFML: Traducimos el pixel del monitor a la coordenada real de la UI
+	sf::Vector2f mouseUI = ventana.mapPixelToCoords(posicionMouse, ventana.getDefaultView());
+
+	// 🐛 CHIVATO 1: Nos avisa que el clic llegó hasta acá
+	std::cout << "🖱️ Clic detectado en coordenada UI -> X: " << mouseUI.x << " | Y: " << mouseUI.y << std::endl;
+
+	int cantidadSlotsVisibles = 5;
+	float anchoTotal = (cantidadSlotsVisibles * _tamanioSlot) + ((cantidadSlotsVisibles - 1) * _margen);
+	float startX = ((ventana.getSize().x - anchoTotal) / 2.f) + _desfaseX;
+	float startY = (ventana.getSize().y - _tamanioSlot - 20.f) + _desfaseY;
+
+	for (int i = 0; i < cantidadSlotsVisibles; i++) {
+		float posX = startX + i * (_tamanioSlot + _margen);
+		sf::FloatRect limitesSlot(posX, startY, _tamanioSlot, _tamanioSlot);
+
+		// 🐛 CHIVATO 2: (Opcional, descomentalo si querés ver dónde se arman los cuadrados)
+		// std::cout << "Cuadrado " << i << " inicia en X: " << posX << " | Y: " << startY << std::endl;
+
+		if (limitesSlot.contains(mouseUI)) {
+			std::cout << "🎯 ¡Le embocaste al casillero " << i << "!" << std::endl;
+
+			if (i < static_cast<int>(mochila.getSlots().size())) {
+				mochila.setIndiceSeleccionado(i);
+				std::cout << "✅ Y tenia un item. ¡Seleccionado!" << std::endl;
+			}
+			else {
+				mochila.setIndiceSeleccionado(-1);
+				std::cout << "❌ Le diste al casillero, pero estaba vacio." << std::endl;
+			}
+			return; // Encontramos el slot, cortamos el bucle
+		}
+	}
+}

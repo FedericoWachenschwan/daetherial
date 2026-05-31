@@ -6,14 +6,14 @@
 // ==========================================
 // CONSTRUCTOR
 // ==========================================
-Inventario::Inventario(int capacidad) : _capacidadMaxima(capacidad) {}
+Inventario::Inventario(int capacidad) : _capacidadMaxima(capacidad), _indiceSeleccionado (-1) {} // El indice seleccionado empieza en -1 porque no hay nada seleccionado al principio
 
 // ==========================================
 // DESTRUCTOR
 // ==========================================
 Inventario::~Inventario() {
     // 🧹 Limpieza al cerrar el juego
-    for (int i = 0; i < _itemsGuardados.size(); i++) {
+    for (int i = 0; i < static_cast<int>(_itemsGuardados.size()); i++) {
         delete _itemsGuardados[i];
     }
     _itemsGuardados.clear();
@@ -98,7 +98,7 @@ int Inventario::getCantidadTotal(int idItem) const {
 // ==========================================
 void Inventario::vaciar() {
     // 🧹 PREVENCIÓN DE LEAK: Primero borramos la memoria física
-    for (int i = 0; i < _itemsGuardados.size(); i++) {
+    for (int i = 0; i < static_cast<int>(_itemsGuardados.size()); i++) {
         delete _itemsGuardados[i];
     }
     _itemsGuardados.clear(); // Después vaciamos la lista
@@ -130,4 +130,28 @@ void Inventario::usarItem(int indice, Personaje& jugador) {
             std::cout << "💧 Consumible agotado. Memoria liberada." << std::endl;
         }
     }
+}
+
+// ==========================================
+// EXTRAER ÍTEM SELECCIONADO (Para tirar con la Q)
+// ==========================================
+Item* Inventario::extraerItemPorIndice() {
+    // 1. Validamos que el índice esté dentro del rango actual del vector
+    if (_indiceSeleccionado >= 0 && _indiceSeleccionado < static_cast<int>(_itemsGuardados.size())) {
+
+        Item* itemATirar = _itemsGuardados[_indiceSeleccionado];
+
+        // 2. Si realmente hay un puntero válido ahí
+        if (itemATirar != nullptr) {
+            // Lo removemos del vector dinámico (así el vector se achica correctamente)
+            _itemsGuardados.erase(_itemsGuardados.begin() + _indiceSeleccionado);
+
+            // Reseteamos el índice de selección para que no quede apuntando a la nada
+            _indiceSeleccionado = -1;
+
+            return itemATirar; // Devolvemos el puntero VIVO (sin hacer delete) para spawnearlo en el mapa
+        }
+    }
+
+    return nullptr; // No había una selección válida o el vector estaba vacío
 }

@@ -163,6 +163,7 @@
     <ClCompile Include="DebugManager.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Inventario.cpp" />
     <ClCompile Include="Item.cpp" />
     <ClCompile Include="ItemManager.cpp" />
@@ -285,6 +286,7 @@
     <ClInclude Include="dependencias\SFML\include\SFML\Window\WindowStyle.hpp" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="GameManager.h" />
+    <ClInclude Include="InputManager.h" />
     <ClInclude Include="Inventario.h" />
     <ClInclude Include="Item.h" />
     <ClInclude Include="ItemManager.h" />

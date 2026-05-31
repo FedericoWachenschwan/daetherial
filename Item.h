@@ -32,13 +32,14 @@ protected:
     bool _esAgarrable = false;
 
 public:
-    Item(int id, std::string nombre, TipoItem tipo, int cantidad, int maxStack, bool esAgarrable);
+    Item(int id, const std::string& nombre, TipoItem tipo, int cantidad, int maxStack, bool esAgarrable);
 
     virtual ~Item() = default;
 
     virtual void usar(Personaje& jugador) = 0;
 
-    void colocarEnMundo(sf::Texture& textura, float x, float y, sf::FloatRect hitboxCustom = sf::FloatRect());
+    void colocarEnMundo( sf::Texture& textura, float x, float y, sf::FloatRect hitboxCustom = sf::FloatRect());
+    void setPosicion(sf::Vector2f nuevaPosicion);
     void dibujar(sf::RenderWindow& ventana);
     bool estaEnElMundo() const { return _estaEnElMundo; }
     bool esAgarrable() const { return _esAgarrable; }
@@ -46,12 +47,13 @@ public:
     sf::FloatRect getBounds() const override { return _hitbox; }
 
     int getId() const { return _id; }
-    std::string getNombre() const { return _nombre; }
+    const std::string& getNombre() const { return _nombre; }
     TipoItem getTipo() const { return _tipo; }
     int getCantidad() const { return _cantidad; }
     int getMaxStack() const { return _maxStack; }
     void setCantidad(int cantidad) { _cantidad = cantidad; }
 	sf::Sprite getSprite() const { return _sprite; } // Devuelve el sprite para renderizarlo en el inventario UI
+
 
 }; // 🌟 ACÁ TERMINA LA CLASE ITEM
 
@@ -66,7 +68,7 @@ private:
     float _curacion;
 public:
     // 🌟 Corregido: Ahora se llama Consumible, no Pocion
-    Consumible(int id, std::string nombre, float cura, int cantidad = 1);
+    Consumible(int id, const std::string& nombre, float cura, int cantidad = 1);
     void usar(Personaje& jugador) override;
 };
 
@@ -75,7 +77,7 @@ class Mueble : public Item {
 private:
     int _tipoMueble;
 public:
-    Mueble(int id, std::string nombre, int tipoMueble);
+    Mueble(int id, const std::string& nombre, int tipoMueble);
     void usar(Personaje& jugador) override;
 };
 
@@ -84,7 +86,7 @@ class Recurso : public Item {
 private:
     int _tipoRecurso;
 public:
-    Recurso(int id, std::string nombre, int tipoRecurso, int cantidad);
+    Recurso(int id, const std::string& nombre, int tipoRecurso, int cantidad);
     void usar(Personaje& jugador) override;
 }; // 🌟 Corregido: Se agregó el cierre de la clase Recurso
 
@@ -97,6 +99,6 @@ private:
     int _bonusDefensa;
 public:
     // 🌟 Corregido: Se eliminó el paréntesis sobrante al final
-    Equipamiento(int id, std::string nombre, int tipoEquipamiento, int bonusAtaque, int bonusDefensa);
+    Equipamiento(int id, const std::string& nombre, int tipoEquipamiento, int bonusAtaque, int bonusDefensa);
     void usar(Personaje& jugador) override;
 }; // 🌟 Corregido: Se agregó el cierre de la clase Equipamiento

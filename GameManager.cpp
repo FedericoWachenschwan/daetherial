@@ -16,7 +16,9 @@ GameManager::GameManager()
     _mapa(16, 1.0f),
     _golem(sf::Vector2f(500.f, 400.f)) // Posición inicial del Gólem
 {
+    _camara.setLimitesMundo(sf::FloatRect(0, 0, 2000, 2000)); // Ajustá al tamaño real
     _ventana.setFramerateLimit(60);
+
 
     // ================= MAPA =================
     if (!_mapa.cargarMapa("assets/collisions_mapa_v1_background.csv", "assets/mapa_v1_background.png")) {
@@ -88,6 +90,9 @@ void GameManager::procesarEventos() {
             _ventana.close();
         }
 
+        // 🌟 INYECCIÓN 1: El InputManager lee los eventos sueltos
+        _input.procesarEvento(evento);
+
         // Zoom solo en juego
         if (_estado == JUGANDO) {
             _camara.procesarZoom(evento);
@@ -144,20 +149,40 @@ void GameManager::actualizar() {
     if (_estado == JUGANDO) {
         float dt = _reloj.restart().asSeconds();
 
-        _camara.seguir(_personaje.getPosicion());
-        _personaje.manejarInput(_mapa, _ventana);
-        // Actualizamos las habilidades del personaje (mueve proyectiles y actualiza cooldowns)
-        _personaje.actualizarHabilidades(dt);
+        // 🌟 INYECCIÓN 2: Actualizamos las teclas mantenidas en este frame
+        _input.actualizarEstadoTiempoReal(_ventana);
+        _camara.seguir(_personaje.getPosicion(), dt); // ✅ Le pasamos el DeltaTime
 
-        // ============================================================
-        // 🔥 INYECTADO PARA PROBAR LA BOLA DE FUEGO
-        // ============================================================
-        _bolaDeFuego.actualizar(dt);
+        // 🌟 INYECCIÓN 3: Le pasamos el input masticado al personaje
+        _personaje.manejarInput(_input, _mapa, _ventana);
+        _personaje.actualizarHabilidades(dt);
 
         _mascota.seguir(_personaje.getPosicion());
         _golem.actualizar(_personaje.getPosicion(), dt);
         _niebla.actualizar(dt);
-        _objectsManager.chequearInteracciones(_personaje);
+
+        // 📥 INYECCIÓN 3: Chequeamos interacciones con objetos para que lean la "E"
+        _objectsManager.chequearInteracciones(_personaje, _input);
+
+        // =================================================================
+        // 🎒 NUEVA INYECCIÓN: LÓGICA INTERACTIVA DEL INVENTARIO
+        // =================================================================
+
+        // 1. ESTO FALTABA: Primero le hacemos clic para seleccionarlo
+        if (_input.quiereAtacar()) {
+            _hudInventario.detectarClicCasillero(_input.getPosicionMouse(), _personaje.getInventario(), _ventana);
+        }
+
+        // 2. ESTO YA LO TENÍAS: Después apretamos la Q para tirarlo
+        if (_input.quiereTirarItem()) {
+            Item* itemATirar = _personaje.getInventario().extraerItemPorIndice();
+
+            if (itemATirar != nullptr) {
+                itemATirar->setPosicion(_personaje.getPosicion());
+                _objectsManager.recibirItemSoltado(itemATirar);
+                std::cout << "🎮 GameManager -> Tiraste: " << itemATirar->getNombre() << " al piso!" << std::endl;
+            }
+        }
     }
 }
 
@@ -172,6 +197,7 @@ void GameManager::renderizar() {
         _menu.draw(_ventana);
     }
     else if (_estado == JUGANDO) {
+        // 1. DIBUJAMOS EL MUNDO (Con la cámara del jugador)
         _ventana.setView(_camara.getVista());
         _mapa.dibujarMapa(_ventana);
         _objectsManager.dibujarItems(_ventana);
@@ -179,8 +205,14 @@ void GameManager::renderizar() {
         _mascota.dibujar(_ventana);
         _golem.dibujar(_ventana);
         _niebla.dibujar(_ventana, _camara.getVista());
-        _hudInventario.dibujar(_ventana, _personaje.getInventario());
         _debug.dibujarHitboxes(_ventana, _personaje, _mapa);
+
+        // =======================================================
+        // 2. DIBUJAMOS LA INTERFAZ (Con la cámara fija a la pantalla)
+        // =======================================================
+        _ventana.setView(_ventana.getDefaultView()); // 🌟 ESTA LÍNEA ES LA MAGIA
+
+        _hudInventario.dibujar(_ventana, _personaje.getInventario());
     }
     else if (_estado == CREDITOS) {
         _ventana.setView(_ventana.getDefaultView());
@@ -216,7 +248,7 @@ void GameManager::spawnearDropSeguro(Item* item, const sf::Texture& textura, flo
             << " no encontró lugar seguro y quedó en la pared." << std::endl;
     }
 
-    _objectsManager.agregarItemAlMundo(item, const_cast<sf::Texture&>(textura), startX, startY);
+    _objectsManager.agregarItemAlMundo(item, textura, startX, startY);
 }
 
 // ==========================================
