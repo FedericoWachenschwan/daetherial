@@ -33,8 +33,8 @@ public:
 	// Parámetros:
 	//   - inicio: Posición del personaje (punto de origen del proyectil)
 	//   - objetivo: Posición donde apunta el cursor (destino)
-	virtual void activar(sf::Vector2f inicio, sf::Vector2f objetivo) = 0; 
-
+	virtual void activar(sf::Vector2f inicio, sf::Vector2f objetivo, float rangoPixeles) = 0; 
+	void setRangoDinamico(float rangoPixeles) { _rango = rangoPixeles; }
 	// ========== AUMENTO DE NIVEL ==========
 	// Incrementa el nivel de la habilidad y sus estadísticas
 	// Se llama cuando el personaje sube de nivel

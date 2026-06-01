@@ -51,6 +51,6 @@ public:
 	const vector<BloqueMapa>& getBloquesSolidos() const { return _bloquesSolidos; }
 
 	// Funciones de dibujado
-	void dibujarMapa(sf::RenderWindow& ventana);
-	void dibujarDebug(sf::RenderWindow& ventana);
+	void dibujarMapa(sf::RenderWindow& ventana) const;
+	void dibujarDebug(sf::RenderWindow& ventana) const;
 };

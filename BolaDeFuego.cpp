@@ -2,18 +2,20 @@
 #include <cmath>
 #include <iostream>
 
-habilidad_1::habilidad_1() : Habilidades("Bola de fuego", 5, 10.0f, 0.5f) // valores inventados de momento, cambiarian a medida que avanza el juego.
+// ============================================================================
+// CONSTRUCTOR: Inicializa las estadísticas base de la Bola de Fuego
+// ============================================================================
+BolaDeFuego::BolaDeFuego() : Habilidades("Bola de fuego", 5, 10.0f, 0.5f) // Nombre, daño, rango, cooldown
 {
 	// Estado inicial del proyectil: inactivo y sin distancia recorrida
-	_activo = false;                // Flag: no hay proyectil en pantalla
+	_activo = false;                // El proyectil inicia apagado
 	_velocidad = 400.0f;            // Velocidad en píxeles/segundo
-	_distanciaRecorrida = 0.0f;     // Acumulador de distancia para comparar con el rango
+	_distanciaRecorrida = 0.0f;     // Contador de distancia acumulada
 
 	// Carga de la textura del proyectil y configuración del sprite
 	if (!_textura.loadFromFile("assets/habilidades/Fire_Spell_Frame_01.png"))
 	{
-		// Si falla la carga, lo dejamos registrado en la consola
-		std::cerr << "Error al cargar la textura de la habilidad 1" << std::endl;
+		std::cerr << "❌ Error: No se pudo cargar la textura de BolaDeFuego." << std::endl;
 	}
 	else
 	{
@@ -28,73 +30,78 @@ habilidad_1::habilidad_1() : Habilidades("Bola de fuego", 5, 10.0f, 0.5f) // val
 	}
 }
 
-// activacion de la habilida tomando en cuenta si el cd esta disponible.
-// cd seria cooldown, el tiempo de espera de la habilidad.
-void habilidad_1::activar(sf::Vector2f inicio, sf::Vector2f objetivo)
+// ============================================================================
+// ACTIVAR: Inicializa el proyectil en el mundo apuntando al cursor
+// ============================================================================
+void BolaDeFuego::activar(sf::Vector2f inicio, sf::Vector2f objetivo, float rangoPixeles)
 {
 	if (_cdListo && !_activo)
 	{
-		// Posicionamos el origen del proyectil en la posición del personaje (inicio)
+		// Posicionamos el origen del proyectil en la posición del personaje
 		_sprite.setPosition(inicio);
-		_distanciaRecorrida = 0.0f; // reiniciamos el contador de distancia
+		_distanciaRecorrida = 0.0f; // Reiniciamos el contador de distancia
+		_rango = rangoPixeles; // Actualizamos el rango dinámico según el personaje
 
-		// Calculamos vector hacia el objetivo y lo normalizamos para obtener dirección
+
+		// Calculamos el vector hacia el objetivo y lo normalizamos
 		float diffX = objetivo.x - inicio.x;
 		float diffY = objetivo.y - inicio.y;
-		float distanciaReal = std::sqrt(diffX * diffX + diffY * diffY);
+		
+		// 🌟 FIX 1: std::hypot evita la pérdida de precisión al hacer zoom
+		float distanciaReal = std::hypot(diffX, diffY);
 
-		if (distanciaReal != 0)
+		if (distanciaReal > 0.001f) // 🌟 FIX 2: Tolerancia mínima para evitar bugs si el mouse está pegado al mago
 		{
-			// Dirección normalizada: magnitud = 1, solo indica sentido
 			_direccion.x = diffX / distanciaReal;
 			_direccion.y = diffY / distanciaReal;
 		}
 		else
 		{
-			// Evitar división por cero: en caso de apuntar exactamente al mismo punto
-			_direccion.x = 0;
-			_direccion.y = 0;
+			// Disparo por defecto a la derecha si hace clic en su propio centro
+			_direccion.x = 1.0f;
+			_direccion.y = 0.0f;
 		}
 
-		// Rotamos el sprite para que apunte en la dirección de movimiento (solo efecto visual)
 		float angulo = std::atan2(diffY, diffX) * 180.f / 3.14159f;
 		_sprite.setRotation(angulo);
 
-		// Activamos el proyectil y disparamos el cooldown
-		_activo = true;        // El proyectil pasará a moverse en actualizar()
-		_cdListo = false;      // Marcamos que ya no está listo hasta que el cooldown termine
-		_cdActual = _cdDuracion; // Reiniciamos el temporizador del cooldown
+		_activo = true;
+		_cdListo = false;
+		_cdActual = _cdDuracion;
 	}
-
 }
 
-void habilidad_1::actualizar(float deltaTime)
+// ============================================================================
+// ACTUALIZAR: Mueve el proyectil y gestiona sus ciclos de vida y cooldowns
+// ============================================================================
+void BolaDeFuego::actualizar(float deltaTime)
 {
-	// Actualizamos el cooldown cada frame para que el tiempo restante se reduzca
+	// Reducimos el temporizador del cooldown frame a frame
 	cdActualizar(deltaTime);
 
 	if (_activo)
 	{
-		// Distancia que avanza el proyectil en este frame (píxeles)
+		// Espacio que debe avanzar el proyectil en este frame
 		float avance = _velocidad * deltaTime;
 
-		// Movemos el sprite en dirección normalizada multiplicada por la distancia de avance
+		// Desplazamos el sprite en el espacio bidimensional
 		_sprite.move(_direccion.x * avance, _direccion.y * avance);
 
-		// Acumulamos la distancia para compararla con el rango máximo
+		// Acumulamos la distancia total que se alejó desde el origen
 		_distanciaRecorrida += avance;
 
-		// El rango de la habilidad se almacena en unidades de juego; aquí multiplicamos por 100
-		// (esto es una convención del proyecto; ajustar si es necesario)
-		if (_distanciaRecorrida >= (_rango * 100.f))
+		// Si alcanza el rango límite de la habilidad, la apagamos
+		if (_distanciaRecorrida >= (_rango))
 		{
-			// Cuando alcanza el rango, desactivamos el proyectil para que deje de dibujarse y moverse
 			_activo = false;
 		}
 	}
 }
 
-void habilidad_1::dibujar(sf::RenderWindow& ventana)
+// ============================================================================
+// DIBUJAR: Renderiza el sprite en la ventana de juego
+// ============================================================================
+void BolaDeFuego::dibujar(sf::RenderWindow& ventana)
 {
 	if (_activo)
 	{
@@ -102,8 +109,10 @@ void habilidad_1::dibujar(sf::RenderWindow& ventana)
 	}
 }
 
-// subida de nivel de la habilidad, aumenta las estadisticas mas relevantes dependiendo el nivel.
-void habilidad_1::subirNivel()
+// ============================================================================
+// SUBIR NIVEL: Incrementa las estadísticas base de la magia
+// ============================================================================
+void BolaDeFuego::subirNivel()
 {
 	Habilidades::subirNivel();
 

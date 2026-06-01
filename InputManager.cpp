@@ -2,68 +2,80 @@
 #include <cmath> // 🌟 Necesario para std::sqrt()
 
 InputManager::InputManager() {
-    // --- Inicializamos todo en cero/falso por seguridad ---
     _direccionMovimiento = sf::Vector2f(0.f, 0.f);
+    _clickIzquierdoApretado = false;
     _quiereSaltar = false;
     _quiereCorrer = false;
     _quiereInteractuar = false;
     _quiereAtacar = false;
     _quiereDisparar = false;
     _quiereTirarItem = false;
-    _clickIzquierdoApretado = false;
+    _quiereAbrirInventario = false;
     _deltaScroll = 0;
     _posicionMousePantalla = sf::Vector2i(0, 0);
 }
 
 void InputManager::procesarEvento(const sf::Event& evento) {
-    // Reseteamos el scroll cada frame para que no se quede trabado girando infinito
-    _deltaScroll = 0;
-
-    // Leemos la ruedita del mouse
+    // Leemos la ruedita del mouse (SFML no tiene lectura en tiempo real para el delta del scroll)
     if (evento.type == sf::Event::MouseWheelScrolled) {
         if (evento.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
             _deltaScroll = static_cast<int>(evento.mouseWheelScroll.delta);
         }
     }
-
-    // 🌟 TRUCO: Acciones de "Una sola vez" (Press and release)
-    // Para interactuar o tirar ítems, no queremos que pase 60 veces por segundo si dejamos apretado
-    if (evento.type == sf::Event::KeyPressed) {
-		if (evento.key.code == sf::Keyboard::E) _quiereInteractuar = true; // E de "Interactuar"
-		if (evento.key.code == sf::Keyboard::Q) _quiereTirarItem = true; // Q de "Quitar" o "Tirar"
-		if (evento.key.code == sf::Keyboard::Space) _quiereSaltar = true; // Space de "Saltar"
-    }
-    else if (evento.type == sf::Event::KeyReleased) {
-        if (evento.key.code == sf::Keyboard::E) _quiereInteractuar = false;
-        if (evento.key.code == sf::Keyboard::Q) _quiereTirarItem = false;
-        if (evento.key.code == sf::Keyboard::Space) _quiereSaltar = false;
-    }
 }
 
 void InputManager::actualizarEstadoTiempoReal(const sf::RenderWindow& ventana) {
-    // 1. --- CÁLCULO DEL VECTOR DE MOVIMIENTO (WASD o Flechas) ---
-    float x = 0.f;
-    float y = 0.f;
+    // Actualizamos la posición del mouse en base a tu variable real
+    _posicionMousePantalla = sf::Mouse::getPosition(ventana);
 
-    // SFML usa Y positivo hacia ABAJO de la pantalla
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up))    y -= 1.f; // W de "Arriba" o Flecha Arriba
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down))  y += 1.f; // S de "Abajo" o Flecha Abajo
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  x -= 1.f; // A de "Izquierda" o Flecha Izquierda
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) x += 1.f; // D de "Derecha" o Flecha Derecha
+    // =========================================================================
+    // 🏃 1. ENTRADAS CONTINUAS: Movimiento y Modificadores (Fluido)
+    // =========================================================================
+    _direccionMovimiento = sf::Vector2f(0.f, 0.f);
 
-    // 2. --- NORMALIZACIÓN (Desactivada temporalmente para probar) ---
-    _direccionMovimiento.x = x;
-    _direccionMovimiento.y = y;
+    // Soporte nativo para WASD o Flechas de dirección
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up))    _direccionMovimiento.y -= 1.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down))  _direccionMovimiento.y += 1.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left))  _direccionMovimiento.x -= 1.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) _direccionMovimiento.x += 1.f;
 
-    // 3. --- ESTADOS CONTINUOS (Se pueden mantener apretados) ---
+    // Normalización del vector de movimiento (Para que no corra más rápido de costado)
+    float longitud = std::sqrt(_direccionMovimiento.x * _direccionMovimiento.x + _direccionMovimiento.y * _direccionMovimiento.y);
+    if (longitud != 0.f) {
+        _direccionMovimiento /= longitud;
+    }
+
+    // Correr es continuo: si mantenés Shift, corre todo el tiempo
     _quiereCorrer = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
 
-    // Ataque cuerpo a cuerpo (Clic Izquierdo)
-    _quiereAtacar = sf::Mouse::isButtonPressed(sf::Mouse::Left);
-
-    // Disparo (Clic Derecho o Control)
+    // Disparo secundario continuo (Clic Derecho o Control Izquierdo)
     _quiereDisparar = sf::Mouse::isButtonPressed(sf::Mouse::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::LControl);
 
-    // 4. --- PUNTERO ---
-    _posicionMousePantalla = sf::Mouse::getPosition(ventana);
+    // =========================================================================
+    // ⚡ 2. ENTRADAS DISCRETAS: Filtrado por Flanco de Subida (Edge Detection)
+    // =========================================================================
+
+    // Captura lo que pasa en ESTE instante exacto
+    bool ahoraInventario = sf::Keyboard::isKeyPressed(sf::Keyboard::I);
+    bool ahoraAtacar = sf::Mouse::isButtonPressed(sf::Mouse::Left); // Clic izquierdo para interactuar/atacar
+    bool ahoraSaltar = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
+    bool ahoraTirarItem = sf::Keyboard::isKeyPressed(sf::Keyboard::Q);
+    bool ahoraInteractuar = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
+
+    // El filtro mágico: Solo da TRUE en el frame exacto que se presiona
+    _quiereAbrirInventario = (ahoraInventario && !_antesInventario);
+    _quiereAtacar = (ahoraAtacar && !_antesAtacar);
+    _quiereSaltar = (ahoraSaltar && !_antesSaltar);
+    _quiereTirarItem = (ahoraTirarItem && !_antesTirarItem);
+    _quiereInteractuar = (ahoraInteractuar && !_antesInteractuar);
+
+    // Guardamos el estado actual para el análisis del próximo frame
+    _antesInventario = ahoraInventario;
+    _antesAtacar = ahoraAtacar;
+    _antesSaltar = ahoraSaltar;
+    _antesTirarItem = ahoraTirarItem;
+    _antesInteractuar = ahoraInteractuar;
+
+    // Copia de respaldo por si usan la vieja variable de eventos
+    _clickIzquierdoApretado = ahoraAtacar;
 }

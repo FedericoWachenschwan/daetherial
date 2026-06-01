@@ -3,6 +3,7 @@
 #include <string>
 
 UI_Inventario::UI_Inventario() {
+	_estaAbierto = false;
 	_tamanioSlot = 50.f;
 	_margen = 10.f;
 
@@ -33,6 +34,7 @@ UI_Inventario::UI_Inventario() {
 
 
 // Métodos para que el GameManager incremente o decremente los valores
+
 void UI_Inventario::ajustarPosicion(float x, float y) {
 	_desfaseX += x;
 	_desfaseY += y;
@@ -47,6 +49,7 @@ void UI_Inventario::ajustarOrigen(float x, float y) {
 }
 
 void UI_Inventario::dibujar(sf::RenderWindow& ventana, const Inventario& mochila) {
+	if (!_estaAbierto) return;
 	sf::View vistaOriginal = ventana.getView();
 	ventana.setView(ventana.getDefaultView());
 
@@ -56,6 +59,8 @@ void UI_Inventario::dibujar(sf::RenderWindow& ventana, const Inventario& mochila
 	const std::vector<Item*>& items = mochila.getSlots();
 	int cantidadSlotsVisibles = 5;
 
+
+	int indiceSeleccionado = mochila.getIndiceSeleccionado();
 	float anchoTotal = (cantidadSlotsVisibles * _tamanioSlot) + ((cantidadSlotsVisibles - 1) * _margen);
 
 	// 🌟 2. SUMAR LOS DESFASES a la posición inicial (startX y startY)
@@ -68,10 +73,22 @@ void UI_Inventario::dibujar(sf::RenderWindow& ventana, const Inventario& mochila
 
 		// 1. Dibujamos la caja gris de fondo vacía siempre
 		_slotFondo.setPosition(posX, startY);
+
+		// ==========================================
+		// 🌟 EL SISTEMA DE RESALTADO VISUAL
+		// ==========================================
+		if (i == indiceSeleccionado) {
+			_slotFondo.setOutlineThickness(3.f); // Borde más grueso
+			_slotFondo.setOutlineColor(sf::Color::Green); // Color de resaltado
+		}
+		else {
+			_slotFondo.setOutlineThickness(2.f); // Borde normal que definiste en el constructor
+			_slotFondo.setOutlineColor(sf::Color::White); // Color original
+		}
 		ventana.draw(_slotFondo);
 
 		// 2. Si hay un ítem guardado en este slot, lo dibujamos arriba
-		if (i < items.size() && items[i] != nullptr) {
+		if (i <  static_cast<int> (items.size()) && items[i] != nullptr) {
 
 			// Pedimos una copia del dibujito del ítem
 			sf::Sprite spriteItem = items[i]->getSprite();
@@ -96,10 +113,10 @@ void UI_Inventario::dibujar(sf::RenderWindow& ventana, const Inventario& mochila
 	ventana.setView(vistaOriginal);
 }
 
-
 // ==========================================
 // DETECTAR CLIC CASILLERO (Para Hotbar de 5 Slots)
 // ==========================================
+
 void UI_Inventario::detectarClicCasillero(sf::Vector2i posicionMouse, Inventario& mochila, const sf::RenderWindow& ventana) {
 
 	// 🌟 LA MAGIA DE SFML: Traducimos el pixel del monitor a la coordenada real de la UI
@@ -134,4 +151,14 @@ void UI_Inventario::detectarClicCasillero(sf::Vector2i posicionMouse, Inventario
 			return; // Encontramos el slot, cortamos el bucle
 		}
 	}
+}
+
+bool UI_Inventario::mouseSobrePanel(sf::Vector2i posicionMouse) const {
+	if (!_estaAbierto) return false;
+
+	// Si está abierto, chequea si el mouse cae adentro del rectangulo del sprite
+	return _spriteInventario.getGlobalBounds().contains(
+		static_cast<float>(posicionMouse.x),
+		static_cast<float>(posicionMouse.y)
+	);
 }

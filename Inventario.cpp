@@ -109,7 +109,7 @@ void Inventario::vaciar() {
 // ==========================================
 void Inventario::usarItem(int indice, Personaje& jugador) {
     // 1. Validación de seguridad usando el nombre correcto (_itemsGuardados)
-    if (indice < 0 || indice >= _itemsGuardados.size()) {
+    if (indice < 0 || indice >= static_cast<int>(_itemsGuardados.size())) {
         std::cout << "❌ Slot vacío o inválido." << std::endl;
         return;
     }

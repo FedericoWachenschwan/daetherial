@@ -40,7 +40,7 @@ public:
 
     void colocarEnMundo( sf::Texture& textura, float x, float y, sf::FloatRect hitboxCustom = sf::FloatRect());
     void setPosicion(sf::Vector2f nuevaPosicion);
-    void dibujar(sf::RenderWindow& ventana);
+    void dibujar(sf::RenderWindow& ventana) const;
     bool estaEnElMundo() const { return _estaEnElMundo; }
     bool esAgarrable() const { return _esAgarrable; }
 

@@ -74,7 +74,7 @@ void Menu::moveUp() {
 void Menu::moveDown() {
     // Mueve la selección hacia abajo en el menú
 
-    if (selectedIndex < opciones.size() - 1) {
+    if (selectedIndex < static_cast<int>(opciones.size())) {
         // Verifica que no esté en la última opción del menú
 
         opciones[selectedIndex].setFillColor(sf::Color::White);

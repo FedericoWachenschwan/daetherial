@@ -25,7 +25,7 @@ void Item::colocarEnMundo(sf::Texture& textura, float x, float y, sf::FloatRect 
     }
 }
 
-void Item::dibujar(sf::RenderWindow& ventana) {
+void Item::dibujar(sf::RenderWindow& ventana) const {
     if (_estaEnElMundo) {
         ventana.draw(_sprite);
     }

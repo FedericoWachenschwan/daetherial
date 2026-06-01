@@ -19,7 +19,7 @@ void ObjectsManager::agregarItemAlMundo(Item* nuevoItem, const sf::Texture& text
     _itemsEnMundo.push_back(nuevoItem);
 }
 
-void ObjectsManager::dibujarItems(sf::RenderWindow& ventana) {
+void ObjectsManager::dibujarItems(sf::RenderWindow& ventana) const {
     for (auto* item : _itemsEnMundo) {
         item->dibujar(ventana);
     }

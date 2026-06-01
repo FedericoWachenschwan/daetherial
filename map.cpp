@@ -103,7 +103,7 @@ bool Map::cargarMapa(const string& csvPath, const string& texturaPath) {
 // =================================================================================================================================
 // FUNCIÓN PARA DIBUJAR EL MAPA COMPLETO EN LA PANTALLA
 // =================================================================================================================================
-void Map::dibujarMapa(sf::RenderWindow& ventana) {
+void Map::dibujarMapa(sf::RenderWindow& ventana) const {
 	// Dibuja el sprite de fondo gigante que ya configuramos en cargarMapa
 	ventana.draw(_spriteTile);
 }
@@ -137,7 +137,7 @@ bool Map::hayColision(const sf::FloatRect& rect) const {
 // =================================================================================================================================
 // FUNCION DEBUG REFACTORIZADA: Ahora dibuja rectángulos directamente desde nuestro vector de objetos físicos
 // =================================================================================================================================
-void Map::dibujarDebug(sf::RenderWindow& ventana) {
+void Map::dibujarDebug(sf::RenderWindow& ventana) const {
 	// Creamos un rectángulo auxiliar para dibujar las cajas de colisión
 	sf::RectangleShape rectDebug;
 	rectDebug.setFillColor(sf::Color(255, 0, 0, 100)); // Rojo semitransparente

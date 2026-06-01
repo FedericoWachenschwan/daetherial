@@ -153,9 +153,28 @@ void GameManager::actualizar() {
         _input.actualizarEstadoTiempoReal(_ventana);
         _camara.seguir(_personaje.getPosicion(), dt); // ✅ Le pasamos el DeltaTime
 
-        // 🌟 INYECCIÓN 3: Le pasamos el input masticado al personaje
-        _personaje.manejarInput(_input, _mapa, _ventana);
-        _personaje.actualizarHabilidades(dt);
+
+        // =========================================================
+        // 🌟 EL FIX MAESTRO: Le aplicamos la cámara del juego a la 
+        // ventana ANTES de que el personaje calcule a dónde disparar.
+        // =========================================================
+        _ventana.setView(_camara.getVista());
+
+        // =================================================================
+        // 🎒 🌟 LA LÍNEA QUE TE FALTA: Escuchar al InputManager y abrir la UI
+        // =================================================================
+        if (_input.quiereAbrirInventario()) {
+            _hudInventario.toggle(); // 👈 Si el manager dice true, la UI cambia entre abierto/cerrado
+            std::cout << "🎮 GameManager -> Toggle Inventario! Estado actual: " << _hudInventario.isOpen() << std::endl;
+        }
+
+        // 🌟 CORREGIDO: Usamos '_hudInventario' que es tu atributo real del GameManager.h
+        // (Asegurate de que el método sea .isOpen() o .getVisible() según lo que definieron en UI_Inventario.h)
+        bool inventarioAbierto = _hudInventario.isOpen();
+
+        // 🌟 INYECCIÓN 3: Le pasamos el input masticado al personaje junto con el candado de la UI
+        _personaje.manejarInput(_input, _mapa, _ventana, inventarioAbierto);
+        _personaje.actualizar(dt);
 
         _mascota.seguir(_personaje.getPosicion());
         _golem.actualizar(_personaje.getPosicion(), dt);

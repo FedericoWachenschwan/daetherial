@@ -8,6 +8,6 @@ public:
 	habilidad_3(); // constructor.
 
 	// override sobreescribe los metodos heredados Habilidades (padre).
-	void activar(sf::Vector2f inicio, sf::Vector2f objetivo) override; // activamos la habilidad .
+	void activar(sf::Vector2f inicio, sf::Vector2f objetivo, float rangoPixeles) override; // activamos la habilidad .
 	void subirNivel() override; // subida de nivel de la habilidad.
 };

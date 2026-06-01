@@ -3,9 +3,16 @@
 
 class InputManager {
 private:
+    // --- ESTADOS ANTERIORES PARA NO SPAMEAR (Flanco de subida) ---
+    bool _antesInventario = false;
+    bool _antesAtacar = false;
+    bool _antesSaltar = false;
+    bool _antesTirarItem = false;
+    bool _antesInteractuar = false;
+
     // --- MOVIMIENTO ---
     sf::Vector2f _direccionMovimiento;
-    bool _clickIzquierdoApretado; // 🌟 Se mantiene por si procesas eventos
+    bool _clickIzquierdoApretado;
     bool _quiereSaltar;
     bool _quiereCorrer;
 
@@ -16,27 +23,29 @@ private:
 
     // --- INVENTARIO Y UI ---
     bool _quiereTirarItem;
+    bool _quiereAbrirInventario; // 🌟 AGREGADO: Para controlar la apertura de la mochila
     int _deltaScroll;
     sf::Vector2i _posicionMousePantalla;
 
 public:
-    InputManager();
+    InputManager(); // Tu constructor manual
 
     void procesarEvento(const sf::Event& evento);
     void actualizarEstadoTiempoReal(const sf::RenderWindow& ventana);
 
     // ==========================================
-    // 🌟 TODOS LOS GETTERS EXPLÍCITOS (Limpios y sin duplicar)
+    // 🌟 TODOS LOS GETTERS EXPLÍCITOS (Sincronizados)
     // ==========================================
     sf::Vector2f getDireccionMovimiento() const { return _direccionMovimiento; }
     bool quiereSaltar() const { return _quiereSaltar; }
     bool quiereCorrer() const { return _quiereCorrer; }
 
     bool quiereInteractuar() const { return _quiereInteractuar; }
-    bool quiereAtacar() const { return _quiereAtacar; } // 🌟 Devuelve tu flag de combate
+    bool quiereAtacar() const { return _quiereAtacar; }
     bool quiereDisparar() const { return _quiereDisparar; }
     bool quiereTirarItem() const { return _quiereTirarItem; }
+    bool quiereAbrirInventario() const { return _quiereAbrirInventario; } // 🌟 AGREGADO
 
     int getDeltaScroll() const { return _deltaScroll; }
-    sf::Vector2i getPosicionMouse() const { return _posicionMousePantalla; } // 🌟 Apunta a tu variable real
+    sf::Vector2i getPosicionMouse() const { return _posicionMousePantalla; }
 };

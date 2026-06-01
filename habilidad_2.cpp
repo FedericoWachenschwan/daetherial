@@ -6,7 +6,7 @@ habilidad_2::habilidad_2() : Habilidades("Habilidad_2", 5, 1.5f, 0.5f) // valore
 
 // activacion de la habilida tomando en cuenta si el cd esta disponible.
 // cd seria cooldown, el tiempo de espera de la habilidad.
-void habilidad_2::activar(sf::Vector2f inicio, sf::Vector2f objetivo)
+void habilidad_2::activar(sf::Vector2f inicio, sf::Vector2f objetivo, float rangoPixeles)
 {
 	if (_cdListo)
 	{
