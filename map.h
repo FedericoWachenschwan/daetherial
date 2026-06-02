@@ -53,4 +53,5 @@ public:
 	// Funciones de dibujado
 	void dibujarMapa(sf::RenderWindow& ventana) const;
 	void dibujarDebug(sf::RenderWindow& ventana) const;
+	bool esSolido(int f, int c) const; // Función para que el Pathfinder pueda consultar si una baldosa es sólida o no sin tener que lidiar con coordenadas del mundo
 };

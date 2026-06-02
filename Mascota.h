@@ -1,24 +1,29 @@
 #pragma once
-#include <SFML/Graphics.hpp>
+#include "EntidadViva.h"
 
-// Clase que representa a la mascota que sigue al personaje automáticamente
-class Mascota {
+class Mascota : public EntidadViva { // 🌟 MAGIA OOP: Hereda del motor central
 private:
-    sf::Sprite sprite_mascota;      // Objeto que muestra la imagen de la mascota en pantalla
-    sf::Texture textura_abajo;      // Imagen cuando mira hacia abajo
-    sf::Texture textura_arriba;     // Imagen cuando mira hacia arriba
-    sf::Texture textura_derecha;    // Imagen cuando mira hacia la derecha
-    sf::Texture textura_izquierda;  // Imagen cuando mira hacia la izquierda
-    float velocidad = 0.f;         // Cuántos píxeles se mueve por frame, empieza en 0
-    float distancia_maxima = 0.f;  // A partir de qué distancia la mascota deja de seguir al personaje
+    // Mantenemos tus 4 texturas individuales
+    sf::Texture textura_abajo;
+    sf::Texture textura_arriba;
+    sf::Texture textura_derecha;
+    sf::Texture textura_izquierda;
+
+    float distancia_maxima;
+
+    // Su cerebro necesita saber dónde está el dueño
+    sf::Vector2f _posicionDuenio;
 
 public:
-    // Constructor: se ejecuta automáticamente al crear el objeto Mascota
     Mascota();
 
-    // Calcula hacia dónde moverse para seguir al personaje
-    void seguir(sf::Vector2f posicion_del_personaje);
+    // Reemplazamos el "seguir()" por el setter lógico de la IA
+    void setPosicionObjetivo(sf::Vector2f posicion_del_personaje) { _posicionDuenio = posicion_del_personaje; }
 
-    // Dibuja la mascota en la ventana
-    void dibujar(sf::RenderWindow& ventana);
+    // =========================================================================
+    // 🌟 LOS CONTRATOS OBLIGATORIOS DE LA CLASE MADRE
+    // =========================================================================
+    void actualizar(float dt) override;
+    void dibujar(sf::RenderWindow& ventana) override;
+    sf::FloatRect getBounds() const override;
 };

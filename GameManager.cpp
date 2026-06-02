@@ -1,46 +1,44 @@
 #include "GameManager.h"
 #include <iostream>
-#include "cmath" // Para usar cos() y sin() en spawnearDropSeguro
+#include <cmath> // Para usar cos() y sin()
 #include <cstdlib>
 
 using namespace std;
 
-// ==========================================
-// 1. INICIALIZACIÓN (El constructor)
-// ==========================================
+// ============================================================================
+// 1. INICIALIZACIÓN Y CONFIGURACIÓN
+// ============================================================================
 GameManager::GameManager()
     : _ventana(sf::VideoMode(1280, 720), "Daetherial - UTN"),
     _camara(1280.f, 720.f),
     _estado(MENU),
     _menu(1280.f, 720.f),
     _mapa(16, 1.0f),
-    _golem(sf::Vector2f(500.f, 400.f)) // Posición inicial del Gólem
+    _golem(sf::Vector2f(500.f, 400.f), &_mapa) // Posición inicial del Gólem con referencia al mapa
 {
-    _camara.setLimitesMundo(sf::FloatRect(0, 0, 2000, 2000)); // Ajustá al tamaño real
+    // --- Configuración del Motor ---
+    _camara.setLimitesMundo(sf::FloatRect(0, 0, 2000, 2000));
     _ventana.setFramerateLimit(60);
 
-
-    // ================= MAPA =================
+    // --- Carga del Mundo ---
     if (!_mapa.cargarMapa("assets/collisions_mapa_v1_background.csv", "assets/mapa_v1_background.png")) {
-        cout << "❌ No se pudo cargar el mapa. Cerrando el juego." << endl;
+        cout << "❌ Error crítico: No se pudo cargar el mapa." << endl;
         _ventana.close();
     }
 
-    // ================= SONIDO AMBIENTE (CORREGIDO) =================
-    // 🎵 Arrancamos la música apenas se crea el GameManager usando tu nueva función
+    // --- Audio Inicial ---
     cambiarMusica(_estado);
 
-    // ================= ITEMS Y OBJETOS (NUEVO) =================
-    // 🧪 Spawneamos ítems de prueba para testear tu nuevo sistema
+    // --- Spawns de Prueba ---
     Item* pocionDePrueba = _itemManager.crearPocionVida();
     spawnearDropSeguro(pocionDePrueba, _itemManager.getTexturaPocionVida(), 400.f, 300.f);
 
     Item* hornoDePrueba = _itemManager.crearHorno();
     _objectsManager.agregarItemAlMundo(hornoDePrueba, _itemManager.getTexturaHorno(), 550.f, 350.f);
 
-    // ================= CREDITOS =================
+    // --- Interfaz de Créditos ---
     if (!_fontCreditos.loadFromFile("assets/NorthEternal-yYl4V.otf")) {
-        cout << "❌ Error cargando fuente de creditos" << endl;
+        cout << "❌ Error cargando fuente de créditos" << endl;
     }
 
     _textoCreditos.setFont(_fontCreditos);
@@ -61,15 +59,14 @@ GameManager::GameManager()
         "Descripcion:\n"
         "Juego de supervivencia contra\n"
         "oleadas de mobs con mejoras y logros.\n"
-        "Presiona ESC para volver\n\n"
-        "Para volver preciona ESC"
+        "Presiona ESC para volver"
     );
     _textoCreditos.setPosition(120, 100);
 }
 
-// ==========================================
-// 2. BUCLE PRINCIPAL (El run)
-// ==========================================
+// ============================================================================
+// 2. BUCLE PRINCIPAL DEL JUEGO
+// ============================================================================
 void GameManager::run() {
     while (_ventana.isOpen()) {
         procesarEventos();
@@ -78,9 +75,9 @@ void GameManager::run() {
     }
 }
 
-// ==========================================
-// 3. PROCESO DE EVENTOS (El procesarEventos)
-// ==========================================
+// ============================================================================
+// 3. CONTROLADOR DE EVENTOS (Input de teclado y ventana)
+// ============================================================================
 void GameManager::procesarEventos() {
     sf::Event evento;
 
@@ -90,35 +87,33 @@ void GameManager::procesarEventos() {
             _ventana.close();
         }
 
-        // 🌟 INYECCIÓN 1: El InputManager lee los eventos sueltos
+        // Sistema global de input
         _input.procesarEvento(evento);
 
-        // Zoom solo en juego
-        if (_estado == JUGANDO) {
+        // --- Lógica según el Estado ---
+        switch (_estado) {
+
+        case JUGANDO:
             _camara.procesarZoom(evento);
 
-            // 🌟 PRENDER/APAGAR DEBUG CON F3
+            // Toggle Debug
             if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::F3) {
                 _debug.toggleDebug();
             }
+            _debug.procesarEventos(evento, _hudInventario, _personaje, _golem);
+            break;
 
-            _debug.procesarEventos(evento, _hudInventario, _personaje);
-        }
-
-        if (_estado == MENU) {
+        case MENU:
             if (evento.type == sf::Event::KeyPressed) {
-
                 if (evento.key.code == sf::Keyboard::Up) _menu.moveUp();
                 if (evento.key.code == sf::Keyboard::Down) _menu.moveDown();
 
                 if (evento.key.code == sf::Keyboard::Enter) {
                     int selected = _menu.getSelectedIndex();
-
                     if (selected == 0) {
                         _estado = JUGANDO;
-                        // 🎵 CORREGIDO: Cambiamos la música al entrar a jugar
                         cambiarMusica(_estado);
-                        _reloj.restart();
+                        _reloj.restart(); // Reiniciamos para evitar saltos bruscos de dt
                     }
                     else if (selected == 2) {
                         _estado = CREDITOS;
@@ -128,86 +123,72 @@ void GameManager::procesarEventos() {
                     }
                 }
             }
-        }
+            break;
 
-        else if (_estado == CREDITOS) {
-            if (evento.type == sf::Event::KeyPressed) {
-                if (evento.key.code == sf::Keyboard::Escape) {
-                    _estado = MENU;
-                    // Opcional: si querés que la música del menú vuelva al salir de créditos
-                    // cambiarMusica(_estado); 
-                }
+        case CREDITOS:
+            if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::Escape) {
+                _estado = MENU;
             }
+            break;
         }
     }
 }
 
-// ==========================================
-// 4. ACTUALIZACIÓN DE LÓGICA (El actualizar)
-// ==========================================
+// ============================================================================
+// 4. ACTUALIZACIÓN LÓGICA (Física, IA, Interacciones)
+// ============================================================================
 void GameManager::actualizar() {
-    if (_estado == JUGANDO) {
-        float dt = _reloj.restart().asSeconds();
+    if (_estado != JUGANDO) return;
 
-        // 🌟 INYECCIÓN 2: Actualizamos las teclas mantenidas en este frame
-        _input.actualizarEstadoTiempoReal(_ventana);
-        _camara.seguir(_personaje.getPosicion(), dt); // ✅ Le pasamos el DeltaTime
+    float dt = _reloj.restart().asSeconds();
 
+    // 1. SISTEMAS CORE
+    _input.actualizarEstadoTiempoReal(_ventana);
+    _camara.seguir(_personaje.getPosicion(), dt);
 
-        // =========================================================
-        // 🌟 EL FIX MAESTRO: Le aplicamos la cámara del juego a la 
-        // ventana ANTES de que el personaje calcule a dónde disparar.
-        // =========================================================
-        _ventana.setView(_camara.getVista());
+    // Alineamos la ventana con la cámara para que el mouse world-space funcione bien
+    _ventana.setView(_camara.getVista());
 
-        // =================================================================
-        // 🎒 🌟 LA LÍNEA QUE TE FALTA: Escuchar al InputManager y abrir la UI
-        // =================================================================
-        if (_input.quiereAbrirInventario()) {
-            _hudInventario.toggle(); // 👈 Si el manager dice true, la UI cambia entre abierto/cerrado
-            std::cout << "🎮 GameManager -> Toggle Inventario! Estado actual: " << _hudInventario.isOpen() << std::endl;
-        }
+    // 2. SISTEMAS DE INTERFAZ E INVENTARIO
+    if (_input.quiereAbrirInventario()) {
+        _hudInventario.toggle();
+        std::cout << "🎮 Inventario: " << (_hudInventario.isOpen() ? "Abierto" : "Cerrado") << std::endl;
+    }
 
-        // 🌟 CORREGIDO: Usamos '_hudInventario' que es tu atributo real del GameManager.h
-        // (Asegurate de que el método sea .isOpen() o .getVisible() según lo que definieron en UI_Inventario.h)
-        bool inventarioAbierto = _hudInventario.isOpen();
+    if (_input.quiereAtacar()) {
+        _hudInventario.detectarClicCasillero(_input.getPosicionMouse(), _personaje.getInventario(), _ventana);
+    }
 
-        // 🌟 INYECCIÓN 3: Le pasamos el input masticado al personaje junto con el candado de la UI
-        _personaje.manejarInput(_input, _mapa, _ventana, inventarioAbierto);
-        _personaje.actualizar(dt);
-
-        _mascota.seguir(_personaje.getPosicion());
-        _golem.actualizar(_personaje.getPosicion(), dt);
-        _niebla.actualizar(dt);
-
-        // 📥 INYECCIÓN 3: Chequeamos interacciones con objetos para que lean la "E"
-        _objectsManager.chequearInteracciones(_personaje, _input);
-
-        // =================================================================
-        // 🎒 NUEVA INYECCIÓN: LÓGICA INTERACTIVA DEL INVENTARIO
-        // =================================================================
-
-        // 1. ESTO FALTABA: Primero le hacemos clic para seleccionarlo
-        if (_input.quiereAtacar()) {
-            _hudInventario.detectarClicCasillero(_input.getPosicionMouse(), _personaje.getInventario(), _ventana);
-        }
-
-        // 2. ESTO YA LO TENÍAS: Después apretamos la Q para tirarlo
-        if (_input.quiereTirarItem()) {
-            Item* itemATirar = _personaje.getInventario().extraerItemPorIndice();
-
-            if (itemATirar != nullptr) {
-                itemATirar->setPosicion(_personaje.getPosicion());
-                _objectsManager.recibirItemSoltado(itemATirar);
-                std::cout << "🎮 GameManager -> Tiraste: " << itemATirar->getNombre() << " al piso!" << std::endl;
-            }
+    if (_input.quiereTirarItem()) {
+        Item* itemATirar = _personaje.getInventario().extraerItemPorIndice();
+        if (itemATirar != nullptr) {
+            itemATirar->setPosicion(_personaje.getPosicion());
+            _objectsManager.recibirItemSoltado(itemATirar);
+            std::cout << "📥 Drop: " << itemATirar->getNombre() << std::endl;
         }
     }
+
+    // 3. ACTUALIZACIÓN DE ENTIDADES
+    _personaje.manejarInput(_input, _mapa, _ventana, _hudInventario.isOpen());
+    _personaje.actualizar(dt);
+
+    _golem.setPosicionObjetivo(_personaje.getPosicion());
+    _golem.actualizar(dt);
+
+    _mascota.setPosicionObjetivo(_personaje.getPosicion());
+    _mascota.actualizar(dt);
+
+    _niebla.actualizar(dt);
+
+    // 4. INTERACCIONES FÍSICAS MUNDO-PERSONAJE
+    _objectsManager.chequearInteracciones(_personaje, _input);
+
+    _debug.actualizar(_hudInventario, _personaje, _golem);
 }
 
-// ==========================================
-// 5. RENDERIZACIÓN (El renderizar)
-// ==========================================
+// ============================================================================
+// 5. RENDERIZADO (Dibujado en pantalla)
+// ============================================================================
 void GameManager::renderizar() {
     _ventana.clear(sf::Color(30, 30, 30));
 
@@ -215,35 +196,44 @@ void GameManager::renderizar() {
         _ventana.setView(_ventana.getDefaultView());
         _menu.draw(_ventana);
     }
+    else if (_estado == CREDITOS) {
+        _ventana.setView(_ventana.getDefaultView());
+        _ventana.draw(_textoCreditos);
+    }
     else if (_estado == JUGANDO) {
-        // 1. DIBUJAMOS EL MUNDO (Con la cámara del jugador)
+
+        // --- CAPA 1: MUNDO Y ENTIDADES (Camara del Jugador) ---
         _ventana.setView(_camara.getVista());
+
         _mapa.dibujarMapa(_ventana);
         _objectsManager.dibujarItems(_ventana);
         _personaje.dibujar(_ventana);
         _mascota.dibujar(_ventana);
         _golem.dibujar(_ventana);
         _niebla.dibujar(_ventana, _camara.getVista());
-        _debug.dibujarHitboxes(_ventana, _personaje, _mapa);
 
-        // =======================================================
-        // 2. DIBUJAMOS LA INTERFAZ (Con la cámara fija a la pantalla)
-        // =======================================================
-        _ventana.setView(_ventana.getDefaultView()); // 🌟 ESTA LÍNEA ES LA MAGIA
+        // --- CAPA 2: MODO DEBUG POLIMÓRFICO ---
+        if (_debug.estaActivo()) {
+            _mapa.dibujarDebug(_ventana);
+            _golem.dibujarPathFinder(_ventana);
 
-        _hudInventario.dibujar(_ventana, _personaje.getInventario());
-    }
-    else if (_estado == CREDITOS) {
+            // Dibujado de colisiones con colores semánticos
+            _debug.dibujarCajaColision(_ventana, _personaje, sf::Color::Green);
+            _debug.dibujarCajaColision(_ventana, _golem, sf::Color::Magenta);
+            // _debug.dibujarCajaColision(_ventana, _mascota, sf::Color::Cyan); 
+        }
+
+        // --- CAPA 3: INTERFAZ Y HUD (Cámara Estática) ---
         _ventana.setView(_ventana.getDefaultView());
-        _ventana.draw(_textoCreditos);
+        _hudInventario.dibujar(_ventana, _personaje.getInventario());
     }
 
     _ventana.display();
 }
 
-// ==========================================
-// 6. FUNCIONES AUXILIARES 
-// ==========================================
+// ============================================================================
+// 6. FUNCIONES AUXILIARES (Utilidades del mundo)
+// ============================================================================
 void GameManager::spawnearDropSeguro(Item* item, const sf::Texture& textura, float startX, float startY) {
     sf::FloatRect hitbox = item->getBounds();
     hitbox.left = startX;
@@ -251,8 +241,6 @@ void GameManager::spawnearDropSeguro(Item* item, const sf::Texture& textura, flo
 
     int intentos = 0;
     const int MAX_INTENTOS = 100;
-
-    std::cout << "🔍 Debug Hitbox - Ancho: " << hitbox.width << " Alto: " << hitbox.height << std::endl;
 
     while (_mapa.hayColision(hitbox) && intentos < MAX_INTENTOS) {
         startX += (rand() % 21 - 10);
@@ -263,18 +251,14 @@ void GameManager::spawnearDropSeguro(Item* item, const sf::Texture& textura, flo
     }
 
     if (intentos >= MAX_INTENTOS) {
-        std::cout << "⚠️ Advertencia: El drop de " << item->getNombre()
-            << " no encontró lugar seguro y quedó en la pared." << std::endl;
+        std::cout << "⚠️ Advertencia: Drop bloqueado en pared: " << item->getNombre() << std::endl;
     }
 
     _objectsManager.agregarItemAlMundo(item, textura, startX, startY);
 }
 
-// ==========================================
-// 7. ORQUESTADOR DE AUDIO
-// ==========================================
 void GameManager::cambiarMusica(GameState nuevoEstado) {
-    _musicaAmbiente.stop(); // Paramos lo que esté sonando
+    _musicaAmbiente.stop();
 
     if (nuevoEstado == MENU) {
         _musicaAmbiente.openFromFile("assets/menu_song.ogg");

@@ -162,6 +162,7 @@
     <ClCompile Include="Colisionable.cpp" />
     <ClCompile Include="DebugManager.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="EntidadViva.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Inventario.cpp" />
@@ -173,6 +174,7 @@
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="Niebla.cpp" />
     <ClCompile Include="ObjectsManager.cpp" />
+    <ClCompile Include="PathFinder.cpp" />
     <ClCompile Include="Personaje.cpp" />
     <ClCompile Include="habilidades.cpp" />
     <ClCompile Include="BolaDeFuego.cpp" />
@@ -285,6 +287,7 @@
     <ClInclude Include="dependencias\SFML\include\SFML\Window\WindowHandle.hpp" />
     <ClInclude Include="dependencias\SFML\include\SFML\Window\WindowStyle.hpp" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="EntidadViva.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Inventario.h" />
@@ -295,6 +298,7 @@
     <ClInclude Include="menu.h" />
     <ClInclude Include="Niebla.h" />
     <ClInclude Include="ObjectsManager.h" />
+    <ClInclude Include="PathFinder.h" />
     <ClInclude Include="Personaje.h" />
     <ClInclude Include="habilidades.h" />
     <ClInclude Include="BolaDeFuego.h" />
