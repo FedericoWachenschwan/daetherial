@@ -1,8 +1,24 @@
 #include "menu.h" // Incluye la definición de la clase Menu (archivo .h correspondiente)
+#include <iostream> 
 
 Menu::Menu(float width, float height) { // Constructor del menú, recibe el ancho y alto de la ventana
     font.loadFromFile("assets/NorthEternal-yYl4V.otf");
     // Carga la fuente desde el archivo especificado (necesaria para mostrar texto)
+
+    // Cargando la imagen de fondo del menu
+    if ( !fondoTexture.loadFromFile("assets/fondo-menu3.jpeg"))
+    {
+        //Mensaje que se muestra en caso de que no se pueda cargar la imagen de fondo
+        std::cout << "Error cargando fondo del menu" << std::endl;
+    }
+
+	fondoSprite.setTexture(fondoTexture);
+
+    // Esto hace que la imagen ocupe toda la pantalla
+	fondoSprite.setScale(
+       width / fondoTexture.getSize().x,
+       height / fondoTexture.getSize().y
+    );
 
     std::string items[] = {
         "Inicio",
@@ -26,16 +42,25 @@ Menu::Menu(float width, float height) { // Constructor del menú, recibe el anch
         text.setCharacterSize(40);
         // Define el tamaño de la letra
 
-        text.setPosition(width / 2 - 100, height / (5 + 1) * (i + 1));
+		// Cálculo de la posición del texto para centrarlo y distribuirlo verticalmente
+        float centroX = width / 2.0f;
+        float inicioY = height * 0.35f;   // baja todo el menú
+        float separacion = 70.0f;         // espacio entre opciones
+
+        text.setPosition(
+            centroX - 80,
+            inicioY + i * separacion
+        );
+
         // Posiciona el texto en la pantalla
         // width / 2 - 100 -> centra horizontalmente con un pequeño ajuste
         // height / (5 + 1) * (i + 1) -> distribuye las opciones verticalmente
 
         if (i == 0)
-            text.setFillColor(sf::Color::Red);
+            text.setFillColor(sf::Color(180, 50, 30)); // Al seleccionar una opcion
         // Si es la primera opción, se pinta de rojo (indica selección inicial)
         else
-            text.setFillColor(sf::Color::White);
+			text.setFillColor(sf::Color(60, 40, 20));  // Opciones no seleccionadas 
         // Las demás opciones se pintan de blanco
 
         opciones.push_back(text);
@@ -47,6 +72,9 @@ Menu::Menu(float width, float height) { // Constructor del menú, recibe el anch
 }
 
 void Menu::draw(sf::RenderWindow& window) {
+    // Primero pintamos la imagen en la ventana
+	window.draw(fondoSprite);
+    
     // Función que dibuja todas las opciones en la ventana
 
     for (auto& opcion : opciones)

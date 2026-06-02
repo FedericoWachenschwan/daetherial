@@ -33,4 +33,8 @@ public: // 👈 TODO lo que usás desde main VA ACÁ
     int getSelectedIndex();
     // Devuelve el índice de la opción actualmente seleccionada
     // Sirve para saber qué opción eligió el usuario
+
+    // Textura para la imagen de fondo del emnu
+	sf::Texture fondoTexture;
+	sf::Sprite fondoSprite;
 };
