@@ -705,6 +705,7 @@
     <None Include="SFML\license.md" />
     <None Include="SFML\readme.md" />
     <None Include="Daetherial.slnx" />
+    <None Include=".editorconfig" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="assets\ambient.wav" />

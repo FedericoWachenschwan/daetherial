@@ -32,6 +32,7 @@ public:
     // Funciones comunes que hacen lo mismo para todos
     virtual void dibujar(sf::RenderWindow& ventana);
     sf::Vector2f getPosicion() const;
+	void setPosicion(sf::Vector2f nuevaPos) { _sprite.setPosition(nuevaPos); } // Función para que los hijos (personaje y enemigos) puedan mover la entidad
 
     // Sistema de vida base
     void recibirDanio(int cantidad);

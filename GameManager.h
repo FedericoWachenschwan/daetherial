@@ -63,18 +63,13 @@ private:
     sf::Text _textoCreditos;  // Texto a mostrar
 
     // Métodos del Game Loop
-    void procesarEventos();
-    void actualizar();
-    void renderizar();
-   
-	// Funcion intermediaria para spawnear un ítem de forma segura (sin colisionar con el personaje, mapa u otros objetos)
-    // 🌟 Nuestro nuevo método de Rejection Sampling para loot
-    void spawnearDropSeguro(Item* item, const sf::Texture& textura, float startX, float startY);
-
-	// Función para cambiar la música de ambiente según el estado del juego (opcional pero recomendado para mejorar la inmersión)
-    void cambiarMusica(GameState nuevoEstado);
-
+	void procesarEventos(); // Método dedicado al procesamiento de eventos para mantener el código organizado
+	void actualizar(); // Método dedicado a la actualización de la lógica del juego para mantener el código organizado
+	void renderizar(); // Método dedicado al renderizado para mantener el código organizado
+	void spawnearDropSeguro(Item* item, const sf::Texture& textura, float startX, float startY); //spawnear un drop sin que quede bloqueado en paredes
+	void cambiarMusica(GameState nuevoEstado); // Cambia la música de fondo según el estado del juego (ej: música de menú, música de juego, música de créditos)
     sf::Music _musicaAmbiente;
+    void colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enemigo); // Maneja la colisión entre el jugador y un enemigo, aplicando daño o efectos según corresponda
 
 
 

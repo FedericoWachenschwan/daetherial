@@ -233,3 +233,4 @@ void Personaje::ajustarOrigenSprite(float x, float y) {
     sf::Vector2f origenActual = _sprite.getOrigin();
     _sprite.setOrigin(origenActual.x + x, origenActual.y + y);
 }
+

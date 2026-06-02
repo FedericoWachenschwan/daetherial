@@ -423,6 +423,7 @@
     <Image Include="assets\Walk_Up-Sheet.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".editorconfig" />
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
     <None Include="assets\collisions_mapa_v1_background.csv" />

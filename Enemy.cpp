@@ -1,4 +1,3 @@
-
 #include "Enemy.h"
 #include "PathFinder.h"
 #include <iostream>
@@ -44,9 +43,7 @@ Enemy::Enemy(sf::Vector2f posInicial, Map* mapa) : _mapaRef(mapa) {
     }
 
     _sprite.setTexture(_textura);
-
-    // Calibración del punto de pivote (Origen visual alineado con la base física)
-    _sprite.setOrigin(46.f, 94.f);
+	_sprite.setOrigin(64.f, 108.f); // Ajuste del origen al centro de los pies para mejorar colisiones y sensación de peso
     _sprite.setPosition(posInicial);
 
     // Configuración del vector de estado del personaje (Atributos base)
@@ -65,7 +62,7 @@ void Enemy::setPosicionObjetivo(sf::Vector2f posJugador) {
 }
 
 // ============================================================================
-// BUCLE DE ACTUALIZACIÓN (Orquestador Lógico)
+//              BUCLE DE ACTUALIZACIÓN (Orquestador Lógico)
 // ============================================================================
 
 /**
@@ -74,22 +71,41 @@ void Enemy::setPosicionObjetivo(sf::Vector2f posJugador) {
  */
 void Enemy::actualizar(float dt) {
     if (!_mapaRef) return;
-
     sf::Vector2f posActual = _sprite.getPosition();
-
     // Heurística de proximidad: Distancia Euclídea respecto al jugador
-    float distanciaAlJugador = std::hypot(_posicionObjetivo.x - posActual.x,
-        _posicionObjetivo.y - posActual.y);
+    float distanciaAlJugador = std::hypot(_posicionObjetivo.x - posActual.x, _posicionObjetivo.y - posActual.y);
 
-    // Área de activación de la IA (Culling lógico a más de 400 píxeles)
-    if (distanciaAlJugador <= 400.f) {
+    // ==============================================
+    //              LOGICA DE COMBATE
+    // ==============================================
+    if (distanciaAlJugador <= _rangoAtaque) {
+        // Si EL NPC esta en rango
+        if (_relojAtaque.getElapsedTime().asSeconds() >= _cooldownAtaque) {
+
+            if (_jugadorVivoRef != nullptr) {
+				// Ejecuta la lógica de ataque (aplicar daño al jugador)
+				_jugadorVivoRef->recibirDanio(_danio);
+            }
+            std::cout << "💥 ¡El Golem te pegó por " << _danio << " de daño!" << std::endl;
+            // Acá llamaríamos a: _jugadorRef->recibirDanio(_danio);
+            // (Después le pasamos la referencia del jugador al enemigo)
+
+            // Reiniciamos el reloj para que no pegue de nuevo instantáneamente
+            _relojAtaque.restart();
+        }
+        _caminoActual.clear();
+    }
+    // =======================================================
+    // SI NO ESTÁ A RANGO, LO PERSIGUE (Culling a 400px)
+    // =======================================================
+    else if (distanciaAlJugador <= 400.f) {
         activarPathfinder(dt, posActual);
     }
     else {
-        // Optimización: Si el jugador se aleja, se libera la memoria del camino y la entidad se detiene
         _caminoActual.clear();
     }
 }
+
 
 // ============================================================================
 // NÚCLEO CINEMÁTICO: SISTEMA DE NAVEGACIÓN Y STEERING
@@ -114,12 +130,12 @@ void Enemy::activarPathfinder(float dt, sf::Vector2f posActual) {
         _posicionObjetivo.y - _ultimoDestinoConocido.y);
 
     // Umbral de tolerancia de desvío del jugador antes de forzar un recálculo (150 píxeles)
-    bool necesitaRecalculo = distAlObjetivo > 150.f;
+    bool necesitaRecalculo = distAlObjetivo > 50.f;
 
     if (_caminoActual.empty() || necesitaRecalculo) {
 
         // Control de frecuencia (Throttling): Límite de un cálculo cada 0.5 segundos para proteger la CPU
-        if (_relojPathfinding.getElapsedTime().asSeconds() > 0.5f) {
+        if (_relojPathfinding.getElapsedTime().asSeconds() > 0.1f) {
 
             // Invocación polimórfica al buscador de caminos desde el centro real del agente
             std::vector<sf::Vector2f> nuevoCamino = Pathfinder::calcularCamino(*_mapaRef, centroFisico, _posicionObjetivo);
@@ -254,3 +270,14 @@ void Enemy::dibujarPathFinder(sf::RenderWindow& ventana) const {
         ventana.draw(puntito);
     }
 }
+
+void Enemy::dibujarHitboxEnemy(sf::RenderWindow& ventana) const {
+    sf::FloatRect limites = getBounds();
+    sf::RectangleShape caja(sf::Vector2f(limites.width, limites.height));
+    caja.setPosition(limites.left, limites.top);
+    caja.setFillColor(sf::Color(255, 0, 255, 80));
+    caja.setOutlineColor(sf::Color::Magenta);
+    caja.setOutlineThickness(1.f);
+    ventana.draw(caja);
+}
+

@@ -15,8 +15,14 @@ private:
     sf::Vector2f _posicionObjetivo;
     sf::Vector2f _ultimoDestinoConocido;
     std::vector<sf::Vector2f> _caminoActual;
+	sf::Clock _relojAtaque; // Reloj para controlar la frecuencia de ataque
+	float _cooldownAtaque = 1.5f; // Tiempo de golpeo cada 1.5 segundos
+	float _rangoAtaque = 40.f; // Rango de ataque del NPC
 
-    void activarPathfinder(float dt, sf::Vector2f posActual);
+    //ENEMIGO NECESITA SABER A QUIEN ATACAR
+	EntidadViva* _jugadorVivoRef = nullptr; // Puntero al jugador para aplicar daño (inicializado externamente)
+
+   
 
 public:
     Enemy();
@@ -30,6 +36,8 @@ public:
 
     void dibujarPathFinder(sf::RenderWindow& ventana) const;
     void dibujarHitboxEnemy(sf::RenderWindow& ventana) const;
+    void activarPathfinder(float dt, sf::Vector2f posActual);
+	void setObjetivoJugador(EntidadViva* jugador) { _jugadorVivoRef = jugador; }
 
     // 🌟 ACÁ ESTÁ LA FUNCIÓN PARA QUE EL DEBUG MANAGER PUEDA MOVERLO
     void ajustarOrigenSprite(float dx, float dy) {

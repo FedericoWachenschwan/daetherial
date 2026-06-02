@@ -2,7 +2,7 @@
 #include "UI_Inventario.h"
 #include "Personaje.h"
 #include "Enemy.h" // 🌟 ESTO FALTABA: Sin esto no podemos usar al Gólem
-#include "Map.h"
+#include "map.h"
 #include <iostream>
 
 DebugManager::DebugManager() {

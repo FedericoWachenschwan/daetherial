@@ -47,6 +47,7 @@ private:
     void procesarHabilidades(const InputManager& input, sf::RenderWindow& ventana, bool uiCapturaMouse);
     void controlarLimitesYTransiciones();
     void actualizarSpriteRect();
+	
 
 public:
     Personaje();
@@ -59,7 +60,7 @@ public:
     // 🌟 Funciones que el Personaje está obligado a implementar por heredar de EntidadViva
     void actualizar(float dt) override;
     void dibujar(sf::RenderWindow& ventana) override; // 🌟 ACÁ ESTABA EL FALTANTE
-    sf::FloatRect Personaje::getBounds() const {
+    sf::FloatRect getBounds() const override {
         // 🌟 Usamos _sprite heredado de EntidadViva
         sf::Vector2f pos = _sprite.getPosition();
 

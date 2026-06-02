@@ -1,7 +1,7 @@
 #include "GameManager.h"
 #include <iostream>
-#include <cmath> // Para usar cos() y sin()
-#include <cstdlib>
+#include <cmath> // Para funciones matemáticas
+#include <cstdlib> // Para rand() y srand()
 
 using namespace std;
 
@@ -140,14 +140,12 @@ void GameManager::procesarEventos() {
 void GameManager::actualizar() {
     if (_estado != JUGANDO) return;
 
-    float dt = _reloj.restart().asSeconds();
+	float dt = _reloj.restart().asSeconds(); // Calculamos el delta time para que el juego corra a la misma velocidad sin importar el rendimiento de la máquina
 
     // 1. SISTEMAS CORE
     _input.actualizarEstadoTiempoReal(_ventana);
     _camara.seguir(_personaje.getPosicion(), dt);
-
-    // Alineamos la ventana con la cámara para que el mouse world-space funcione bien
-    _ventana.setView(_camara.getVista());
+    _ventana.setView(_camara.getVista()); // Aseguramos que la vista esté actualizada antes de procesar la lógica del juego para que las posiciones del mouse sean correctas en relación al mundo
 
     // 2. SISTEMAS DE INTERFAZ E INVENTARIO
     if (_input.quiereAbrirInventario()) {
@@ -169,22 +167,22 @@ void GameManager::actualizar() {
     }
 
     // 3. ACTUALIZACIÓN DE ENTIDADES
-    _personaje.manejarInput(_input, _mapa, _ventana, _hudInventario.isOpen());
-    _personaje.actualizar(dt);
+// 1. Primero movemos al jugador
+    _personaje.manejarInput(_input, _mapa, _ventana, _hudInventario.isOpen()); 
+	_personaje.actualizar(dt); // Actualizamos al personaje antes que a los NPCs para que su posición esté actualizada para la IA
 
-    _golem.setPosicionObjetivo(_personaje.getPosicion());
+    // 2. AHORA calculamos el centro, cuando ya está en su posición final del frame
+	sf::Vector2f centroJugador = _personaje.getCentroFisico(); // Obtenemos el centro físico real del personaje para que la IA tenga un objetivo preciso y consistente.
+    // 3. Pasamos la posición real y actualizada
+    _golem.setPosicionObjetivo(centroJugador);
     _golem.actualizar(dt);
-
-	sf::Vector2f centroJugador = _personaje.getCentroFisico(); // Obtenemos el centro físico del jugador para que la mascota lo siga de forma más natural
-
-    _mascota.setPosicionObjetivo(_personaje.getPosicion());
+	colisionEntreEntidades(_personaje, _golem); // Chequeamos colisión entre el jugador y el Gólem
+    _mascota.setPosicionObjetivo(centroJugador);
     _mascota.actualizar(dt);
-
     _niebla.actualizar(dt);
 
     // 4. INTERACCIONES FÍSICAS MUNDO-PERSONAJE
     _objectsManager.chequearInteracciones(_personaje, _input);
-
     _debug.actualizar(_hudInventario, _personaje, _golem);
 }
 
@@ -259,6 +257,47 @@ void GameManager::spawnearDropSeguro(Item* item, const sf::Texture& textura, flo
     _objectsManager.agregarItemAlMundo(item, textura, startX, startY);
 }
 
+// ============================================================================
+// RESOLUCIÓN DE COLISIONES ENTRE ENTIDADES (Jugador vs NPCS)
+// ============================================================================
+void GameManager::colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enemigo) {
+    sf::FloatRect boundsJugador = jugador.getBounds();
+    sf::FloatRect boundsEnemigo = enemigo.getBounds();
+    sf::FloatRect interseccion;
+
+    // Si la hitbox verde del mago toca la violeta del Gólem...
+    if (boundsJugador.intersects(boundsEnemigo, interseccion)) {
+        sf::Vector2f correccion(0.f, 0.f);
+
+        // Buscamos el eje con menor penetración para saber de qué lado fue el choque
+        if (interseccion.width < interseccion.height) {
+            // Choque en el eje X
+            if (boundsJugador.left < boundsEnemigo.left) {
+                correccion.x = -interseccion.width; // Empujar a la izquierda
+            }
+            else {
+                correccion.x = interseccion.width;  // Empujar a la derecha
+            }
+        }
+        else {
+            // Choque en el eje Y
+            if (boundsJugador.top < boundsEnemigo.top) {
+                correccion.y = -interseccion.height; // Empujar hacia arriba
+            }
+            else {
+                correccion.y = interseccion.height;  // Empujar hacia abajo
+            }
+        }
+
+        // Desplazamos al jugador usando los métodos polimórficos de EntidadViva
+        sf::Vector2f posActual = jugador.getPosicion();
+        jugador.setPosicion(sf::Vector2f(posActual.x + correccion.x, posActual.y + correccion.y));
+    }
+}
+
+// ============================================================================
+// CAMBIO DE MÚSICA DE FONDO SEGÚN EL ESTADO DEL JUEGO
+// ============================================================================
 void GameManager::cambiarMusica(GameState nuevoEstado) {
     _musicaAmbiente.stop();
 
