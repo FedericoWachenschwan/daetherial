@@ -9,6 +9,9 @@ public:
     // Método virtual puro: Obliga a herederos a devolver su caja de colisión (AABB)
     virtual sf::FloatRect getBounds() const = 0;
 
+    // Declaración del cálculo del centro de gravedad
+    virtual sf::Vector2f getCentroFisico() const;
+
     // Función unificada para chequear si este objeto choca contra CUALQUIER otro colisionable
     bool chequearColision(const Colisionable& otra) const;
 };

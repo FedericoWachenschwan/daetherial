@@ -175,6 +175,8 @@ void GameManager::actualizar() {
     _golem.setPosicionObjetivo(_personaje.getPosicion());
     _golem.actualizar(dt);
 
+	sf::Vector2f centroJugador = _personaje.getCentroFisico(); // Obtenemos el centro físico del jugador para que la mascota lo siga de forma más natural
+
     _mascota.setPosicionObjetivo(_personaje.getPosicion());
     _mascota.actualizar(dt);
 
