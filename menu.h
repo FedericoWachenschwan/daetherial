@@ -14,6 +14,9 @@ private:
     sf::Font font;
     // Fuente que se usará para mostrar el texto en pantalla
 
+    std::vector<sf::RectangleShape> botones;
+    // Crea el rectangulo de los botones del menu
+
 public: // 👈 TODO lo que usás desde main VA ACÁ
 
     Menu(float width, float height);
