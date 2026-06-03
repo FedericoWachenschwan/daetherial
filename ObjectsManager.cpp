@@ -25,39 +25,37 @@ void ObjectsManager::dibujarItems(sf::RenderWindow& ventana) const {
     }
 }
 
-// 🌟 ACTUALIZADO: Ahora la función implementa los 2 argumentos
 void ObjectsManager::chequearInteracciones(Personaje& jugador, const InputManager& input) {
-
-    // Cambiamos el sf::Keyboard harcodeado por la abstracción del manager
+    // Comprobamos si el jugador quiere interactuar (por ejemplo, presionando una tecla)
     if (input.quiereInteractuar()) {
 
-        // 🌟 SOLUCIÓN AL SIGNED/UNSIGNED: Convertimos el size() a int con static_cast
+        // Convertimos el tamaño del vector a int para evitar problemas de signo
         int totalItems = static_cast<int>(_itemsEnMundo.size());
 
         for (int i = totalItems - 1; i >= 0; i--) {
-
+            // Comprobamos si la caja del jugador intersecta con la caja del ítem
             if (jugador.getBounds().intersects(_itemsEnMundo[i]->getBounds())) {
 
                 Item* itemActual = _itemsEnMundo[i];
 
-                // CASO A: Es un ítem del piso (Poción, Madera, Oro)
+                // CASO A: Es un ítem agarrable que el jugador puede llevar en su inventario
                 if (itemActual->esAgarrable()) {
+                    // Intentamos agregar el ítem al inventario del jugador
                     if (jugador.getInventario().agarrarItem(itemActual)) {
                         std::cout << "🎒 Guardaste en la mochila: " << itemActual->getNombre() << std::endl;
-                        _itemsEnMundo.erase(_itemsEnMundo.begin() + i);
+                        _itemsEnMundo.erase(_itemsEnMundo.begin() + i); // Eliminamos el ítem del mundo si se agrega al inventario
                     }
                 }
-                // CASO B: Es una estructura fija (Horno, Caldero)
+                // CASO B: Es una estructura fija que puede ser utilizada por el jugador
                 else {
                     itemActual->usar(jugador);
                 }
 
-                break; // Ya interactuamos este frame
+                break; // Rompemos el bucle ya que solo queremos interactuar con un ítem a la vez
             }
         }
     }
 }
-
 
 // Funcion para recibir un ítem que el jugador soltó del inventario al piso
 void ObjectsManager::recibirItemSoltado(Item* itemSoltado) {

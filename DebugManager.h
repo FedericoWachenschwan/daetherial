@@ -1,23 +1,24 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "Colisionable.h"
 
-// 🌟 Forward Declarations: Le decimos al compilador que confíe en que estas clases existen
-class Personaje;
 class UI_Inventario;
-class Map;
+class Personaje;
+class Enemy; // 🌟 Le avisamos que existe la clase Enemy
+class Map; // Forward declaration para dibujar hitboxes del mapa
 
-// 🌟 La lista de cosas que podemos editar
+// 🌟 Agregamos al ENEMIGO en la lista
 enum class ObjetivoDebug {
     NINGUNO,
     HUD,
-    PERSONAJE
-    // Golem, Mascota, Niebla... (para el futuro)
+    PERSONAJE,
+    ENEMIGO
 };
 
 class DebugManager {
 private:
     bool _modoDebugActivo;
-    ObjetivoDebug _objetivoActual; // Guardamos qué estamos tocando ahora mismo
+    ObjetivoDebug _objetivoActual;
 
 public:
     DebugManager();
@@ -25,8 +26,14 @@ public:
     void toggleDebug();
     bool estaActivo() const { return _modoDebugActivo; }
 
-    void procesarEventos(sf::Event& evento, UI_Inventario& hud, Personaje& personaje);
+    // 🌟 Actualizamos la firma para que reciba al enemigo también
+    void procesarEventos(sf::Event& evento, UI_Inventario& hud, Personaje& personaje, Enemy& enemigo);
 
-    // 🌟 CORREGIDO: Ahora dice Map& en lugar de Mapa&
+    // Actualización en tiempo real (movimiento con flechas)
+    void actualizar(UI_Inventario& hud, Personaje& personaje, Enemy& enemigo);
+
+    // Dibuja todas las hitboxes útiles: personaje y bloques del mapa
     void dibujarHitboxes(sf::RenderWindow& ventana, Personaje& personaje, Map& mapa);
+
+    void dibujarCajaColision(sf::RenderWindow& ventana, const Colisionable& entidad, sf::Color color) const;
 };

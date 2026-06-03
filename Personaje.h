@@ -1,88 +1,76 @@
 #pragma once
-#include <SFML/Graphics.hpp>
-#include "map.h"           
-#include "Colisionable.h" 
+#include "EntidadViva.h" 
 #include "Inventario.h"
 #include "BolaDeFuego.h"
 
 class InputManager;
 
 // =========================================================================
-// 🌟 ENUM ALINEADO CON LAS 21 FILAS DE LA MATRIZ LPC (Nombres en Inglés)
+// 🌟 ENUM ALINEADO CON LAS 21 FILAS DE LA MATRIZ LPC
 // =========================================================================
 enum class EstadoPersonaje {
-    SPELLCAST = 0,  // Magia / Conjuro (Filas 0-3)
-    THRUST = 1,     // Estocada / Lanza (Filas 4-7)
-    WALK = 2,       // Caminar (Filas 8-11) -> Mapea movimiento y base de IDLE
-    SLASH = 3,      // Espadazo / Corte (Filas 12-15)
-    SHOOT = 4,      // Disparar Arco / Proyectil (Filas 16-19)
-    HURT = 5,       // Herido / Muerte (Fila 20)
-
-    // Estados lógicos de juego (No modifican directamente el multiplicador de fila)
-    IDLE,           // Quieto / Espera
-    AIMING          // Apuntando el rango de la habilidad
+    SPELLCAST = 0,
+    THRUST = 1,
+    WALK = 2,
+    SLASH = 3,
+    SHOOT = 4,
+    HURT = 5,
+    IDLE,
+    AIMING
 };
 
 enum class DireccionLPC {
-    UP = 0,         // Arriba
-    LEFT = 1,       // Izquierda
-    DOWN = 2,       // Abajo
-    RIGHT = 3       // Derecha
+    UP = 0,
+    LEFT = 1,
+    DOWN = 2,
+    RIGHT = 3
 };
 
-class Personaje : public Colisionable {
+class Personaje : public EntidadViva { // 🌟 AHORA SÍ: Hereda de la clase madre
 private:
-    // --- COMPONENTES VISUALES ---
-    sf::Sprite sprite_del_personaje;
+    // --- COMPONENTES EXCLUSIVOS DEL JUGADOR ---
     sf::Texture textura_completa_lpc;
 
-    // --- VARIABLES DE ESTADO ---
     EstadoPersonaje _estadoActual = EstadoPersonaje::IDLE;
     DireccionLPC _direccionActual = DireccionLPC::DOWN;
 
-    // --- ANIMACIÓN ---
-    int _frameActual = 0;
-    float _tiempoFrame = 0.f;
-    float _velocidadAnimacion = 0.09f;
-    int _maxFrames = 1;
-
-    // --- MÓDULOS ---
-    float velocidad = 2.f;
     Inventario _inventario;
-    BolaDeFuego _bolaDeFuego; // Tipo de clase alineado con "BolaDeFuego.h"
+    BolaDeFuego _bolaDeFuego;
 
     // --- 🎯 INDICADOR DE RANGO ---
     sf::CircleShape _circuloRango;
     float _radioAlcance = 200.f;
     float _radioActual = 0.f;
 
-    // MÉTODOS PRIVADOS DE REFACTORIZACIÓN (Limpieza de código)
+    // --- MÉTODOS PRIVADOS DE LÓGICA ---
     void determinarEstadoYDireccion(sf::Vector2f direccion);
     void procesarHabilidades(const InputManager& input, sf::RenderWindow& ventana, bool uiCapturaMouse);
-    void resolverColisiones(sf::Vector2f movimiento, Map& mapa);
     void controlarLimitesYTransiciones();
     void actualizarSpriteRect();
+	
 
 public:
     Personaje();
+
     Inventario& getInventario() { return _inventario; }
     const Inventario& getInventario() const { return _inventario; }
 
-    // Manejo de input con bypass para evitar disparar interactuando con la UI
     void manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse);
-    void actualizar(float dt);
 
-    sf::Vector2f getPosicion() const;
-    void dibujar(sf::RenderWindow& ventana);
-    void dibujarDebug(sf::RenderWindow& ventana);
-    void ajustarOrigenSprite(float x, float y);
-
-    // =========================================================================
-    // 🌟 🛡️ EL CONTRATO OBLIGATORIO: getBounds() en los pies
+    // 🌟 Funciones que el Personaje está obligado a implementar por heredar de EntidadViva
+    void actualizar(float dt) override;
+    void dibujar(sf::RenderWindow& ventana) override; // 🌟 ACÁ ESTABA EL FALTANTE
     sf::FloatRect getBounds() const override {
-        sf::Vector2f pos = sprite_del_personaje.getPosition();
+        // 🌟 Usamos _sprite heredado de EntidadViva
+        sf::Vector2f pos = _sprite.getPosition();
+
         float hitboxX = pos.x - 8.f;  // Centra la caja de 16 de ancho
         float hitboxY = pos.y + 16.f; // La baja a la base de los pies (32 + 16 = 48)
+
         return sf::FloatRect(hitboxX, hitboxY, 16.f, 16.f);
     }
+
+    // Métodos propios extra
+    void dibujarDebug(sf::RenderWindow& ventana) const; // 🌟 Le agregamos el const acá
+    void ajustarOrigenSprite(float x, float y);
 };

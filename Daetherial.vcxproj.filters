@@ -24,6 +24,8 @@
     <ClCompile Include="DebugManager.cpp" />
     <ClCompile Include="UI_Inventario.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="EntidadViva.cpp" />
+    <ClCompile Include="PathFinder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="map.h" />
@@ -245,6 +247,8 @@
     <ClInclude Include="DebugManager.h" />
     <ClInclude Include="UI_Inventario.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="EntidadViva.h" />
+    <ClInclude Include="PathFinder.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\cat_abajo.png" />
@@ -701,6 +705,7 @@
     <None Include="SFML\license.md" />
     <None Include="SFML\readme.md" />
     <None Include="Daetherial.slnx" />
+    <None Include=".editorconfig" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="assets\ambient.wav" />

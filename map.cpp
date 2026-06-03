@@ -153,3 +153,14 @@ void Map::dibujarDebug(sf::RenderWindow& ventana) const {
 		ventana.draw(rectDebug);
 	}
 }
+//================================================================================================================================
+// FUNCION PARA QUE EL PATHFINDER PUEDA CONSULTAR SI UNA BALDOSA ES SÓLIDA O NO SIN TENER QUE LIDIAR CON COORDENADAS DEL MUNDO
+//================================================================================================================================
+
+bool Map::esSolido(int f, int c) const {
+	// 1. Protección de límites (si intentan mirar fuera del mapa, es pared)
+	if (f < 0 || f >= _filas || c < 0 || c >= _columnas) return true;
+
+	// 2. Si el valor es 0, es colision. 
+	return mapa[f][c] != -1;
+}
