@@ -25,7 +25,7 @@ void DebugManager::toggleDebug() {
 // =====================================================================
 // SELECTOR DE OBJETIVO (Eventos únicos de teclado)
 // =====================================================================
-void DebugManager::procesarEventos(sf::Event& evento, UI_Inventario& hud, Personaje& personaje, Enemy& enemigo) {
+void DebugManager::procesarEventos(sf::Event& evento, UI_Inventario& hud, Personaje& personaje, Enemy* enemigo) {
     if (!_modoDebugActivo) return;
 
     if (evento.type == sf::Event::KeyPressed) {
@@ -72,10 +72,12 @@ void DebugManager::procesarEventos(sf::Event& evento, UI_Inventario& hud, Person
             break;
 
         case ObjetivoDebug::ENEMIGO:
-            if (evento.key.code == sf::Keyboard::Up) enemigo.ajustarOrigenSprite(0.f, -1.f);
-            if (evento.key.code == sf::Keyboard::Down) enemigo.ajustarOrigenSprite(0.f, 1.f);
-            if (evento.key.code == sf::Keyboard::Left) enemigo.ajustarOrigenSprite(-1.f, 0.f);
-            if (evento.key.code == sf::Keyboard::Right) enemigo.ajustarOrigenSprite(1.f, 0.f);
+            if (enemigo != nullptr && !enemigo->estaMuerto()) {
+                if (evento.key.code == sf::Keyboard::Up) enemigo->ajustarOrigenSprite(0.f, -1.f);
+                if (evento.key.code == sf::Keyboard::Down) enemigo->ajustarOrigenSprite(0.f, 1.f);
+                if (evento.key.code == sf::Keyboard::Left) enemigo->ajustarOrigenSprite(-1.f, 0.f);
+                if (evento.key.code == sf::Keyboard::Right) enemigo->ajustarOrigenSprite(1.f, 0.f);
+            }
             break;
 
         case ObjetivoDebug::NINGUNO:
@@ -88,8 +90,15 @@ void DebugManager::procesarEventos(sf::Event& evento, UI_Inventario& hud, Person
 // =====================================================================
 // EDICIÓN EN TIEMPO REAL (Movimiento fluido con las flechas)
 // =====================================================================
-void DebugManager::actualizar(UI_Inventario& hud, Personaje& personaje, Enemy& enemigo) {
+void DebugManager::actualizar(UI_Inventario& hud, Personaje& personaje, Enemy* enemigo) {
     if (!_modoDebugActivo || _objetivoActual == ObjetivoDebug::NINGUNO) return;
+
+    // 🛡️ ESCUDO: Si el objetivo seleccionado es el enemigo pero ya murió, volvemos a NINGUNO para evitar problemas
+    if (_objetivoActual == ObjetivoDebug::ENEMIGO && (enemigo == nullptr || enemigo->estaMuerto())) {
+        _objetivoActual = ObjetivoDebug::NINGUNO;
+        std::cout << "👻 El enemigo seleccionado murió. Volviendo a Objetivo: NINGUNO." << std::endl;
+        return;
+    }
 
     // Detectamos las direcciones en tiempo real
     float dx = 0.f;
@@ -116,7 +125,7 @@ void DebugManager::actualizar(UI_Inventario& hud, Personaje& personaje, Enemy& e
         break;
 
     case ObjetivoDebug::ENEMIGO:
-        enemigo.ajustarOrigenSprite(dx, dy);
+        enemigo->ajustarOrigenSprite(dx, dy);
         break;
 
     default: break;

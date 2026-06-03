@@ -100,7 +100,7 @@ void GameManager::procesarEventos() {
             if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::F3) {
                 _debug.toggleDebug();
             }
-            _debug.procesarEventos(evento, _hudInventario, _personaje, *_golem);
+            _debug.procesarEventos(evento, _hudInventario, _personaje, _golem);
             break;
 
         case MENU:
@@ -193,7 +193,7 @@ void GameManager::actualizar() {
     // =======================================================================
     _objectsManager.chequearInteracciones(_personaje, _input);
     if (_golem != nullptr) {
-        _debug.actualizar(_hudInventario, _personaje, *_golem);
+        _debug.actualizar(_hudInventario, _personaje, _golem);
     }
 
     //========================================================================
@@ -260,12 +260,15 @@ void GameManager::renderizar() {
         // --- CAPA 2: MODO DEBUG POLIMÓRFICO ---
         if (_debug.estaActivo()) {
             _mapa.dibujarDebug(_ventana);
-            _golem->dibujarPathFinder(_ventana);
 
-            // Dibujado de colisiones con colores semánticos
+            // 🛡️ ESCUDO SEGURO: Solo dibujamos la telemetría del Gólem si sigue vivo en el mapa
+            if (_golem != nullptr) {
+                _golem->dibujarPathFinder(_ventana);
+                _debug.dibujarCajaColision(_ventana, *_golem, sf::Color::Magenta);
+            }
+
+            // Dibujado de colisiones fijas
             _debug.dibujarCajaColision(_ventana, _personaje, sf::Color::Green);
-            _debug.dibujarCajaColision(_ventana, *_golem, sf::Color::Magenta);
-            // _debug.dibujarCajaColision(_ventana, _mascota, sf::Color::Cyan); 
         }
 
         // --- CAPA 3: INTERFAZ Y HUD (Cámara Estática) ---

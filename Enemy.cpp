@@ -3,6 +3,10 @@
 #include <iostream>
 #include <cmath>
 
+// Configuración de las dimensiones del frame (Ajustar según escala GIMP u original)
+const int FRAME_ANCHO = 152;
+const int FRAME_ALTO = 147;
+
 // ============================================================================
 // ENTIDAD: Enemy (Gólem de Hielo)
 // DESCRIPCIÓN: Implementación de la IA cinemática, navegación por waypoints
@@ -28,7 +32,7 @@
  * @brief Constructor por defecto.
  * Inicializa punteros seguros para evitar accesos nulos en memoria antes del spawn.
  */
-Enemy::Enemy() : _mapaRef(nullptr) { _danio = 0; }
+Enemy::Enemy() : _mapaRef(nullptr), _estadoActual(EnemyState::IDLE) {}
 
 /**
  * @brief Constructor parametrizado de la entidad.
@@ -38,15 +42,24 @@ Enemy::Enemy() : _mapaRef(nullptr) { _danio = 0; }
 Enemy::Enemy(sf::Vector2f posInicial, Map* mapa) : _mapaRef(mapa) {
 
     // Carga de recursos gráficos (Textura del Sprite)
-    if (!_textura.loadFromFile("assets/icegolem.png")) {
+    if (!_textura.loadFromFile("assets/golemhielo.png")) {
         std::cout << "❌ Error crítico: No se pudo cargar la textura del Gólem de Hielo." << std::endl;
     }
 
     _sprite.setTexture(_textura);
-    _sprite.setOrigin(64.f, 108.f); // Ajuste del origen al centro de los pies para mejorar colisiones y sensación de peso
+    _sprite.setOrigin(76.f, 115.f);
     _sprite.setPosition(posInicial);
 
+    // 🌟 Inicializamos las variables PROTECTED de la animación heredadas del padre
+    _maxFrames = 3;
+    _frameActual = 0;
+    _velocidadAnimacion = 0.12f;
+    _tiempoFrame = 0.f;
+
+    _sprite.setTextureRect(sf::IntRect(0, 0, FRAME_ANCHO, FRAME_ALTO));
+
     // Asignacion de atributos específicos del enemigo (pueden ser balanceados luego)
+    _estadoActual = EnemyState::IDLE;
     _velocidad = 55.f;
     _vidaMaxima = 250;
     _vidaActual = 250;
@@ -72,15 +85,16 @@ void Enemy::setPosicionObjetivo(sf::Vector2f posJugador) {
  */
 void Enemy::actualizar(float dt) {
     if (!_mapaRef) return;
-    sf::Vector2f posActual = _sprite.getPosition();
+    sf::Vector2f posAntes = _sprite.getPosition();
     
     // Heurística de proximidad: Distancia Euclídea respecto al jugador
-    float distanciaAlJugador = std::hypot(_posicionObjetivo.x - posActual.x, _posicionObjetivo.y - posActual.y);
+    float distanciaAlJugador = std::hypot(_posicionObjetivo.x - posAntes.x, _posicionObjetivo.y - posAntes.y);
 
     // ==============================================
     //              LOGICA DE COMBATE
     // ==============================================
     if (distanciaAlJugador <= _rangoAtaque) {
+		_estadoActual = EnemyState::ATACANDO;
         // Si EL NPC esta en rango
         if (_relojAtaque.getElapsedTime().asSeconds() >= _cooldownAtaque) {
 
@@ -98,12 +112,34 @@ void Enemy::actualizar(float dt) {
     // SI NO ESTÁ A RANGO, LO PERSIGUE (Culling a 400px)
     // =======================================================
     else if (distanciaAlJugador <= 400.f) {
-        activarPathfinder(dt, posActual);
+		_estadoActual = EnemyState::PERSIGUIENDO;
+        activarPathfinder(dt, posAntes);
     }
     else {
+		_estadoActual = EnemyState::IDLE;
         _caminoActual.clear();
     }
+    // ==============================================
+    //          CÁLCULO DE ANIMACIÓN DICTADO POR LOS PIES
+    // ==============================================
+    // 2. Capturamos la posición DESPUÉS del movimiento físico
+    sf::Vector2f posDespues = _sprite.getPosition();
+
+    // 3. Restamos las posiciones para obtener el vector de desplazamiento REAL del frame
+    sf::Vector2f movimientoReal = posDespues - posAntes;
+
+    // ¿El bicho se está moviendo de verdad? (Tolerancia de 0.1 píxeles para evitar ruido)
+    if (std::hypot(movimientoReal.x, movimientoReal.y) > 0.1f) {
+        // 🌟 Si se está moviendo, se anima hacia donde camina (vía Pathfinder o Wall-Sliding)
+        actualizarAnimacion(dt, movimientoReal, _estadoActual);
+    }
+    else {
+        // 🌟 Si está quieto (IDLE o ATACANDO), que se plante y mire fijo al jugador
+        sf::Vector2f direccionAlJugador = _posicionObjetivo - posDespues;
+        actualizarAnimacion(dt, direccionAlJugador, _estadoActual);
+    }
 }
+
 
 
 // ============================================================================
@@ -275,3 +311,51 @@ void Enemy::dibujarHitboxEnemy(sf::RenderWindow& ventana) const {
     ventana.draw(caja);
 }
 
+// ============================================================================
+// SISTEMA DE ANIMACIÓN POR DIRECCIÓN (Mapeo de la Grilla de GIMP)
+// ============================================================================
+void Enemy::actualizarAnimacion(float dt, sf::Vector2f direccion, EnemyState estado) {
+    static int filaDireccion = 0; // Guarda la orientación para que no parpadee al frenar
+
+    // 1. Si no está IDLE y se está moviendo una cantidad decente, calculamos hacia dónde mira
+    if (estado != EnemyState::IDLE && (std::abs(direccion.x) > 0.1f || std::abs(direccion.y) > 0.1f)) {
+        // ¿El movimiento es más horizontal que vertical?
+        if (std::abs(direccion.x) > std::abs(direccion.y)) {
+            filaDireccion = (direccion.x > 0.f) ? 2 : 1; // Fila 2: Derecha | Fila 1: Izquierda
+        }
+        else {
+            filaDireccion = (direccion.y > 0.f) ? 0 : 3; // Fila 0: Abajo | Fila 3: Arriba
+        }
+    }
+
+    // 2. Si el estado es PERSIGUIENDO, hacemos correr las columnas con efecto Ping-Pong
+    static int pasoAnimacion = 1; // Guarda en qué paso de la caminata quedó
+
+    if (estado == EnemyState::PERSIGUIENDO) {
+        _tiempoFrame += dt;
+        if (_tiempoFrame >= _velocidadAnimacion) {
+
+            // 🌟 NUESTRO MAPA DE RUTA: 4 pasos para un ciclo completo y fluido
+            // Mapea los índices de columnas de tu GIMP: 0 (izq), 1 (centro), 2 (der)
+            int secuenciaFrames[] = { 0, 1, 2, 1 };
+
+            pasoAnimacion = (pasoAnimacion + 1) % 4; // Cicla perpetuamente entre 0, 1, 2, 3
+            _frameActual = secuenciaFrames[pasoAnimacion]; // Traduce el paso al frame real
+
+            _tiempoFrame = 0.f;
+        }
+    }
+    else {
+        // Si está quieto (IDLE o ATACANDO), lo plantamos en el frame de guardia (columna 1)
+        _frameActual = 1;
+        pasoAnimacion = 1; // Reseteamos el contador al centro para que cuando vuelva a caminar arranque impecable
+    }
+
+    // 3. Aplicamos el recorte matemático usando tus constantes globales FRAME_ANCHO y FRAME_ALTO
+    _sprite.setTextureRect(sf::IntRect(
+        _frameActual * FRAME_ANCHO,  // Desplazamiento X (Columnas)
+        filaDireccion * FRAME_ALTO,  // Desplazamiento Y (Filas)
+        FRAME_ANCHO,
+        FRAME_ALTO
+    ));
+}

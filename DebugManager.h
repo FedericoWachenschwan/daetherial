@@ -27,10 +27,10 @@ public:
     bool estaActivo() const { return _modoDebugActivo; }
 
     // 🌟 Actualizamos la firma para que reciba al enemigo también
-    void procesarEventos(sf::Event& evento, UI_Inventario& hud, Personaje& personaje, Enemy& enemigo);
+    void procesarEventos(sf::Event& evento, UI_Inventario& hud, Personaje& personaje, Enemy* enemigo);
 
     // Actualización en tiempo real (movimiento con flechas)
-    void actualizar(UI_Inventario& hud, Personaje& personaje, Enemy& enemigo);
+    void actualizar(UI_Inventario& hud, Personaje& personaje, Enemy* enemigo);
 
     // Dibuja todas las hitboxes útiles: personaje y bloques del mapa
     void dibujarHitboxes(sf::RenderWindow& ventana, Personaje& personaje, Map& mapa);

@@ -5,6 +5,14 @@
 #include <vector>
 #include <iostream> // Necesario para el cout del origen
 
+
+enum class EnemyState {
+	IDLE,
+	PERSIGUIENDO,
+	ATACANDO
+};
+
+
 class Enemy : public EntidadViva {
 private:
 	// --- REFERENCIAS Y DATOS DE NAVEGACIÓN --- Pathfinding y navegación
@@ -14,11 +22,11 @@ private:
     sf::Vector2f _ultimoDestinoConocido;
     std::vector<sf::Vector2f> _caminoActual;
 
-    //ENEMIGO NECESITA SABER A QUIEN ATACAR
+	// --- REFERENCIA DE COMBATE ---
 	EntidadViva* _jugadorVivoRef = nullptr; // Puntero al jugador para aplicar daño (inicializado externamente)
 
-
-   
+    EnemyState _estadoActual;
+    void actualizarAnimacion(float dt, sf::Vector2f direccion, EnemyState estado);
 
 public:
     Enemy();
