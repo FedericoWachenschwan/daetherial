@@ -52,7 +52,7 @@ private:
     Map _mapa;
     Personaje _personaje;
     Mascota _mascota;
-	Enemy _golem;
+	Enemy* _golem; // Puntero al Gólem para decir que sabemos manejar su memoria dinámicamente (si decides crear más enemigos, podrías usar un vector de punteros a enemigos)
 
     // 🌟 NUEVOS ATRIBUTOS: Tus dos nuevos motores de objetos
     ItemManager _itemManager;
@@ -74,6 +74,7 @@ private:
 
 
 public:
+    ~GameManager();
     GameManager();
     void run();
 };

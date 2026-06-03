@@ -7,19 +7,25 @@
 // CONSTRUCTOR: Inicialización y configuración del indicador de rango
 // ============================================================================
 Personaje::Personaje() {
-    // 🌟 _sprite viene heredado de EntidadViva
-    if (!textura_completa_lpc.loadFromFile("assets/maguito_main.png")) {
+    if (!_textura.loadFromFile("assets/maguito_main.png")) {
         std::cerr << "❌ Error: No se pudo cargar la hoja de sprites LPC." << std::endl;
         return;
     }
-    _sprite.setTexture(textura_completa_lpc);
+    _sprite.setTexture(_textura);
     _sprite.setPosition(100.f, 100.f);
+
+	// 🌟 Estadisticas base del personaje heredades de EntidadViva
+    _velocidad = 2.f;
+    _vidaMaxima = 100;
+    _vidaActual = _vidaMaxima;
+    _danio = 50;
+    _cooldownAtaque = 0.5f;
 
     // 🌟 CONFIGURACIÓN ESTÉTICA DEL ANILLO DE RANGO (Rojo/Celeste transparente)
     _circuloRango.setRadius(_radioAlcance);
-    _circuloRango.setFillColor(sf::Color(255, 0, 0, 60));
-    _circuloRango.setOutlineColor(sf::Color::Red);
-    _circuloRango.setOutlineThickness(1.0f);
+    _circuloRango.setFillColor(sf::Color(0, 0, 0, 50));
+    _circuloRango.setOutlineColor(sf::Color::White);
+    _circuloRango.setOutlineThickness(0.0f);
     _circuloRango.setOrigin(_radioAlcance, _radioAlcance);     // Origen clavado al centro
 
     actualizarSpriteRect();
@@ -115,6 +121,7 @@ void Personaje::procesarHabilidades(const InputManager& input, sf::RenderWindow&
         _bolaDeFuego.activar(posPersonaje, mouseMundo, _radioAlcance);
     }
 }
+
 
 // ============================================================================
 // ACTUALIZAR: El motor temporal de los relojes de animación y lógicas hijas
@@ -218,6 +225,9 @@ void Personaje::dibujar(sf::RenderWindow& ventana) {
     _bolaDeFuego.dibujar(ventana);
 }
 
+//============================================================================
+// FUNCIÓN DE DEBUG: Dibuja la caja de colisión (AABB) del personaje para pruebas y ajustes de Origen con sprite
+//============================================================================
 void Personaje::dibujarDebug(sf::RenderWindow& ventana) const {
     sf::FloatRect limites = this->getBounds();
     sf::RectangleShape rectDebug(sf::Vector2f(limites.width, limites.height));
@@ -227,7 +237,6 @@ void Personaje::dibujarDebug(sf::RenderWindow& ventana) const {
     rectDebug.setOutlineThickness(-1.f);
     ventana.draw(rectDebug);
 }
-
 void Personaje::ajustarOrigenSprite(float x, float y) {
     // 🌟 Usamos _sprite
     sf::Vector2f origenActual = _sprite.getOrigin();

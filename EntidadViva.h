@@ -9,12 +9,19 @@ protected:
     // 🌟 PROTECTED: Los hijos (Personaje, Golem) pueden ver y usar estas variables directamente
 
     // --- COMPONENTES VISUALES Y FÍSICA ---
+    sf::Texture _textura;
     sf::Sprite _sprite;
     float _velocidad;
 
     // --- ESTADÍSTICAS BÁSICAS ---
     int _vidaMaxima;
     int _vidaActual;
+    int _danio;
+  
+	// --- SISTEMA DE COMBATE BASE ---
+    sf::Clock _relojAtaque;
+	float _cooldownAtaque;
+	float _rangoAtaque;
 
     // --- ANIMACIÓN BASE ---
     int _frameActual;
@@ -22,8 +29,14 @@ protected:
     float _velocidadAnimacion;
     int _maxFrames;
 
-    // 🌟 EL FIX DE LAS COLISIONES: Ahora vive acá para que lo usen todos
+    // Ahora vive acá para que lo usen todos
     void resolverColisiones(sf::Vector2f movimiento, Map& mapa);
+
+    ///============================================================================///
+    ///                    BARRA DE VIDA - Rectángulos para mostrar la salud       ///
+    ///============================================================================///
+    sf::RectangleShape _barraFondo; // Rectángulo rojo oscuro de fondo (el "vacío")
+    sf::RectangleShape _barraVida;  // Rectángulo rojo brillante que se achica con el daño
 
 public:
     EntidadViva();
@@ -37,6 +50,12 @@ public:
     // Sistema de vida base
     void recibirDanio(int cantidad);
     bool estaMuerto() const { return _vidaActual <= 0; }
+    int getDanio() const { return _danio; }
+   
+    sf::Vector2f getCentroFisico() const {
+        sf::FloatRect bounds = getBounds();
+        return sf::Vector2f(bounds.left + bounds.width / 2.f, bounds.top + bounds.height / 2.f);
+    }
 
     // ==========================================
     // ⚠️ CONTRATOS VIRTUALES (Cada hijo lo hace a su manera)
@@ -46,6 +65,5 @@ public:
     virtual void actualizar(float dt) = 0;
 
     // Mantenemos el contrato de Colisionable abierto para que cada hijo 
-    // ajuste su hitbox a sus propios pies (el Golem seguro es más grande que el mago)
     virtual sf::FloatRect getBounds() const override = 0;
 };

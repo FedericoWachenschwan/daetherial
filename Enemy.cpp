@@ -28,7 +28,7 @@
  * @brief Constructor por defecto.
  * Inicializa punteros seguros para evitar accesos nulos en memoria antes del spawn.
  */
-Enemy::Enemy() : _mapaRef(nullptr), _danio(0) {}
+Enemy::Enemy() : _mapaRef(nullptr) { _danio = 0; }
 
 /**
  * @brief Constructor parametrizado de la entidad.
@@ -43,16 +43,17 @@ Enemy::Enemy(sf::Vector2f posInicial, Map* mapa) : _mapaRef(mapa) {
     }
 
     _sprite.setTexture(_textura);
-	_sprite.setOrigin(64.f, 108.f); // Ajuste del origen al centro de los pies para mejorar colisiones y sensación de peso
+    _sprite.setOrigin(64.f, 108.f); // Ajuste del origen al centro de los pies para mejorar colisiones y sensación de peso
     _sprite.setPosition(posInicial);
 
-    // Configuración del vector de estado del personaje (Atributos base)
+    // Asignacion de atributos específicos del enemigo (pueden ser balanceados luego)
     _velocidad = 55.f;
     _vidaMaxima = 250;
     _vidaActual = 250;
     _danio = 25;
-}
-
+    _cooldownAtaque = 1.5f;
+    _rangoAtaque = 40.f;
+   }
 /**
  * @brief Actualiza la posición del objetivo que la IA debe perseguir.
  * @param posJugador Coordenadas dinámicas del personaje principal.
@@ -72,6 +73,7 @@ void Enemy::setPosicionObjetivo(sf::Vector2f posJugador) {
 void Enemy::actualizar(float dt) {
     if (!_mapaRef) return;
     sf::Vector2f posActual = _sprite.getPosition();
+    
     // Heurística de proximidad: Distancia Euclídea respecto al jugador
     float distanciaAlJugador = std::hypot(_posicionObjetivo.x - posActual.x, _posicionObjetivo.y - posActual.y);
 
@@ -85,11 +87,8 @@ void Enemy::actualizar(float dt) {
             if (_jugadorVivoRef != nullptr) {
 				// Ejecuta la lógica de ataque (aplicar daño al jugador)
 				_jugadorVivoRef->recibirDanio(_danio);
+                std::cout << "💥 ¡El Golem te pegó por " << _danio << " de daño!" << std::endl;
             }
-            std::cout << "💥 ¡El Golem te pegó por " << _danio << " de daño!" << std::endl;
-            // Acá llamaríamos a: _jugadorRef->recibirDanio(_danio);
-            // (Después le pasamos la referencia del jugador al enemigo)
-
             // Reiniciamos el reloj para que no pegue de nuevo instantáneamente
             _relojAtaque.restart();
         }
@@ -121,7 +120,7 @@ void Enemy::activarPathfinder(float dt, sf::Vector2f posActual) {
         // ------------------------------------------------------------------------
         // 🌟 MAGIA DEL POLIMORFISMO: Obtenemos el centro directamente de la clase base
 	// para que funcione tanto con el sprite del Gólem como con el hitbox calibrado de los pies.
-    sf::Vector2f centroFisico = getCentroFisico();;
+    sf::Vector2f centroFisico = getCentroFisico();
 
     // ------------------------------------------------------------------------
     // [CAPA 1: EL CEREBRO] - Planificación y Throttling del A*
@@ -216,9 +215,7 @@ void Enemy::activarPathfinder(float dt, sf::Vector2f posActual) {
 /**
  * @brief Renderiza el sprite base del enemigo.
  */
-void Enemy::dibujar(sf::RenderWindow& ventana) {
-    EntidadViva::dibujar(ventana);
-}
+
 
 // ============================================================================
 // INTERFACES FÍSICAS (Colisionable)
@@ -249,7 +246,6 @@ void Enemy::dibujarPathFinder(sf::RenderWindow& ventana) const {
 
     // 1. Renderizado de la trayectoria continua (LineStrip)
     sf::VertexArray linea(sf::LineStrip, _caminoActual.size() + 1);
-
     linea[0].position = _sprite.getPosition();
     linea[0].color = sf::Color::Red;
 
@@ -257,7 +253,6 @@ void Enemy::dibujarPathFinder(sf::RenderWindow& ventana) const {
         linea[i + 1].position = _caminoActual[i];
         linea[i + 1].color = sf::Color::Red;
     }
-
     ventana.draw(linea);
 
     // 2. Renderizado de los puntos de control discretos (Waypoints)
@@ -266,7 +261,6 @@ void Enemy::dibujarPathFinder(sf::RenderWindow& ventana) const {
         puntito.setFillColor(sf::Color::Yellow);
         puntito.setOrigin(1.5f, 1.5f);
         puntito.setPosition(nodo);
-
         ventana.draw(puntito);
     }
 }

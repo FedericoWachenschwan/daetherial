@@ -13,12 +13,15 @@ GameManager::GameManager()
     _camara(1280.f, 720.f),
     _estado(MENU),
     _menu(1280.f, 720.f),
-    _mapa(16, 1.0f),
-    _golem(sf::Vector2f(500.f, 400.f), &_mapa) // Posición inicial del Gólem con referencia al mapa
+    _mapa(16, 1.0f)
 {
     // --- Configuración del Motor ---
     _camara.setLimitesMundo(sf::FloatRect(0, 0, 2000, 2000));
     _ventana.setFramerateLimit(60);
+
+	// --- Configuración de Entidades ---
+	_golem = new Enemy(sf::Vector2f(500.f, 400.f), &_mapa); // Creamos el Gólem con su posición inicial y referencia al mapa
+	_golem->setObjetivoJugador(&_personaje); // Pasamos la referencia del jugador para que el Gólem pueda perseguirlo y atacarlo
 
     // --- Carga del Mundo ---
     if (!_mapa.cargarMapa("assets/collisions_mapa_v1_background.csv", "assets/mapa_v1_background.png")) {
@@ -32,10 +35,7 @@ GameManager::GameManager()
     // --- Spawns de Prueba ---
     Item* pocionDePrueba = _itemManager.crearPocionVida();
     spawnearDropSeguro(pocionDePrueba, _itemManager.getTexturaPocionVida(), 400.f, 300.f);
-
-    Item* hornoDePrueba = _itemManager.crearHorno();
-    _objectsManager.agregarItemAlMundo(hornoDePrueba, _itemManager.getTexturaHorno(), 550.f, 350.f);
-
+	
     // --- Interfaz de Créditos ---
     if (!_fontCreditos.loadFromFile("assets/NorthEternal-yYl4V.otf")) {
         cout << "❌ Error cargando fuente de créditos" << endl;
@@ -100,7 +100,7 @@ void GameManager::procesarEventos() {
             if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::F3) {
                 _debug.toggleDebug();
             }
-            _debug.procesarEventos(evento, _hudInventario, _personaje, _golem);
+            _debug.procesarEventos(evento, _hudInventario, _personaje, *_golem);
             break;
 
         case MENU:
@@ -140,7 +140,7 @@ void GameManager::procesarEventos() {
 void GameManager::actualizar() {
     if (_estado != JUGANDO) return;
 
-	float dt = _reloj.restart().asSeconds(); // Calculamos el delta time para que el juego corra a la misma velocidad sin importar el rendimiento de la máquina
+    float dt = _reloj.restart().asSeconds(); // Calculamos el delta time para que el juego corra a la misma velocidad sin importar el rendimiento de la máquina
 
     // 1. SISTEMAS CORE
     _input.actualizarEstadoTiempoReal(_ventana);
@@ -166,24 +166,67 @@ void GameManager::actualizar() {
         }
     }
 
-    // 3. ACTUALIZACIÓN DE ENTIDADES
-// 1. Primero movemos al jugador
-    _personaje.manejarInput(_input, _mapa, _ventana, _hudInventario.isOpen()); 
-	_personaje.actualizar(dt); // Actualizamos al personaje antes que a los NPCs para que su posición esté actualizada para la IA
+    // =======================================================================
+    // 3.               ACTUALIZACIÓN DE ENTIDADES
+    // =======================================================================
 
+    // 1. Primero movemos al jugador
+    _personaje.manejarInput(_input, _mapa, _ventana, _hudInventario.isOpen());
+    _personaje.actualizar(dt); // Actualizamos al personaje antes que a los NPCs para que su posición esté actualizada para la IA
     // 2. AHORA calculamos el centro, cuando ya está en su posición final del frame
-	sf::Vector2f centroJugador = _personaje.getCentroFisico(); // Obtenemos el centro físico real del personaje para que la IA tenga un objetivo preciso y consistente.
+    sf::Vector2f centroJugador = _personaje.getCentroFisico(); // Obtenemos el centro físico real del personaje para que la IA tenga un objetivo preciso y consistente.
     // 3. Pasamos la posición real y actualizada
-    _golem.setPosicionObjetivo(centroJugador);
-    _golem.actualizar(dt);
-	colisionEntreEntidades(_personaje, _golem); // Chequeamos colisión entre el jugador y el Gólem
+
+    // Si _golem es nullptr (porque ya lo matamos), esto se ignora y no crashea.
+    if (_golem != nullptr) {
+        _golem->setPosicionObjetivo(centroJugador);
+        _golem->actualizar(dt);
+		colisionEntreEntidades(_personaje, *_golem); // Chequeamos Colision entre el jugador y el Gólem para aplicar daño si es necesario
+    };
+
     _mascota.setPosicionObjetivo(centroJugador);
     _mascota.actualizar(dt);
     _niebla.actualizar(dt);
 
+    // =======================================================================
     // 4. INTERACCIONES FÍSICAS MUNDO-PERSONAJE
+    // =======================================================================
     _objectsManager.chequearInteracciones(_personaje, _input);
-    _debug.actualizar(_hudInventario, _personaje, _golem);
+    if (_golem != nullptr) {
+        _debug.actualizar(_hudInventario, _personaje, *_golem);
+    }
+
+    //========================================================================
+    // 5. COMBATE: MAGIA VS ENEMIGOS
+    //========================================================================
+    BolaDeFuego& magia = _personaje.getBolaDeFuego();
+
+    // 1. Verificamos si la bola está actualmente volando por la pantalla
+    if (magia.estaActiva() && _golem != nullptr) {
+
+        // 2. Si la hitbox de la bola se cruza con la hitbox del Gólem
+        if (magia.getBounds().intersects(_golem->getBounds())) {
+
+            // ¡Impacto! Le restamos vida usando el daño del mago (heredado de EntidadViva)
+            _golem->recibirDanio(_personaje.getDanio());
+
+            // Destruimos/ocultamos la bola de fuego para que no siga de largo y pegue 2 veces
+            magia.desactivar();
+
+            std::cout << "🔥 ¡IMPACTO! El Gólem recibió " << _personaje.getDanio() << " de daño." << std::endl;
+            // 3. Verificamos si este golpe en particular le bajó la vida a 0 o menos
+            if (_golem->estaMuerto()) {
+                std::cout << "💀 ¡EL GÓLEM HA SIDO DERROTADO! Liberando memoria..." << std::endl;
+
+                // Lo borramos físicamente de la RAM
+                delete _golem;
+
+                // ⚠️ CRÍTICO: Ponemos el puntero en nulo. 
+                // Si no hacés esto, C++ cree que el objeto sigue ahí y explota en el próximo frame.
+                _golem = nullptr;
+            }
+        }
+    }
 }
 
 // ============================================================================
@@ -209,17 +252,19 @@ void GameManager::renderizar() {
         _objectsManager.dibujarItems(_ventana);
         _personaje.dibujar(_ventana);
         _mascota.dibujar(_ventana);
-        _golem.dibujar(_ventana);
+        if (_golem != nullptr) {
+            _golem->dibujar(_ventana);
+        };
         _niebla.dibujar(_ventana, _camara.getVista());
 
         // --- CAPA 2: MODO DEBUG POLIMÓRFICO ---
         if (_debug.estaActivo()) {
             _mapa.dibujarDebug(_ventana);
-            _golem.dibujarPathFinder(_ventana);
+            _golem->dibujarPathFinder(_ventana);
 
             // Dibujado de colisiones con colores semánticos
             _debug.dibujarCajaColision(_ventana, _personaje, sf::Color::Green);
-            _debug.dibujarCajaColision(_ventana, _golem, sf::Color::Magenta);
+            _debug.dibujarCajaColision(_ventana, *_golem, sf::Color::Magenta);
             // _debug.dibujarCajaColision(_ventana, _mascota, sf::Color::Cyan); 
         }
 
@@ -256,7 +301,6 @@ void GameManager::spawnearDropSeguro(Item* item, const sf::Texture& textura, flo
 
     _objectsManager.agregarItemAlMundo(item, textura, startX, startY);
 }
-
 // ============================================================================
 // RESOLUCIÓN DE COLISIONES ENTRE ENTIDADES (Jugador vs NPCS)
 // ============================================================================
@@ -294,7 +338,6 @@ void GameManager::colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enem
         jugador.setPosicion(sf::Vector2f(posActual.x + correccion.x, posActual.y + correccion.y));
     }
 }
-
 // ============================================================================
 // CAMBIO DE MÚSICA DE FONDO SEGÚN EL ESTADO DEL JUEGO
 // ============================================================================
@@ -310,4 +353,14 @@ void GameManager::cambiarMusica(GameState nuevoEstado) {
 
     _musicaAmbiente.setLoop(true);
     _musicaAmbiente.play();
+}
+
+// ============================================================================
+// FIN DE GameManager.cpp DESTRUCTOR Y LIMPIEZA DE MEMORIA
+// ============================================================================
+GameManager::~GameManager() {
+    if (_golem != nullptr) {
+        delete _golem;
+        _golem = nullptr;
+    }
 }

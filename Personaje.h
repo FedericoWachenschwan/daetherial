@@ -29,11 +29,8 @@ enum class DireccionLPC {
 class Personaje : public EntidadViva { // 🌟 AHORA SÍ: Hereda de la clase madre
 private:
     // --- COMPONENTES EXCLUSIVOS DEL JUGADOR ---
-    sf::Texture textura_completa_lpc;
-
     EstadoPersonaje _estadoActual = EstadoPersonaje::IDLE;
     DireccionLPC _direccionActual = DireccionLPC::DOWN;
-
     Inventario _inventario;
     BolaDeFuego _bolaDeFuego;
 
@@ -54,23 +51,21 @@ public:
 
     Inventario& getInventario() { return _inventario; }
     const Inventario& getInventario() const { return _inventario; }
-
-    void manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse);
-
+	void manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse); // Método para procesar el input del jugador (movimiento, habilidades, etc.)	
+    BolaDeFuego& getBolaDeFuego() { return _bolaDeFuego; } // Getter para acceder a la bola de fuego desde el GameManager o la UI
+    
     // 🌟 Funciones que el Personaje está obligado a implementar por heredar de EntidadViva
     void actualizar(float dt) override;
-    void dibujar(sf::RenderWindow& ventana) override; // 🌟 ACÁ ESTABA EL FALTANTE
+    void dibujar(sf::RenderWindow& ventana) override;
     sf::FloatRect getBounds() const override {
-        // 🌟 Usamos _sprite heredado de EntidadViva
+        // _sprite heredado de EntidadViva
         sf::Vector2f pos = _sprite.getPosition();
-
         float hitboxX = pos.x - 8.f;  // Centra la caja de 16 de ancho
         float hitboxY = pos.y + 16.f; // La baja a la base de los pies (32 + 16 = 48)
-
-        return sf::FloatRect(hitboxX, hitboxY, 16.f, 16.f);
+		return sf::FloatRect(hitboxX, hitboxY, 16.f, 16.f); // Caja de colisión de 16x16 centrada en la base del sprite
     }
 
-    // Métodos propios extra
-    void dibujarDebug(sf::RenderWindow& ventana) const; // 🌟 Le agregamos el const acá
+    // Métodos debug para visualizar la hitbox 
+    void dibujarDebug(sf::RenderWindow& ventana) const;
     void ajustarOrigenSprite(float x, float y);
 };
