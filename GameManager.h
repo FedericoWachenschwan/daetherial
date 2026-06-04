@@ -15,6 +15,7 @@
 #include "DebugManager.h"   // 🌟 Nuevo: Para activar el modo debug y mover cosas en caliente
 #include "BolaDeFuego.h"    // 🌟 Nuevo: Una habilidad de ejemplo para el personaje
 #include "InputManager.h" // 🌟 Nuevo: Para manejar el input de forma centralizada
+#include "Cursor_Visual.h"      // Incluimos la clase que maneja el cursor visual del juego
 
 // Estados del juego
 enum GameState {
@@ -53,6 +54,11 @@ private:
     Personaje _personaje;
     Mascota _mascota;
 	Enemy* _golem; // Puntero al Gólem para decir que sabemos manejar su memoria dinámicamente (si decides crear más enemigos, podrías usar un vector de punteros a enemigos)
+
+    /// =================
+    /// CURSOR VISUAL
+	/// ==================
+    Cursor_Visual _cursor; // El cursor personalizado que reemplaza al cursor de Windows
 
     // 🌟 NUEVOS ATRIBUTOS: Tus dos nuevos motores de objetos
     ItemManager _itemManager;

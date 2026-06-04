@@ -19,6 +19,11 @@ GameManager::GameManager()
     _camara.setLimitesMundo(sf::FloatRect(0, 0, 2000, 2000));
     _ventana.setFramerateLimit(60);
 
+   /// =================
+   /// CURSOR VISUAL
+   /// ==================
+    _ventana.setMouseCursorVisible(false); // Ocultamos el cursor de Windows para que no se vea encima del nuestro
+
 	// --- Configuración de Entidades ---
 	_golem = new Enemy(sf::Vector2f(968.f, 380.f), &_mapa); // Creamos el Gólem con su posición inicial y referencia al mapa
 	_golem->setObjetivoJugador(&_personaje); // Pasamos la referencia del jugador para que el Gólem pueda perseguirlo y atacarlo
@@ -158,6 +163,12 @@ void GameManager::procesarEventos() {
 // 4. ACTUALIZACIÓN LÓGICA (Física, IA, Interacciones)
 // ============================================================================
 void GameManager::actualizar() {
+
+    /// =================
+    /// CURSOR VISUAL
+    /// ==================
+    _cursor.actualizar(_ventana); // Movemos el sprite del cursor a donde está el mouse en este frame
+
     if (_estado != JUGANDO) return;
 
     float dt = _reloj.restart().asSeconds(); // Calculamos el delta time para que el juego corra a la misma velocidad sin importar el rendimiento de la máquina
@@ -297,7 +308,13 @@ void GameManager::renderizar() {
     //--- CAPA 4: MODO DEBUG: EXTRACTOR DE TEXTURAS (Solo si el debug está activo y el objetivo es EXTRACTOR) ---
     if (_debug.estaActivo() && _debug.getObjetivoActual() == ObjetivoDebug::EXTRACTOR) {
         _debug.dibujarExtractor(_ventana, _itemManager.getTexturaMaestra());
-    }
+    } 
+    
+    /// =================
+    /// CURSOR VISUAL
+    /// ==================
+    _cursor.dibujar(_ventana);      // Dibujamos el cursor al último para que quede encima de todo
+
     _ventana.display();
 }
 
