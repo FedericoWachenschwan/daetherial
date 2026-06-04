@@ -2,7 +2,7 @@
 #include <iostream> 
 
 Menu::Menu(float width, float height) { // Constructor del menú, recibe el ancho y alto de la ventana
-    font.loadFromFile("assets/NorthEternal-yYl4V.otf");
+    font.loadFromFile("assets/NorthEternal.otf");
     // Carga la fuente desde el archivo especificado (necesaria para mostrar texto)
 
     // Cargando la imagen de fondo del menu
@@ -22,13 +22,15 @@ Menu::Menu(float width, float height) { // Constructor del menú, recibe el anch
 
     std::string items[] = {
         "Inicio",
+        "Creador de Items",
         "Logros",
         "Creditos",
         "Salir"
     };
     // Arreglo de strings que contiene las opciones del menú
+    int cantidadOpciones = sizeof(items) / sizeof(items[0]);
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < cantidadOpciones; i++)
     {
         sf::Text text;
         // Crea un objeto de texto (representa una opción del menú)

@@ -57,7 +57,7 @@ GameManager::GameManager()
     spawnearDropSeguro(hornoPrueba, 400.f, 300.f);
 	
     // --- Interfaz de Créditos ---
-    if (!_fontCreditos.loadFromFile("assets/NorthEternal-yYl4V.otf")) {
+    if (!_fontCreditos.loadFromFile("assets/NorthEternal.otf")) {
         cout << "❌ Error cargando fuente de créditos" << endl;
     }
 
@@ -107,13 +107,13 @@ void GameManager::procesarEventos() {
             _ventana.close();
         }
 
-        // Sistema global de input
-        _input.procesarEvento(evento);
-
         // --- Lógica según el Estado ---
         switch (_estado) {
 
         case JUGANDO:
+            // ✅ AHORA SÍ: El InputManager solo roba el teclado si estás jugando
+            _input.procesarEvento(evento);
+
             _camara.procesarZoom(evento);
 
             // Toggle Debug
@@ -130,18 +130,56 @@ void GameManager::procesarEventos() {
 
                 if (evento.key.code == sf::Keyboard::Enter) {
                     int selected = _menu.getSelectedIndex();
+
                     if (selected == 0) {
                         _estado = JUGANDO;
                         cambiarMusica(_estado);
                         _reloj.restart(); // Reiniciamos para evitar saltos bruscos de dt
                     }
+                    else if (selected == 1) {
+                        _estado = CREADOR_ITEMS;
+                        _uiCreadorItems.actualizarSprite(_itemManager.getTexturaMaestra());
+                    }
                     else if (selected == 2) {
-                        _estado = CREDITOS;
+                        // _estado = LOGROS; 
+                        std::cout << "🏆 Pantalla de Logros en construccion..." << std::endl;
                     }
                     else if (selected == 3) {
+                        _estado = CREDITOS;
+                    }
+                    else if (selected == 4) {
                         _ventana.close();
                     }
                 }
+            }
+            break;
+
+            // =======================================================
+            // UI CREADOR DE ÍTEMS
+            // =======================================================
+        case CREADOR_ITEMS:
+            _uiCreadorItems.procesarEventos(evento, _itemManager);
+
+            if (evento.type == sf::Event::KeyPressed &&
+                (evento.key.code == sf::Keyboard::Left || evento.key.code == sf::Keyboard::Right)) {
+                _uiCreadorItems.actualizarSprite(_itemManager.getTexturaMaestra());
+            }
+
+            if (_uiCreadorItems.quiereGuardar()) {
+                ItemReg nuevoItem = _uiCreadorItems.generarRegistro();
+
+                if (_itemManager.guardarRegistro(nuevoItem)) {
+                    std::cout << "✅ ÍTEM GUARDADO EN LA BASE DE DATOS: " << nuevoItem.nombre << std::endl;
+                }
+                else {
+                    std::cout << "❌ Error al guardar el ítem." << std::endl;
+                }
+
+                _uiCreadorItems.confirmarGuardado();
+            }
+
+            if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::Escape) {
+                _estado = MENU;
             }
             break;
 
@@ -263,6 +301,10 @@ void GameManager::renderizar() {
         _ventana.setView(_ventana.getDefaultView());
         _ventana.draw(_textoCreditos);
     }
+	else if (_estado == CREADOR_ITEMS) {
+		_ventana.setView(_ventana.getDefaultView());
+		_uiCreadorItems.dibujar(_ventana);
+	}
     else if (_estado == JUGANDO) {
 
         // --- CAPA 1: MUNDO Y ENTIDADES (Camara del Jugador) ---

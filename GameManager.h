@@ -15,16 +15,20 @@
 #include "DebugManager.h"   // 🌟 Nuevo: Para activar el modo debug y mover cosas en caliente
 #include "BolaDeFuego.h"    // 🌟 Nuevo: Una habilidad de ejemplo para el personaje
 #include "InputManager.h" // 🌟 Nuevo: Para manejar el input de forma centralizada
+#include "UI_CreadorItems.h" // 🌟 Nuevo: La interfaz para crear ítems en tiempo real
 
 // Estados del juego
 enum GameState {
     MENU,
     JUGANDO,
-    CREDITOS
+    CREDITOS,
+    CREADOR_ITEMS
 };
 
 class GameManager {
 private:
+    
+	UI_CreadorItems _uiCreadorItems; // La interfaz para crear ítems en tiempo real
     
     // Manager de input para manejar las entradas del jugador de forma centralizada
 	InputManager _input; 

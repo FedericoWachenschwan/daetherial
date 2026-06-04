@@ -20,7 +20,7 @@ UI_Inventario::UI_Inventario() {
 	_slotFondo.setOutlineThickness(2.f);
 
 	// 🌟 NUEVO: Cargamos la fuente para los números
-	if (!_fuente.loadFromFile("assets/NorthEternal-yYl4V.otf")) { // FUENTE
+	if (!_fuente.loadFromFile("assets/NorthEternal.otf")) { // FUENTE
 		std::cout << "❌ Error: No se encontró la fuente para el inventario." << std::endl;
 	}
 

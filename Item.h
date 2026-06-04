@@ -25,11 +25,11 @@ enum class RarezaItem {
 
 // 🌟 El registro plano que viajará directo al archivo .dat
 struct ItemReg {
-    int id;
+	int id;             // ID único para cada tipo de item (1, 2, 3...)
     int tipoItem;       // Mapea con TipoItem (int)
     char nombre[30];    // Strings fijos para evitar punteros rotos en el archivo
     int valorEfecto;    // Cuánto cura, cuánto daño suma, etc.
-    int precio;
+	int precio;         // Para la tienda (futura)
     int rareza;         // Mapea con RarezaItem (int)
     int idTextura;      // El índice de la grilla del Spritesheet (0, 1, 2, 3...)
     bool activo;        // Para la baja lógica del ABML
@@ -77,7 +77,7 @@ public:
 	sf::Sprite& getSprite() { return _sprite; } // Devuelve el sprite para renderizarlo en el inventario UI
 
 
-}; // 🌟 ACÁ TERMINA LA CLASE ITEM
+};
 
 
 // ========================================================
@@ -110,7 +110,7 @@ private:
 public:
     Recurso(int id, const std::string& nombre, int tipoRecurso, int cantidad);
     void usar(Personaje& jugador) override;
-}; // 🌟 Corregido: Se agregó el cierre de la clase Recurso
+};
 
 
 // 4. LA CLASE EQUIPAMIENTO (Espadas, escudos, armaduras)
@@ -120,7 +120,6 @@ private:
     int _bonusAtaque;
     int _bonusDefensa;
 public:
-    // 🌟 Corregido: Se eliminó el paréntesis sobrante al final
     Equipamiento(int id, const std::string& nombre, int tipoEquipamiento, int bonusAtaque, int bonusDefensa);
     void usar(Personaje& jugador) override;
-}; // 🌟 Corregido: Se agregó el cierre de la clase Equipamiento
+};
