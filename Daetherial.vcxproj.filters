@@ -26,6 +26,7 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="EntidadViva.cpp" />
     <ClCompile Include="PathFinder.cpp" />
+    <ClCompile Include="UI_CreadorItems.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="map.h" />
@@ -249,6 +250,7 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="EntidadViva.h" />
     <ClInclude Include="PathFinder.h" />
+    <ClInclude Include="UI_CreadorItems.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\cat_abajo.png" />
@@ -709,8 +711,5 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="assets\ambient.wav" />
-  </ItemGroup>
-  <ItemGroup>
-    <Font Include="assets\NorthEternal-yYl4V.otf" />
   </ItemGroup>
 </Project>

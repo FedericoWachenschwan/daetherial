@@ -183,6 +183,7 @@
     <ClCompile Include="habilidad_3.cpp" />
     <ClCompile Include="habilidad_4.cpp" />
     <ClCompile Include="habilidad_5.cpp" />
+    <ClCompile Include="UI_CreadorItems.cpp" />
     <ClCompile Include="UI_Inventario.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -407,6 +408,7 @@
     <ClInclude Include="SFML\include\SFML\Window\Window.hpp" />
     <ClInclude Include="SFML\include\SFML\Window\WindowHandle.hpp" />
     <ClInclude Include="SFML\include\SFML\Window\WindowStyle.hpp" />
+    <ClInclude Include="UI_CreadorItems.h" />
     <ClInclude Include="UI_Inventario.h" />
   </ItemGroup>
   <ItemGroup>
@@ -868,9 +870,6 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="assets\ambient.wav" />
-  </ItemGroup>
-  <ItemGroup>
-    <Font Include="assets\NorthEternal-yYl4V.otf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
