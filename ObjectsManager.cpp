@@ -1,6 +1,6 @@
 #include "ObjectsManager.h"
 #include "Personaje.h"
-#include "InputManager.h" // 🌟 SOLUCIÓN AL TIPO INCOMPLETO: Acá sí va el include completo
+#include "InputManager.h"
 #include <iostream>
 
 ObjectsManager::~ObjectsManager() {
@@ -10,13 +10,11 @@ ObjectsManager::~ObjectsManager() {
     _itemsEnMundo.clear();
 }
 
-void ObjectsManager::agregarItemAlMundo(Item* nuevoItem, const sf::Texture& textura, float x, float y, sf::FloatRect hitboxCustom) {
-    // La interfaz pública acepta const sf::Texture& para evitar const_cast en llamadores.
-    // Internamente necesitamos un sf::Texture& para colocar el sprite en el item; usamos const_cast aquí
-    // porque sabemos que ItemsManager mantiene la vida de la textura en memoria durante toda la ejecución.
-    sf::Texture& texRef = const_cast<sf::Texture&>(textura);
-    nuevoItem->colocarEnMundo(texRef, x, y, hitboxCustom);
-    _itemsEnMundo.push_back(nuevoItem);
+void ObjectsManager::agregarItemAlMundo(Item* nuevoItem, float x, float y, sf::FloatRect hitboxCustom) {
+	if (nuevoItem != nullptr) {
+        nuevoItem->colocarEnMundo(x, y, hitboxCustom); // Le decimos al item que actualice sus coordenadas espaciales
+		_itemsEnMundo.push_back(nuevoItem);
+	}
 }
 
 void ObjectsManager::dibujarItems(sf::RenderWindow& ventana) const {

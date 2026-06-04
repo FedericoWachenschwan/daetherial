@@ -66,7 +66,7 @@ private:
 	void procesarEventos(); // Método dedicado al procesamiento de eventos para mantener el código organizado
 	void actualizar(); // Método dedicado a la actualización de la lógica del juego para mantener el código organizado
 	void renderizar(); // Método dedicado al renderizado para mantener el código organizado
-	void spawnearDropSeguro(Item* item, const sf::Texture& textura, float startX, float startY); //spawnear un drop sin que quede bloqueado en paredes
+	void spawnearDropSeguro(Item* item, float startX, float startY); //spawnear un drop sin que quede bloqueado en paredes
 	void cambiarMusica(GameState nuevoEstado); // Cambia la música de fondo según el estado del juego (ej: música de menú, música de juego, música de créditos)
     sf::Music _musicaAmbiente;
     void colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enemigo); // Maneja la colisión entre el jugador y un enemigo, aplicando daño o efectos según corresponda

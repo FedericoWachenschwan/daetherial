@@ -20,7 +20,7 @@ GameManager::GameManager()
     _ventana.setFramerateLimit(60);
 
 	// --- Configuración de Entidades ---
-	_golem = new Enemy(sf::Vector2f(500.f, 400.f), &_mapa); // Creamos el Gólem con su posición inicial y referencia al mapa
+	_golem = new Enemy(sf::Vector2f(968.f, 380.f), &_mapa); // Creamos el Gólem con su posición inicial y referencia al mapa
 	_golem->setObjetivoJugador(&_personaje); // Pasamos la referencia del jugador para que el Gólem pueda perseguirlo y atacarlo
 
     // --- Carga del Mundo ---
@@ -32,9 +32,29 @@ GameManager::GameManager()
     // --- Audio Inicial ---
     cambiarMusica(_estado);
 
-    // --- Spawns de Prueba ---
-    Item* pocionDePrueba = _itemManager.crearPocionVida();
-    spawnearDropSeguro(pocionDePrueba, _itemManager.getTexturaPocionVida(), 400.f, 300.f);
+    // ========================================================================
+    // 🌟 SEED DE LA BASE DE DATOS Y SPAWN DE PRUEBA
+    // ========================================================================
+    if (_itemManager.contarRegistros() == 0) {
+        cout << "💾 Base de datos vacia. Generando items de prueba..." << endl;
+
+        ItemReg pocion = { 1, static_cast<int>(TipoItem::Consumible), "Pocion de Vida", 20, 10, static_cast<int>(RarezaItem::Comun), 0, true };
+        ItemReg espada = { 2, static_cast<int>(TipoItem::Equipamiento), "Espada Corta", 15, 0, static_cast<int>(RarezaItem::Raro), 1, true };
+        ItemReg horno = { 3, static_cast<int>(TipoItem::Mueble), "Horno de Fundicion", 2, 50, static_cast<int>(RarezaItem::Comun), 2, true };
+
+        _itemManager.guardarRegistro(pocion);
+        _itemManager.guardarRegistro(espada);
+        _itemManager.guardarRegistro(horno);
+    }
+
+    Item* pocionPrueba = _itemManager.crearItemPorId(1);
+    Item* espadaPrueba = _itemManager.crearItemPorId(2);
+    Item* hornoPrueba = _itemManager.crearItemPorId(3);
+
+    // Los tiramos al piso usando tu función segura (ahora sin textura)
+    spawnearDropSeguro(pocionPrueba, 300.f, 300.f);
+    spawnearDropSeguro(espadaPrueba, 350.f, 300.f);
+    spawnearDropSeguro(hornoPrueba, 400.f, 300.f);
 	
     // --- Interfaz de Créditos ---
     if (!_fontCreditos.loadFromFile("assets/NorthEternal-yYl4V.otf")) {
@@ -100,7 +120,7 @@ void GameManager::procesarEventos() {
             if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::F3) {
                 _debug.toggleDebug();
             }
-            _debug.procesarEventos(evento, _hudInventario, _personaje, _golem);
+            _debug.procesarEventos(evento, _ventana, _hudInventario, _personaje, _golem);
             break;
 
         case MENU:
@@ -192,8 +212,8 @@ void GameManager::actualizar() {
     // 4. INTERACCIONES FÍSICAS MUNDO-PERSONAJE
     // =======================================================================
     _objectsManager.chequearInteracciones(_personaje, _input);
+    _debug.actualizar(_hudInventario, _personaje, _golem);
     if (_golem != nullptr) {
-        _debug.actualizar(_hudInventario, _personaje, _golem);
     }
 
     //========================================================================
@@ -261,28 +281,30 @@ void GameManager::renderizar() {
         if (_debug.estaActivo()) {
             _mapa.dibujarDebug(_ventana);
 
-            // 🛡️ ESCUDO SEGURO: Solo dibujamos la telemetría del Gólem si sigue vivo en el mapa
+            // Dibujado de colisiones con colores semánticos
+            _debug.dibujarCajaColision(_ventana, _personaje, sf::Color::Green);
             if (_golem != nullptr) {
                 _golem->dibujarPathFinder(_ventana);
                 _debug.dibujarCajaColision(_ventana, *_golem, sf::Color::Magenta);
             }
-
-            // Dibujado de colisiones fijas
-            _debug.dibujarCajaColision(_ventana, _personaje, sf::Color::Green);
+            // _debug.dibujarCajaColision(_ventana, _mascota, sf::Color::Cyan); 
         }
 
         // --- CAPA 3: INTERFAZ Y HUD (Cámara Estática) ---
         _ventana.setView(_ventana.getDefaultView());
         _hudInventario.dibujar(_ventana, _personaje.getInventario());
     }
-
+    //--- CAPA 4: MODO DEBUG: EXTRACTOR DE TEXTURAS (Solo si el debug está activo y el objetivo es EXTRACTOR) ---
+    if (_debug.estaActivo() && _debug.getObjetivoActual() == ObjetivoDebug::EXTRACTOR) {
+        _debug.dibujarExtractor(_ventana, _itemManager.getTexturaMaestra());
+    }
     _ventana.display();
 }
 
 // ============================================================================
 // 6. FUNCIONES AUXILIARES (Utilidades del mundo)
 // ============================================================================
-void GameManager::spawnearDropSeguro(Item* item, const sf::Texture& textura, float startX, float startY) {
+void GameManager::spawnearDropSeguro(Item* item, float startX, float startY) {
     sf::FloatRect hitbox = item->getBounds();
     hitbox.left = startX;
     hitbox.top = startY;
@@ -302,7 +324,7 @@ void GameManager::spawnearDropSeguro(Item* item, const sf::Texture& textura, flo
         std::cout << "⚠️ Advertencia: Drop bloqueado en pared: " << item->getNombre() << std::endl;
     }
 
-    _objectsManager.agregarItemAlMundo(item, textura, startX, startY);
+    _objectsManager.agregarItemAlMundo(item, startX, startY);
 }
 // ============================================================================
 // RESOLUCIÓN DE COLISIONES ENTRE ENTIDADES (Jugador vs NPCS)

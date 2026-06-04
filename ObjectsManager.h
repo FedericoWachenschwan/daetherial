@@ -14,12 +14,9 @@ private:
 public:
     ~ObjectsManager();
 
-    void agregarItemAlMundo(Item* nuevoItem, const sf::Texture& textura, float x, float y, sf::FloatRect hitboxCustom = sf::FloatRect());
+    void agregarItemAlMundo(Item* nuevoItem, float x, float y, sf::FloatRect hitboxCustom = sf::FloatRect());
     void dibujarItems(sf::RenderWindow& ventana) const;
-
-    // 🌟 ACTUALIZADO: Ahora la firma acepta la referencia al InputManager
     void chequearInteracciones(Personaje& jugador, const InputManager& input);
-
     void recibirItemSoltado(Item* itemSoltado);
 
     const std::vector<Item*>& getItemsEnMundo() const { return _itemsEnMundo; }

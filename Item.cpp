@@ -9,8 +9,7 @@ Item::Item(int id, const std::string& nombre, TipoItem tipo, int cantidad, int m
     : _id(id), _nombre(nombre), _tipo(tipo), _cantidad(cantidad), _maxStack(maxStack), _esAgarrable(esAgarrable), _estaEnElMundo(false) {
 }
 
-void Item::colocarEnMundo(sf::Texture& textura, float x, float y, sf::FloatRect hitboxCustom) {
-    _sprite.setTexture(textura);
+void Item::colocarEnMundo(float x, float y, sf::FloatRect hitboxCustom) {
     _sprite.setPosition(x, y);
     _estaEnElMundo = true;
 

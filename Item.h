@@ -6,14 +6,35 @@
 // Le avisamos al compilador que la clase Personaje existe
 class Personaje;
 
-// Enumerador para saber qué categoría de objeto es
+#pragma once
+
 enum class TipoItem {
-	Desconocido,   // Para inicializar con un tipo vacío o error
-    Consumible,   // Pociones, comida
-    Equipamiento, // Espadas, escudos, armaduras
-    Recurso,      // Oro, madera, piedra
-    Mueble        // Caldero, cofres (para construir después)
+    Desconocido = 0,
+    Consumible = 1,
+    Equipamiento = 2,
+    Recurso = 3,
+    Mueble = 4
 };
+
+enum class RarezaItem {
+    Comun = 0,
+    Raro = 1,
+    Epico = 2,
+    Legendario = 3
+};
+
+// 🌟 El registro plano que viajará directo al archivo .dat
+struct ItemReg {
+    int id;
+    int tipoItem;       // Mapea con TipoItem (int)
+    char nombre[30];    // Strings fijos para evitar punteros rotos en el archivo
+    int valorEfecto;    // Cuánto cura, cuánto daño suma, etc.
+    int precio;
+    int rareza;         // Mapea con RarezaItem (int)
+    int idTextura;      // El índice de la grilla del Spritesheet (0, 1, 2, 3...)
+    bool activo;        // Para la baja lógica del ABML
+};
+
 
 // ========================================================
 // 1. LA CLASE BASE (El molde principal)
@@ -39,7 +60,7 @@ public:
 
     virtual void usar(Personaje& jugador) = 0;
 
-    void colocarEnMundo( sf::Texture& textura, float x, float y, sf::FloatRect hitboxCustom = sf::FloatRect());
+    void colocarEnMundo(float x, float y, sf::FloatRect hitboxCustom = sf::FloatRect());
     void setPosicion(sf::Vector2f nuevaPosicion);
     void dibujar(sf::RenderWindow& ventana) const;
     bool estaEnElMundo() const { return _estaEnElMundo; }
@@ -53,7 +74,7 @@ public:
     int getCantidad() const { return _cantidad; }
     int getMaxStack() const { return _maxStack; }
     void setCantidad(int cantidad) { _cantidad = cantidad; }
-	sf::Sprite getSprite() const { return _sprite; } // Devuelve el sprite para renderizarlo en el inventario UI
+	sf::Sprite& getSprite() { return _sprite; } // Devuelve el sprite para renderizarlo en el inventario UI
 
 
 }; // 🌟 ACÁ TERMINA LA CLASE ITEM
