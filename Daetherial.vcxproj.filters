@@ -251,6 +251,7 @@
     <ClInclude Include="EntidadViva.h" />
     <ClInclude Include="PathFinder.h" />
     <ClInclude Include="UI_CreadorItems.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\cat_abajo.png" />
@@ -266,6 +267,8 @@
     <Image Include="assets\Walk_Side-Sheet.png" />
     <Image Include="assets\Walk_Up-Sheet.png" />
     <Image Include="assets\habilidades\Fire_Spell_Frame_01.png" />
+    <Image Include="assets\daetherial.png" />
+    <Image Include="assets\Daetherial.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SFML\doc\html\AlResource_8hpp_source.html" />
@@ -711,5 +714,8 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="assets\ambient.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Daetherial.rc" />
   </ItemGroup>
 </Project>

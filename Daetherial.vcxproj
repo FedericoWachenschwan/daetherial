@@ -309,6 +309,7 @@
     <ClInclude Include="habilidad_3.h" />
     <ClInclude Include="habilidad_4.h" />
     <ClInclude Include="habilidad_5.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="SFML\examples\shader\Effect.hpp" />
     <ClInclude Include="SFML\include\SFML\Audio.hpp" />
     <ClInclude Include="SFML\include\SFML\Audio\AlResource.hpp" />
@@ -416,6 +417,8 @@
     <Image Include="assets\cat_arriba.png" />
     <Image Include="assets\cat_derecha.png" />
     <Image Include="assets\cat_izquierda.png" />
+    <Image Include="assets\Daetherial.ico" />
+    <Image Include="assets\daetherial.png" />
     <Image Include="assets\Dungeon_Tileset.png" />
     <Image Include="assets\fog.png" />
     <Image Include="assets\habilidades\Fire_Spell_Frame_01.png" />
@@ -870,6 +873,9 @@
   </ItemGroup>
   <ItemGroup>
     <Media Include="assets\ambient.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Daetherial.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
