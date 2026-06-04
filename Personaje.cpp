@@ -15,7 +15,9 @@ Personaje::Personaje() {
     _sprite.setPosition(100.f, 100.f);
 
 	// 🌟 Estadisticas base del personaje heredades de EntidadViva
-    _velocidad = 2.f;
+    _velocidad = 170.f;
+    _aceleracion = 10.f; // Que tan rapido alcanza la velocidad máxima
+    _desaceleracion = 08.f; // Que tan rapido frena al soltar el movimiento (debe ser mayor que la aceleración para que no se sienta pegajoso)
     _vidaMaxima = 100;
     _vidaActual = _vidaMaxima;
     _danio = 50;
@@ -34,10 +36,10 @@ Personaje::Personaje() {
 // ============================================================================
 // MANEJAR INPUT: El filtro principal de acciones y movimiento
 // ============================================================================
-void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse) {
+void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse, float dt) {
 
     // 1. FILTRO ABSOLUTO: Si está casteando o muerto, se congela por completo SIEMPRE
-    if (_estadoActual == EstadoPersonaje::SPELLCAST || _estadoActual == EstadoPersonaje::HURT) return;
+    if (_estadoActual == EstadoPersonaje::SPELLCAST || _estadoActual == EstadoPersonaje::HURT || _estadoActual == EstadoPersonaje::MUERTO) return;
 
     sf::Vector2f direccion = input.getDireccionMovimiento();
     // 🌟 _velocidad viene heredada de EntidadViva
@@ -47,15 +49,38 @@ void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWin
     if (direccion.x != 0.f && direccion.y != 0.f) {
         movimiento *= 0.7071f;
     }
+    
+	// 1. FILTRO DE VELOCIDAD: Aplica aceleración y desaceleración para suavizar el movimiento
+    sf::Vector2f velocidadObjetivo = movimiento;
+    
+	// 2. FILTRO DE INERCIA: Aplica aceleración para alcanzar la velocidad objetivo y desaceleración para frenar al soltar el movimiento
+        if (direccion.x != 0.f || direccion.y != 0.f) {
+            // ACELERACIÓN: Nos acercamos fluidamente a la velocidad máxima
+            _velocidadActual.x += (velocidadObjetivo.x - _velocidadActual.x) * _aceleracion * dt;
+            _velocidadActual.y += (velocidadObjetivo.y - _velocidadActual.y) * _aceleracion * dt;
+        }
+        else {
+            // DESACELERACIÓN: Frenado progresivo hacia el cero absoluto
+            _velocidadActual.x += (0.f - _velocidadActual.x) * _desaceleracion * dt;
+            _velocidadActual.y += (0.f - _velocidadActual.y) * _desaceleracion * dt;
+
+            // Umbral de corte: Si la velocidad es insignificante, la clavamos en cero para evitar micro-desplazamientos
+            if (std::hypot(_velocidadActual.x, _velocidadActual.y) < 10.f) {
+                _velocidadActual = { 0.f, 0.f };
+            }
+        }
+
+
 
     // Actualizamos la mirada y la intención de movimiento de forma inteligente
-    determinarEstadoYDireccion(direccion);
+    determinarEstadoYDireccion(_velocidadActual);
 
     // Procesamos el intento de apuntar, cancelar o disparar la magia
     procesarHabilidades(input, ventana, uiCapturaMouse);
 
+	sf::Vector2f movimientoEsteFrame = _velocidadActual * dt;
     // 🌟 Ejecutamos las colisiones AABB contra el mapa (Llama a la función de la clase madre)
-    resolverColisiones(movimiento, mapa);
+    resolverColisiones(movimientoEsteFrame, mapa);
 }
 
 // ============================================================================
@@ -64,7 +89,11 @@ void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWin
 void Personaje::determinarEstadoYDireccion(sf::Vector2f direccion) {
     if (direccion.x == 0.f && direccion.y == 0.f) {
         if (_estadoActual != EstadoPersonaje::AIMING) {
-            _estadoActual = EstadoPersonaje::IDLE;
+            if (_estadoActual != EstadoPersonaje::IDLE) {
+                _estadoActual = EstadoPersonaje::IDLE;
+                _frameActual = 9;
+				_tiempoFrame = 0.f; // Congelamos el último frame de caminata para que no se vea tan raro el cambio a idle
+            }
         }
         else {
             _frameActual = 0;
@@ -77,11 +106,15 @@ void Personaje::determinarEstadoYDireccion(sf::Vector2f direccion) {
         _estadoActual = EstadoPersonaje::WALK;
     }
 
-    if (direccion.y < 0.f)      _direccionActual = DireccionLPC::UP;
-    else if (direccion.y > 0.f) _direccionActual = DireccionLPC::DOWN;
-
-    if (direccion.x > 0.f)      _direccionActual = DireccionLPC::RIGHT;
-    else if (direccion.x < 0.f) _direccionActual = DireccionLPC::LEFT;
+	// ALGORITMO PARA QUE NO MIRE EN DIAGONAL: Comparamos la magnitud del impulso horizontal y vertical para decidir la dirección de la mirada
+    if (std::abs(direccion.x) > std::abs(direccion.y)) {
+        // El impulso horizontal es mayor, fijamos mirada izquierda o derecha
+        _direccionActual = (direccion.x > 0.f) ? DireccionLPC::RIGHT : DireccionLPC::LEFT;
+    }
+    else {
+        // El impulso vertical es mayor o igual, fijamos mirada arriba o abajo
+        _direccionActual = (direccion.y > 0.f) ? DireccionLPC::DOWN : DireccionLPC::UP;
+    }
 }
 
 // ============================================================================
@@ -127,6 +160,18 @@ void Personaje::procesarHabilidades(const InputManager& input, sf::RenderWindow&
 // ACTUALIZAR: El motor temporal de los relojes de animación y lógicas hijas
 // ============================================================================
 void Personaje::actualizar(float dt) {
+    // 1. 💀 CONTROL DE MUERTE
+    if (this->estaMuerto()) {
+        _estadoActual = EstadoPersonaje::MUERTO;
+
+        if (_frameActual >= 5) {
+            _frameActual = 5; // Congelamos en el cuadro del piso
+            actualizarSpriteRect();
+            _bolaDeFuego.actualizar(dt);
+            return;
+        }
+    }
+
     if (_estadoActual == EstadoPersonaje::AIMING) {
         _circuloRango.setPosition(this->getPosicion());
     }
@@ -139,8 +184,14 @@ void Personaje::actualizar(float dt) {
     _tiempoFrame += dt;
     if (_tiempoFrame >= limiteTiempoFrame) {
         _tiempoFrame = 0.f;
-        _frameActual++;
-        controlarLimitesYTransiciones();
+
+        if (_estadoActual == EstadoPersonaje::MUERTO) {
+            if (_frameActual < 5) _frameActual++; // Cae al piso cuadro por cuadro
+        }
+        else {
+            _frameActual++;
+            controlarLimitesYTransiciones();
+        }
     }
 
     actualizarSpriteRect();
@@ -154,8 +205,11 @@ void Personaje::controlarLimitesYTransiciones() {
     switch (_estadoActual) {
 
     case EstadoPersonaje::IDLE:
-        _maxFrames = 1;
-        _frameActual = 0;
+        _maxFrames = 11;
+		// Si el frame se pasa de 10, lo clavamos en el 9 (El último de caminata) para que no se vea tan raro el cambio a idle
+        if (_frameActual < 9 || _frameActual >= _maxFrames) {
+            _frameActual = 9;
+        }
         break;
 
     case EstadoPersonaje::AIMING:
@@ -180,6 +234,13 @@ void Personaje::controlarLimitesYTransiciones() {
         _maxFrames = 6;
         if (_frameActual >= _maxFrames) _frameActual = _maxFrames - 1;
         break;
+
+    case EstadoPersonaje::MUERTO:
+        _maxFrames = 6; // Del frame 0 al 5
+        if (_frameActual >= _maxFrames) {
+            _frameActual = 5; // Clavado en el piso acostado
+        }
+        break;
     }
 }
 
@@ -194,17 +255,15 @@ void Personaje::actualizarSpriteRect() {
         estadoAnim = EstadoPersonaje::WALK;
     }
 
-    if (estadoAnim == EstadoPersonaje::HURT) {
+    if (estadoAnim == EstadoPersonaje::HURT || estadoAnim == EstadoPersonaje::MUERTO) {
         filaMatriz = 20;
     }
     else {
         filaMatriz = static_cast<int>(estadoAnim) * 4 + static_cast<int>(_direccionActual);
     }
 
-    int columna = _frameActual;
-    if (_estadoActual == EstadoPersonaje::IDLE) {
-        columna = 0;
-    }
+	int columna = _frameActual; // columna recibe directamente el frame dinamico (9 o 10) para hacer la animacion de respiracion
+
 
     // 🌟 Usamos _sprite
     _sprite.setTextureRect(sf::IntRect(columna * 64, filaMatriz * 64, 64, 64));

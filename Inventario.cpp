@@ -132,6 +132,19 @@ void Inventario::usarItem(int indice, Personaje& jugador) {
     }
 }
 
+TipoItem Inventario::getItemTipo(int indice) const {
+    // 1. 🛡️ Escudo de seguridad: validamos índice y que el slot no sea un puntero nulo
+    if (indice < 0 || indice >= static_cast<int>(_itemsGuardados.size()) || _itemsGuardados[indice] == nullptr) {
+
+        // Si el slot está vacío o es inválido, C++ te obliga a retornar un TipoItem.
+        // Lo ideal es que en tu enum 'TipoItem' tengas un valor por defecto como Desconocido o Ninguno.
+        return TipoItem::Desconocido;
+    }
+
+    // 2. El único trabajo del getter: retornar el dato puro hacia afuera
+    return _itemsGuardados[indice]->getTipo();
+}
+
 // ==========================================
 // EXTRAER ÍTEM SELECCIONADO (Para tirar con la Q)
 // ==========================================

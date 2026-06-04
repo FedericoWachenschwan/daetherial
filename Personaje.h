@@ -16,7 +16,8 @@ enum class EstadoPersonaje {
     SHOOT = 4,
     HURT = 5,
     IDLE,
-    AIMING
+    AIMING,
+    MUERTO
 };
 
 enum class DireccionLPC {
@@ -33,6 +34,11 @@ private:
     DireccionLPC _direccionActual = DireccionLPC::DOWN;
     Inventario _inventario;
     BolaDeFuego _bolaDeFuego;
+
+	// --- FISICAS DEL PERSONAJE ---
+	sf::Vector2f _velocidadActual = { 0.f, 0.f };
+	float _aceleracion = 0.f; // Que tan rapido alcanza la velocidad máxima
+	float _desaceleracion = 0.f; // Que tan rapido frena al soltar el movimiento (debe ser mayor que la aceleración para que no se sienta pegajoso)
 
     // --- 🎯 INDICADOR DE RANGO ---
     sf::CircleShape _circuloRango;
@@ -51,7 +57,7 @@ public:
 
     Inventario& getInventario() { return _inventario; }
     const Inventario& getInventario() const { return _inventario; }
-	void manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse); // Método para procesar el input del jugador (movimiento, habilidades, etc.)	
+	void manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse, float dt); // Método para procesar el input del jugador (movimiento, habilidades, etc.)	
     BolaDeFuego& getBolaDeFuego() { return _bolaDeFuego; } // Getter para acceder a la bola de fuego desde el GameManager o la UI
     
     // 🌟 Funciones que el Personaje está obligado a implementar por heredar de EntidadViva

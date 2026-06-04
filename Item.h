@@ -8,6 +8,7 @@ class Personaje;
 
 // Enumerador para saber qué categoría de objeto es
 enum class TipoItem {
+	Desconocido,   // Para inicializar con un tipo vacío o error
     Consumible,   // Pociones, comida
     Equipamiento, // Espadas, escudos, armaduras
     Recurso,      // Oro, madera, piedra

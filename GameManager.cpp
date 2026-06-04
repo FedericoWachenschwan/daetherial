@@ -171,7 +171,7 @@ void GameManager::actualizar() {
     // =======================================================================
 
     // 1. Primero movemos al jugador
-    _personaje.manejarInput(_input, _mapa, _ventana, _hudInventario.isOpen());
+    _personaje.manejarInput(_input, _mapa, _ventana, _hudInventario.isOpen(), dt);
     _personaje.actualizar(dt); // Actualizamos al personaje antes que a los NPCs para que su posición esté actualizada para la IA
     // 2. AHORA calculamos el centro, cuando ya está en su posición final del frame
     sf::Vector2f centroJugador = _personaje.getCentroFisico(); // Obtenemos el centro físico real del personaje para que la IA tenga un objetivo preciso y consistente.

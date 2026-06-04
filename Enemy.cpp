@@ -12,7 +12,7 @@ const int FRAME_ALTO = 147;
 // DESCRIPCIÓN: Implementación de la IA cinemática, navegación por waypoints
 //              mediante A* y resolución física de colisiones (Wall-Sliding).
 // 
-// "Sicronizacion de origen": El sprite del Gólem tiene un setOrigin personalizado para que su punto de pivote esté alineado con sus pies, 
+// "Sincronizacion de origen": El sprite del Gólem tiene un setOrigin personalizado para que su punto de pivote esté alineado con sus pies, 
 // lo que mejora la precisión de las colisiones y la sensación de peso al moverse.
 // 
 // "Throttling del Pathfinding": Para evitar sobrecargar la CPU con cálculos de A* en cada frame, 
@@ -27,18 +27,11 @@ const int FRAME_ALTO = 147;
 // ============================================================================
 // CONSTRUCTORES Y CONFIGURACIÓN INICIAL
 // ============================================================================
+Enemy::Enemy() : _mapaRef(nullptr), _estadoActual(EnemyState::IDLE) {} // Constructor por defecto (no recomendado, pero necesario para ciertos contenedores o inicializaciones)
 
-/**
- * @brief Constructor por defecto.
- * Inicializa punteros seguros para evitar accesos nulos en memoria antes del spawn.
- */
-Enemy::Enemy() : _mapaRef(nullptr), _estadoActual(EnemyState::IDLE) {}
-
-/**
- * @brief Constructor parametrizado de la entidad.
- * @param posInicial Coordenadas de spawn en el espacio bidimensional del mundo.
- * @param mapa Puntero al mapa de colisiones para la consulta de datos del entorno.
- */
+// ============================================================================
+// Constructor principal: Carga recursos, configura sprite y atributos de combate
+// ============================================================================
 Enemy::Enemy(sf::Vector2f posInicial, Map* mapa) : _mapaRef(mapa) {
 
     // Carga de recursos gráficos (Textura del Sprite)
@@ -67,10 +60,10 @@ Enemy::Enemy(sf::Vector2f posInicial, Map* mapa) : _mapaRef(mapa) {
     _cooldownAtaque = 1.5f;
     _rangoAtaque = 40.f;
    }
-/**
- * @brief Actualiza la posición del objetivo que la IA debe perseguir.
- * @param posJugador Coordenadas dinámicas del personaje principal.
- */
+
+// ============================================================================
+// FUNCIONES DE CONFIGURACIÓN Y SETTERS
+// ============================================================================
 void Enemy::setPosicionObjetivo(sf::Vector2f posJugador) {
     _posicionObjetivo = posJugador;
 }
@@ -79,10 +72,9 @@ void Enemy::setPosicionObjetivo(sf::Vector2f posJugador) {
 //              BUCLE DE ACTUALIZACIÓN (Orquestador Lógico)
 // ============================================================================
 
-/**
- * @brief Actualiza la lógica de la entidad en cada iteración del bucle de juego.
- * @param dt DeltaTime. Tiempo transcurrido desde el último frame para movimiento independiente del hardware.
- */
+// ============================================================================
+// FUNCION CENTRAL: Orquesta la lógica de comportamiento del enemigo en cada frame
+// ===========================================================================
 void Enemy::actualizar(float dt) {
     if (!_mapaRef) return;
     sf::Vector2f posAntes = _sprite.getPosition();
@@ -145,10 +137,10 @@ void Enemy::actualizar(float dt) {
 // ============================================================================
 // NÚCLEO CINEMÁTICO: SISTEMA DE NAVEGACIÓN Y STEERING
 // ============================================================================
-
-/**
- * @brief Administra el consumo de waypoints, el movimiento físico y la lógica de atascos.
- */
+// 
+//=============================================================================
+// FUNCIONES DE NAVEGACIÓN Y CONTROL DE MOVIMIENTO
+//=============================================================================
 void Enemy::activarPathfinder(float dt, sf::Vector2f posActual) {
 
     // ------------------------------------------------------------------------
@@ -247,21 +239,12 @@ void Enemy::activarPathfinder(float dt, sf::Vector2f posActual) {
 // ============================================================================
 // DIBUJADO Y SISTEMAS GRÁFICOS
 // ============================================================================
-
-/**
- * @brief Renderiza el sprite base del enemigo.
- */
-
-
 // ============================================================================
 // INTERFACES FÍSICAS (Colisionable)
 // ============================================================================
 
-/**
- * @brief Implementación estricta del contrato de la interfaz Colisionable.
- * @return sf::FloatRect Caja de colisión física (Hitbox) optimizada para el tamaño del mapa.
- */
-sf::FloatRect Enemy::getBounds() const {
+// Polimorfismo puro: Cada entidad viva devuelve su propia caja de colisión (AABB)
+sf::FloatRect Enemy::getBounds() const { // Polimorfismo puro: Cada entidad viva devuelve su propia caja de colisión (AABB)
     sf::Vector2f pos = _sprite.getPosition();
 
     // Caja física de 32x32 píxeles adaptada al volumen del personaje.
@@ -270,13 +253,12 @@ sf::FloatRect Enemy::getBounds() const {
 }
 
 // ============================================================================
-// HERRAMIENTAS DE DIAGNÓSTICO (Sistemas de Telemetría Visual)
+//      ||HERRAMIENTAS DE DIAGNÓSTICO (Sistemas de Telemetría Visual)||
 // ============================================================================
 
-/**
- * @brief Renderiza la ruta planificada por el algoritmo A* en tiempo real.
- * Dibuja un VertexArray de líneas uniendo los waypoints y círculos en los nodos exactos.
- */
+//=====================================================================
+// Dibuja la trayectoria calculada por el PathFinder con líneas y puntos de control.
+//=====================================================================
 void Enemy::dibujarPathFinder(sf::RenderWindow& ventana) const {
     if (_caminoActual.empty()) return;
 
@@ -301,6 +283,9 @@ void Enemy::dibujarPathFinder(sf::RenderWindow& ventana) const {
     }
 }
 
+//=====================================================================
+// Dibuja la hitbox física del enemigo como un rectángulo semitransparente para calibración y debugging.
+//=====================================================================
 void Enemy::dibujarHitboxEnemy(sf::RenderWindow& ventana) const {
     sf::FloatRect limites = getBounds();
     sf::RectangleShape caja(sf::Vector2f(limites.width, limites.height));
@@ -328,21 +313,17 @@ void Enemy::actualizarAnimacion(float dt, sf::Vector2f direccion, EnemyState est
         }
     }
 
-    // 2. Si el estado es PERSIGUIENDO, hacemos correr las columnas con efecto Ping-Pong
+	// 2. Si el estado es PERSIGUIENDO, hacemos correr las columnas con efecto ida y vuelta. Si no, lo plantamos en el frame de guardia (columna 1)
     static int pasoAnimacion = 1; // Guarda en qué paso de la caminata quedó
 
     if (estado == EnemyState::PERSIGUIENDO) {
-        _tiempoFrame += dt;
-        if (_tiempoFrame >= _velocidadAnimacion) {
-
-            // 🌟 NUESTRO MAPA DE RUTA: 4 pasos para un ciclo completo y fluido
+		_tiempoFrame += dt; // Incrementamos el tiempo acumulado para el cambio de frame
+		if (_tiempoFrame >= _velocidadAnimacion) { // Si es hora de cambiar el frame
             // Mapea los índices de columnas de tu GIMP: 0 (izq), 1 (centro), 2 (der)
-            int secuenciaFrames[] = { 0, 1, 2, 1 };
-
+			int secuenciaFrames[] = { 0, 1, 2, 1 }; // Secuencia de animación: izquierda, centro, derecha, centro (va y viene)
             pasoAnimacion = (pasoAnimacion + 1) % 4; // Cicla perpetuamente entre 0, 1, 2, 3
             _frameActual = secuenciaFrames[pasoAnimacion]; // Traduce el paso al frame real
-
-            _tiempoFrame = 0.f;
+			_tiempoFrame = 0.f;// Reseteamos el tiempo para el próximo cambio
         }
     }
     else {
@@ -355,7 +336,7 @@ void Enemy::actualizarAnimacion(float dt, sf::Vector2f direccion, EnemyState est
     _sprite.setTextureRect(sf::IntRect(
         _frameActual * FRAME_ANCHO,  // Desplazamiento X (Columnas)
         filaDireccion * FRAME_ALTO,  // Desplazamiento Y (Filas)
-        FRAME_ANCHO,
-        FRAME_ALTO
+		FRAME_ANCHO, // Ancho del frame
+		FRAME_ALTO // Alto del frame
     ));
 }

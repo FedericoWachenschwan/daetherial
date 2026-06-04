@@ -134,15 +134,25 @@ void UI_Inventario::detectarClicCasillero(sf::Vector2i posicionMouse, Inventario
 		float posX = startX + i * (_tamanioSlot + _margen);
 		sf::FloatRect limitesSlot(posX, startY, _tamanioSlot, _tamanioSlot);
 
-		// 🐛 CHIVATO 2: (Opcional, descomentalo si querés ver dónde se arman los cuadrados)
-		// std::cout << "Cuadrado " << i << " inicia en X: " << posX << " | Y: " << startY << std::endl;
-
 		if (limitesSlot.contains(mouseUI)) {
 			std::cout << "🎯 ¡Le embocaste al casillero " << i << "!" << std::endl;
 
-			if (i < static_cast<int>(mochila.getSlots().size())) {
+			// 🛡️ Agregamos "&& mochila.getSlots()[i] != nullptr" para asegurar que de verdad haya un objeto físico ahí
+			if (i < static_cast<int>(mochila.getSlots().size()) && mochila.getSlots()[i] != nullptr) {
 				mochila.setIndiceSeleccionado(i);
-				std::cout << "✅ Y tenia un item. ¡Seleccionado!" << std::endl;
+
+				// 🌟 1. Le pedimos el tipo al inventario usando tu nuevo getter
+				TipoItem tipo = mochila.getItemTipo(i);
+
+				// 🌟 2. Traducimos el Enum a un string amigable para los humanos
+				std::string nombreTipo = "Desconocido";
+				if (tipo == TipoItem::Consumible) nombreTipo = "Consumible";
+				else if (tipo == TipoItem::Equipamiento) nombreTipo = "Equipamiento";
+				else if (tipo == TipoItem::Recurso) nombreTipo = "Recurso";
+				else if (tipo == TipoItem::Mueble) nombreTipo = "Mueble";
+
+				// 🌟 3. Ahora sí, lo imprimimos hermoso en la consola
+				std::cout << "✅ Y tenia un item de tipo [" << nombreTipo << "]. ¡Seleccionado!" << std::endl;
 			}
 			else {
 				mochila.setIndiceSeleccionado(-1);
@@ -162,3 +172,4 @@ bool UI_Inventario::mouseSobrePanel(sf::Vector2i posicionMouse) const {
 		static_cast<float>(posicionMouse.y)
 	);
 }
+

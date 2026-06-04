@@ -27,6 +27,8 @@ public:
     // 🔍 Métodos auxiliares (Claves para el farmeo y la interfaz)
     int getCantidadTotal(int idItem) const;
     void vaciar();
+	
+    TipoItem getItemTipo(int indice) const; // Devuelve el tipo del ítem en ese slot (para mostrar el tooltip correcto en la UI)
 
 	void setIndiceSeleccionado(int indice) { _indiceSeleccionado = indice; } // Permite que la UI o el GameManager le digan al inventario qué slot está seleccionado
 	int getIndiceSeleccionado() const { return _indiceSeleccionado; } // Permite que la UI o el GameManager sepan qué slot está seleccionado
