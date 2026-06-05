@@ -9,15 +9,16 @@ class InputManager;
 // 🌟 ENUM ALINEADO CON LAS 21 FILAS DE LA MATRIZ LPC
 // =========================================================================
 enum class EstadoPersonaje {
-    SPELLCAST = 0,
-    THRUST = 1,
-    WALK = 2,
-    SLASH = 3,
-    SHOOT = 4,
-    HURT = 5,
-    IDLE,
-    AIMING,
-    MUERTO
+	SPELLCAST = 0, // El estado de lanzar magia (con animación de carga)
+	THRUST = 1, // El estado de ataque cuerpo a cuerpo (con animación de estocada)
+	WALK = 2, // El estado de movimiento normal (con animación de caminata)
+	SLASH = 3, // El estado de ataque cuerpo a cuerpo alternativo (con animación de tajo horizontal)
+	SHOOT = 4, // El estado de ataque a distancia (con animación de disparo)
+	HURT = 5, // El estado de recibir daño (con animación de golpe)
+	IDLE, // El estado de estar quieto (con animación de respiración)
+	AIMING, // El estado de apuntar la magia (con animación de preparación)
+	MUERTO, // El estado de muerte (con animación de caída al suelo)
+	DASH // El estado de impulso rápido (FX de walk ghost trail)
 };
 
 enum class DireccionLPC {
@@ -51,6 +52,18 @@ private:
     void controlarLimitesYTransiciones();
     void actualizarSpriteRect();
 	
+	// --- FX VISUAL DASH ---
+    struct RastroDash {
+		sf::Sprite sprite;
+        float opacidad;
+    };
+	std::vector<RastroDash> _rastroDash;
+
+	// --- CONTROL DE DASH ---
+	float _tiempoDash = 0.f;
+	const float _DuracionDash = 0.15f; // Duración total del dash en segundos
+	float _relojSpawnRastro = 0.f; // Reloj para controlar el spawn de los rastros
+	float _cooldownDash = 0.f; // Tiempo de recarga del dash
 
 public:
     Personaje();

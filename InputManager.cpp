@@ -45,9 +45,6 @@ void InputManager::actualizarEstadoTiempoReal(const sf::RenderWindow& ventana) {
         _direccionMovimiento /= longitud;
     }
 
-    // Correr es continuo: si mantenés Shift, corre todo el tiempo
-    _quiereCorrer = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
-
     // Disparo secundario continuo (Clic Derecho o Control Izquierdo)
     _quiereDisparar = sf::Mouse::isButtonPressed(sf::Mouse::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::LControl);
 
@@ -61,6 +58,7 @@ void InputManager::actualizarEstadoTiempoReal(const sf::RenderWindow& ventana) {
     bool ahoraSaltar = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
     bool ahoraTirarItem = sf::Keyboard::isKeyPressed(sf::Keyboard::Q);
     bool ahoraInteractuar = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
+	bool ahoraCorrer = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
 
     // El filtro mágico: Solo da TRUE en el frame exacto que se presiona
     _quiereAbrirInventario = (ahoraInventario && !_antesInventario);
@@ -68,6 +66,7 @@ void InputManager::actualizarEstadoTiempoReal(const sf::RenderWindow& ventana) {
     _quiereSaltar = (ahoraSaltar && !_antesSaltar);
     _quiereTirarItem = (ahoraTirarItem && !_antesTirarItem);
     _quiereInteractuar = (ahoraInteractuar && !_antesInteractuar);
+	_quiereCorrer = (ahoraCorrer && !_antesCorrer);
 
     // Guardamos el estado actual para el análisis del próximo frame
     _antesInventario = ahoraInventario;
@@ -78,4 +77,5 @@ void InputManager::actualizarEstadoTiempoReal(const sf::RenderWindow& ventana) {
 
     // Copia de respaldo por si usan la vieja variable de eventos
     _clickIzquierdoApretado = ahoraAtacar;
+    _antesCorrer = ahoraCorrer;
 }

@@ -37,11 +37,44 @@ Personaje::Personaje() {
 // MANEJAR INPUT: El filtro principal de acciones y movimiento
 // ============================================================================
 void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse, float dt) {
+    
+    // 🌟 1. EL ESCUDO DEL DASH: Si está dasheando, solo calculamos colisiones y SALIMOS.
+    if (_estadoActual == EstadoPersonaje::DASH) {
+        // Movemos al personaje con la velocidad bestial, chequeando la pared
+        resolverColisiones(_velocidadActual * dt, mapa);
+        return; // ¡CORTAMOS ACÁ! No dejamos que la física normal lo frene ni que cambie el estado a WALK
+    }
 
-    // 1. FILTRO ABSOLUTO: Si está casteando o muerto, se congela por completo SIEMPRE
-    if (_estadoActual == EstadoPersonaje::SPELLCAST || _estadoActual == EstadoPersonaje::HURT || _estadoActual == EstadoPersonaje::MUERTO) return;
+    // 2. FILTRO ABSOLUTO: Si está casteando, herido, muerto, o en medio de un DASH, ignoramos el input normal
+    if (_estadoActual == EstadoPersonaje::SPELLCAST ||
+        _estadoActual == EstadoPersonaje::HURT ||
+        _estadoActual == EstadoPersonaje::MUERTO ||
+        uiCapturaMouse) return;
+
+    // 3. CONTROL DE COOLDOWN DEL DASH (Lo restamos cada frame)
+    if (_cooldownDash > 0.f) _cooldownDash -= dt;
 
     sf::Vector2f direccion = input.getDireccionMovimiento();
+
+    // 4. EL DISPARADOR DEL DASH (Interceptamos el input antes de la física de inercia)
+    if (input.quiereCorrer() && _cooldownDash <= 0.f) {
+        // Solo puede dashear si se está intentando mover hacia algún lado
+        if (direccion.x != 0.f || direccion.y != 0.f) {
+            _estadoActual = EstadoPersonaje::DASH;
+            _tiempoDash = _DuracionDash;
+            _cooldownDash = 1.5f;
+
+            // Impulso inicial bestial (4 veces la velocidad base, ajustalo a gusto)
+            _velocidadActual = direccion * (_velocidad * 4.0f);
+
+            return; // ⚠️ CORTAMOS ACÁ: Evitamos que la inercia de abajo frene el impulso
+        }
+    }
+
+    // ========================================================================
+    // TUS FÍSICAS ORIGINALES (Intactas)
+    // ========================================================================
+
     // 🌟 _velocidad viene heredada de EntidadViva
     sf::Vector2f movimiento = direccion * _velocidad;
 
@@ -49,28 +82,26 @@ void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWin
     if (direccion.x != 0.f && direccion.y != 0.f) {
         movimiento *= 0.7071f;
     }
-    
-	// 1. FILTRO DE VELOCIDAD: Aplica aceleración y desaceleración para suavizar el movimiento
+
+    // 1. FILTRO DE VELOCIDAD: Aplica aceleración y desaceleración para suavizar el movimiento
     sf::Vector2f velocidadObjetivo = movimiento;
-    
-	// 2. FILTRO DE INERCIA: Aplica aceleración para alcanzar la velocidad objetivo y desaceleración para frenar al soltar el movimiento
-        if (direccion.x != 0.f || direccion.y != 0.f) {
-            // ACELERACIÓN: Nos acercamos fluidamente a la velocidad máxima
-            _velocidadActual.x += (velocidadObjetivo.x - _velocidadActual.x) * _aceleracion * dt;
-            _velocidadActual.y += (velocidadObjetivo.y - _velocidadActual.y) * _aceleracion * dt;
+
+    // 2. FILTRO DE INERCIA: Aplica aceleración para alcanzar la velocidad objetivo...
+    if (direccion.x != 0.f || direccion.y != 0.f) {
+        // ACELERACIÓN: Nos acercamos fluidamente a la velocidad máxima
+        _velocidadActual.x += (velocidadObjetivo.x - _velocidadActual.x) * _aceleracion * dt;
+        _velocidadActual.y += (velocidadObjetivo.y - _velocidadActual.y) * _aceleracion * dt;
+    }
+    else {
+        // DESACELERACIÓN: Frenado progresivo hacia el cero absoluto
+        _velocidadActual.x += (0.f - _velocidadActual.x) * _desaceleracion * dt;
+        _velocidadActual.y += (0.f - _velocidadActual.y) * _desaceleracion * dt;
+
+        // Umbral de corte: Si la velocidad es insignificante, la clavamos en cero para evitar micro-desplazamientos
+        if (std::hypot(_velocidadActual.x, _velocidadActual.y) < 10.f) {
+            _velocidadActual = { 0.f, 0.f };
         }
-        else {
-            // DESACELERACIÓN: Frenado progresivo hacia el cero absoluto
-            _velocidadActual.x += (0.f - _velocidadActual.x) * _desaceleracion * dt;
-            _velocidadActual.y += (0.f - _velocidadActual.y) * _desaceleracion * dt;
-
-            // Umbral de corte: Si la velocidad es insignificante, la clavamos en cero para evitar micro-desplazamientos
-            if (std::hypot(_velocidadActual.x, _velocidadActual.y) < 10.f) {
-                _velocidadActual = { 0.f, 0.f };
-            }
-        }
-
-
+    }
 
     // Actualizamos la mirada y la intención de movimiento de forma inteligente
     determinarEstadoYDireccion(_velocidadActual);
@@ -78,7 +109,8 @@ void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWin
     // Procesamos el intento de apuntar, cancelar o disparar la magia
     procesarHabilidades(input, ventana, uiCapturaMouse);
 
-	sf::Vector2f movimientoEsteFrame = _velocidadActual * dt;
+    sf::Vector2f movimientoEsteFrame = _velocidadActual * dt;
+
     // 🌟 Ejecutamos las colisiones AABB contra el mapa (Llama a la función de la clase madre)
     resolverColisiones(movimientoEsteFrame, mapa);
 }
@@ -160,7 +192,54 @@ void Personaje::procesarHabilidades(const InputManager& input, sf::RenderWindow&
 // ACTUALIZAR: El motor temporal de los relojes de animación y lógicas hijas
 // ============================================================================
 void Personaje::actualizar(float dt) {
-    // 1. 💀 CONTROL DE MUERTE
+    
+    // 1. LÓGICA DEL DASH
+    if (_estadoActual == EstadoPersonaje::DASH) {
+        _tiempoDash -= dt;
+
+        // Generar rastro (mientras dasheamos)
+        // Ajustes: spawn más espaciado, opacidad inicial mayor para que se vea a simple vista
+        _relojSpawnRastro += dt;
+        if (_relojSpawnRastro >= 0.02f) { // 🌟 Más rápido (cada 0.02s) para que la línea sea continua
+            RastroDash nuevoRastro;
+            nuevoRastro.sprite = _sprite;
+
+            // 🌟 Blindamos la textura heredada por si la copia la pierde en memoria
+            nuevoRastro.sprite.setTexture(_textura);
+
+            nuevoRastro.opacidad = 255.f; // 🌟 Arrancamos al máximo de luz
+            nuevoRastro.sprite.setScale(_sprite.getScale() * 0.95f);
+
+            // Un cian mucho más brillante
+            nuevoRastro.sprite.setColor(sf::Color(0, 255, 255, static_cast<sf::Uint8>(nuevoRastro.opacidad)));
+
+            _rastroDash.push_back(nuevoRastro);
+            _relojSpawnRastro = 0.f;
+        }
+
+        if (_tiempoDash <= 0.f) {
+            _estadoActual = EstadoPersonaje::IDLE;
+            _velocidadActual = { 0.f, 0.f };
+        }
+    }
+
+    // 2. LÓGICA DE LOS RASTROS
+    for (int i = 0; i < (int)_rastroDash.size(); i++) {
+        // 🌟 Subimos de 250 a 500 para que el desvanecimiento sea explosivo y fluido
+        _rastroDash[i].opacidad -= 500.f * dt;
+
+        if (_rastroDash[i].opacidad <= 0.f) {
+            _rastroDash.erase(_rastroDash.begin() + i);
+            i--;
+        }
+        else {
+            _rastroDash[i].sprite.setColor(sf::Color(0, 255, 255, static_cast<sf::Uint8>(_rastroDash[i].opacidad)));
+        }
+    }
+    
+    
+    
+    // 2. 💀 CONTROL DE MUERTE
     if (this->estaMuerto()) {
         _estadoActual = EstadoPersonaje::MUERTO;
 
@@ -222,6 +301,12 @@ void Personaje::controlarLimitesYTransiciones() {
         if (_frameActual >= _maxFrames) _frameActual = 0;
         break;
 
+    case EstadoPersonaje::DASH:
+        // Reutilizamos la animación de WALK para el dash (frames idénticos)
+        _maxFrames = 9;
+        if (_frameActual >= _maxFrames) _frameActual = 0;
+        break;
+
     case EstadoPersonaje::SPELLCAST:
         _maxFrames = 7;
         if (_frameActual >= _maxFrames) {
@@ -251,7 +336,9 @@ void Personaje::actualizarSpriteRect() {
     int filaMatriz = 0;
 
     EstadoPersonaje estadoAnim = _estadoActual;
-    if (_estadoActual == EstadoPersonaje::IDLE || _estadoActual == EstadoPersonaje::AIMING) {
+    // Durante IDLE y AIMING mostramos la animación de WALK (misma fila)
+    // También queremos que DASH reutilice la animación de WALK para que el personaje muestre movimiento durante el impulso
+    if (_estadoActual == EstadoPersonaje::IDLE || _estadoActual == EstadoPersonaje::AIMING || _estadoActual == EstadoPersonaje::DASH) {
         estadoAnim = EstadoPersonaje::WALK;
     }
 
@@ -261,6 +348,7 @@ void Personaje::actualizarSpriteRect() {
     else {
         filaMatriz = static_cast<int>(estadoAnim) * 4 + static_cast<int>(_direccionActual);
     }
+
 
 	int columna = _frameActual; // columna recibe directamente el frame dinamico (9 o 10) para hacer la animacion de respiracion
 
@@ -274,14 +362,21 @@ void Personaje::actualizarSpriteRect() {
 // DIBUJAR: Renderizado en capas ordenadas
 // ============================================================================
 void Personaje::dibujar(sf::RenderWindow& ventana) {
+    // 🌟 Usamos la función de dibujo de la clase madre para renderizar el sprite
+    _bolaDeFuego.dibujar(ventana);
+
     if (_estadoActual == EstadoPersonaje::AIMING) {
         ventana.draw(_circuloRango);
     }
 
-    // 🌟 Usamos la función de dibujo de la clase madre para renderizar el sprite
+    // 1. DIBUJAR RASTROS (¡Si esto no está, no hay magia!)
+    for (const auto& rastro : _rastroDash) {
+        ventana.draw(rastro.sprite, sf::BlendAdd);
+    }
+
+    // 2. DIBUJAR AL PERSONAJE REAL
     EntidadViva::dibujar(ventana);
 
-    _bolaDeFuego.dibujar(ventana);
 }
 
 //============================================================================
@@ -296,6 +391,7 @@ void Personaje::dibujarDebug(sf::RenderWindow& ventana) const {
     rectDebug.setOutlineThickness(-1.f);
     ventana.draw(rectDebug);
 }
+
 void Personaje::ajustarOrigenSprite(float x, float y) {
     // 🌟 Usamos _sprite
     sf::Vector2f origenActual = _sprite.getOrigin();
