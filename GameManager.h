@@ -9,85 +9,65 @@
 #include "Camara.h"
 #include "Niebla.h"
 #include "Enemy.h"
-#include "ItemManager.h"    // 🌟 Nuevo: La fábrica de ítems
-#include "ObjectsManager.h" // 🌟 Nuevo: Para manejar el mapa
-#include "UI_Inventario.h"  // 🌟 Nuevo: La interfaz del inventario
-#include "DebugManager.h"   // 🌟 Nuevo: Para activar el modo debug y mover cosas en caliente
-#include "BolaDeFuego.h"    // 🌟 Nuevo: Una habilidad de ejemplo para el personaje
-#include "InputManager.h" // 🌟 Nuevo: Para manejar el input de forma centralizada
-<<<<<<< HEAD
-#include "Cursor_Visual.h"      // Incluimos la clase que maneja el cursor visual del juego
-=======
-#include "UI_CreadorItems.h" // 🌟 Nuevo: La interfaz para crear ítems en tiempo real
->>>>>>> 6f340740867393b81fd5c016859da3c57a81fb4b
-
-// Estados del juego
-enum GameState {
-    MENU,
-    JUGANDO,
-    CREDITOS,
-    CREADOR_ITEMS
-};
+#include "ItemManager.h"    
+#include "ObjectsManager.h" 
+#include "UI_Inventario.h"  
+#include "DebugManager.h"   
+#include "BolaDeFuego.h"    
+#include "InputManager.h" 
+#include "Cursor_Visual.h"      
+#include "UI_CreadorItems.h" 
+#include "Estado.h"
 
 class GameManager {
+	// Para que los estados puedan acceder a los métodos privados del GameManager sin hacerlos públicos para todo el mundo
+    friend class EstadoMenu;
+    friend class EstadoJugando;
+    friend class EstadoCreadorItems;
+    friend class EstadoCreditos;
+
 private:
-    
-	UI_CreadorItems _uiCreadorItems; // La interfaz para crear ítems en tiempo real
-    
-    // Manager de input para manejar las entradas del jugador de forma centralizada
-	InputManager _input; 
-
-	// Habilidad de ejemplo para el personaje (puedes expandir esto con más habilidades y un sistema de gestión de habilidades)
-    // La habilidad BolaDeFuego ahora vive en Personaje; se eliminó la instancia duplicada aquí
-    
-    // Debug Manager para controlar el modo debug y mover cosas en caliente
-    DebugManager _debug;
-    
-    // Ventana principal
-    sf::RenderWindow _ventana;
-
-    // Cámara
-    Camara _camara;
+	UI_CreadorItems _uiCreadorItems; // Interfaz del creador de ítems
+	InputManager _input; // Manejo de entradas del jugador
+	DebugManager _debug; // Modo debug para visualizar hitboxes y el extractor de texturas
+	sf::RenderWindow _ventana; // Ventana principal del juego
+	Camara _camara; // Cámara que sigue al jugador por el mundo
 
     // Estado actual del juego
-    GameState _estado;
-	Niebla _niebla; // Capa de niebla para el efecto visual
-	sf::Clock _reloj; // Reloj para medir el tiempo entre frames
+	Estado* _estadoActual; // Puntero al estado actual (puede ser menú, juego, creador de ítems, créditos, etc.)
+	Niebla _niebla; // Efecto de niebla para darle ambiente al juego
+	sf::Clock _reloj; // Reloj para calcular el delta time entre frames y lograr una velocidad de juego consistente
 
     // Objetos del juego
-    UI_Inventario _hudInventario;
-    Menu _menu;
-    Map _mapa;
-    Personaje _personaje;
-    Mascota _mascota;
-	Enemy* _golem; // Puntero al Gólem para decir que sabemos manejar su memoria dinámicamente (si decides crear más enemigos, podrías usar un vector de punteros a enemigos)
+	UI_Inventario _hudInventario; // Interfaz de inventario para mostrar la mochila del jugador
+	Menu _menu; // Pantalla de menú principal
+	Map _mapa; // Mapa del mundo con colisiones y dibujo
+	Personaje _personaje; // El jugador controlable
+	Mascota _mascota; // Compañero que sigue al jugador
+	Enemy* _golem; // Enemigo principal del juego (inicializado dinámicamente para poder matarlo y liberar su memoria)
 
-    /// =================
-    /// CURSOR VISUAL
-	/// ==================
-    Cursor_Visual _cursor; // El cursor personalizado que reemplaza al cursor de Windows
+	Cursor_Visual _cursor; // Cursor personalizado que sigue al mouse
 
-    // 🌟 NUEVOS ATRIBUTOS: Tus dos nuevos motores de objetos
-    ItemManager _itemManager;
-    ObjectsManager _objectsManager;
+    // Managers
+	ItemManager _itemManager; // Manejo de creación, almacenamiento y consulta de ítems (base de datos)
+	ObjectsManager _objectsManager; // Manejo de objetos que existen en el mundo (items tirados en el piso, muebles interactuables, etc.)
 
-    // 🔹 Elementos para pantalla de créditos
-    sf::Font _fontCreditos;   // Fuente del texto
-    sf::Text _textoCreditos;  // Texto a mostrar
+    // Elementos para pantalla de créditos
+    sf::Font _fontCreditos;
+    sf::Text _textoCreditos;
 
     // Métodos del Game Loop
-	void procesarEventos(); // Método dedicado al procesamiento de eventos para mantener el código organizado
-	void actualizar(); // Método dedicado a la actualización de la lógica del juego para mantener el código organizado
-	void renderizar(); // Método dedicado al renderizado para mantener el código organizado
-	void spawnearDropSeguro(Item* item, float startX, float startY); //spawnear un drop sin que quede bloqueado en paredes
-	void cambiarMusica(GameState nuevoEstado); // Cambia la música de fondo según el estado del juego (ej: música de menú, música de juego, música de créditos)
-    sf::Music _musicaAmbiente;
-    void colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enemigo); // Maneja la colisión entre el jugador y un enemigo, aplicando daño o efectos según corresponda
-
-
+	void procesarEventos(); // Procesamiento de eventos de SFML (teclado, mouse, etc.)
+	void actualizar(); // Actualización de la lógica del juego (movimiento, IA, interacciones, etc.)
+	void renderizar(); // Dibujado de todo en pantalla
+	void spawnearDropSeguro(Item* item, float startX, float startY); // Función para tirar un item al piso sin que quede atrapado en colisiones (lo sube 16 pixeles y lo deja caer)
+	void cambiarMusica(int musicaID); // Cambia la música de fondo según el estado del juego (0 = menú, 1 = jugando, 2 = creador de ítems, 3 = créditos)
+	sf::Music _musicaAmbiente; // Música de fondo que cambia según el estado del juego
+	void colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enemigo); // Función para manejar la colisión entre el jugador y un enemigo, aplicando daño si es necesario
 
 public:
-    ~GameManager();
-    GameManager();
-    void run();
+	~GameManager(); // Destructor para limpiar recursos dinámicos
+	GameManager(); // Constructor para inicializar todo el juego (ventana, personajes, mapa, etc.)
+	void run(); // Método principal para ejecutar el juego, contiene el bucle principal que llama a procesarEventos(), actualizar() y renderizar() en cada iteración
+	void cambiarEstado(Estado* nuevoEstado); // Método para cambiar el estado actual del juego (menú, juego, creador de ítems, créditos, etc.) y manejar la transición entre ellos
 };

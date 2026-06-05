@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cmath>
 
-// Configuración de las dimensiones del frame (Ajustar según escala GIMP u original)
+// Configuración de las dimensiones del frame
 const int FRAME_ANCHO = 152;
 const int FRAME_ALTO = 147;
 
@@ -42,6 +42,8 @@ Enemy::Enemy(sf::Vector2f posInicial, Map* mapa) : _mapaRef(mapa) {
     _sprite.setTexture(_textura);
     _sprite.setOrigin(76.f, 115.f);
     _sprite.setPosition(posInicial);
+	_sprite.setScale (1.5f, 1.5f); // Escalamos el sprite a la mitad de su tamaño original para que encaje mejor en el mapa
+	
 
     // 🌟 Inicializamos las variables PROTECTED de la animación heredadas del padre
     _maxFrames = 3;

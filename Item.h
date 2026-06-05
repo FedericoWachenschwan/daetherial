@@ -91,7 +91,7 @@ private:
 public:
     // 🌟 Corregido: Ahora se llama Consumible, no Pocion
     Consumible(int id, const std::string& nombre, float cura, int cantidad = 1);
-    void usar(Personaje& jugador) override;
+    void usar(Personaje& jugador);
 };
 
 // 2. LA CLASE MUEBLE (Horno, Caldero)
@@ -100,7 +100,7 @@ private:
     int _tipoMueble;
 public:
     Mueble(int id, const std::string& nombre, int tipoMueble);
-    void usar(Personaje& jugador) override;
+    void usar(Personaje& jugador);
 };
 
 // 3. LA CLASE RECURSO (Oro, madera, piedra)
@@ -109,7 +109,7 @@ private:
     int _tipoRecurso;
 public:
     Recurso(int id, const std::string& nombre, int tipoRecurso, int cantidad);
-    void usar(Personaje& jugador) override;
+    void usar(Personaje& jugador);
 };
 
 
@@ -121,5 +121,5 @@ private:
     int _bonusDefensa;
 public:
     Equipamiento(int id, const std::string& nombre, int tipoEquipamiento, int bonusAtaque, int bonusDefensa);
-    void usar(Personaje& jugador) override;
+    void usar(Personaje& jugador);
 };

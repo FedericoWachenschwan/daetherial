@@ -27,6 +27,8 @@
     <ClCompile Include="EntidadViva.cpp" />
     <ClCompile Include="PathFinder.cpp" />
     <ClCompile Include="UI_CreadorItems.cpp" />
+    <ClCompile Include="Cursor_Visual.cpp" />
+    <ClCompile Include="Estado.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="map.h" />
@@ -252,6 +254,8 @@
     <ClInclude Include="PathFinder.h" />
     <ClInclude Include="UI_CreadorItems.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Cursor_Visual.h" />
+    <ClInclude Include="Estado.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\cat_abajo.png" />

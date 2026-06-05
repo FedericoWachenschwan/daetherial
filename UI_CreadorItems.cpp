@@ -23,7 +23,7 @@ UI_CreadorItems::UI_CreadorItems() {
     _inputsUsuario = { "", "", "", "", "", "" }; // Arrancan vacíos
 }
 
-void UI_CreadorItems::actualizarSprite(const sf::Texture& texturaMaestra) {
+void UI_CreadorItems::actualizarSprite(const sf::Texture& texturaMaestra) { // Calcula la posición del sprite dentro del mega-spritesheet
     const int TILE_SIZE = 32;
     const int COLUMNAS = 64;
 
@@ -31,7 +31,7 @@ void UI_CreadorItems::actualizarSprite(const sf::Texture& texturaMaestra) {
     int fila = _idTexturaActual / COLUMNAS;
 
     _spritePreview.setTexture(texturaMaestra);
-    _spritePreview.setTextureRect(sf::IntRect(col * TILE_SIZE, fila * TILE_SIZE, TILE_SIZE, TILE_SIZE));
+	_spritePreview.setTextureRect(sf::IntRect(col * TILE_SIZE, fila * TILE_SIZE, TILE_SIZE, TILE_SIZE)); // Solo muestra el tile seleccionado del mega-spritesheet
 
     // Lo hacemos x5 más grande y lo centramos (Asumiendo pantalla 1280x720)
     _spritePreview.setScale(5.f, 5.f);
@@ -192,7 +192,7 @@ void UI_CreadorItems::dibujar(sf::RenderWindow& ventana) {
 }
 
 ItemReg UI_CreadorItems::generarRegistro() const {
-    ItemReg nuevo;
+    ItemReg nuevo{};
     // stoi convierte el string (ej: "15") a un int (15)
     nuevo.id = _inputsUsuario[0].empty() ? 0 : std::stoi(_inputsUsuario[0]);
 

@@ -11,9 +11,9 @@ using namespace std;
 GameManager::GameManager()
     : _ventana(sf::VideoMode(1280, 720), "Daetherial - UTN"),
     _camara(1280.f, 720.f),
-    _estado(MENU),
     _menu(1280.f, 720.f),
-    _mapa(16, 1.0f)
+    _mapa(16, 1.0f),
+	_estadoActual(new EstadoMenu()) // Inicializamos el estado actual apuntando al menú para que arranque ahí
 {
     // --- Configuración del Motor ---
     _camara.setLimitesMundo(sf::FloatRect(0, 0, 2000, 2000));
@@ -35,7 +35,7 @@ GameManager::GameManager()
     }
 
     // --- Audio Inicial ---
-    cambiarMusica(_estado);
+    cambiarMusica(0);
 
     // ========================================================================
     // 🌟 SEED DE LA BASE DE DATOS Y SPAWN DE PRUEBA
@@ -103,288 +103,49 @@ void GameManager::run() {
 // ============================================================================
 // 3. CONTROLADOR DE EVENTOS (Input de teclado y ventana)
 // ============================================================================
+void GameManager::cambiarEstado(Estado* nuevoEstado) {
+    if (_estadoActual != nullptr) {
+        delete _estadoActual; // Liberamos la pantalla anterior
+    }
+    _estadoActual = nuevoEstado;
+}
+
 void GameManager::procesarEventos() {
     sf::Event evento;
-
     while (_ventana.pollEvent(evento)) {
-
         if (evento.type == sf::Event::Closed) {
             _ventana.close();
         }
-
-        // --- Lógica según el Estado ---
-        switch (_estado) {
-
-        case JUGANDO:
-            // ✅ AHORA SÍ: El InputManager solo roba el teclado si estás jugando
-            _input.procesarEvento(evento);
-
-            _camara.procesarZoom(evento);
-
-            // Toggle Debug
-            if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::F3) {
-                _debug.toggleDebug();
-            }
-            _debug.procesarEventos(evento, _ventana, _hudInventario, _personaje, _golem);
-            break;
-
-        case MENU:
-            if (evento.type == sf::Event::KeyPressed) {
-                if (evento.key.code == sf::Keyboard::Up) _menu.moveUp();
-                if (evento.key.code == sf::Keyboard::Down) _menu.moveDown();
-
-                if (evento.key.code == sf::Keyboard::Enter) {
-                    int selected = _menu.getSelectedIndex();
-
-                    if (selected == 0) {
-                        _estado = JUGANDO;
-                        cambiarMusica(_estado);
-                        _reloj.restart(); // Reiniciamos para evitar saltos bruscos de dt
-                    }
-                    else if (selected == 1) {
-                        _estado = CREADOR_ITEMS;
-                        _uiCreadorItems.actualizarSprite(_itemManager.getTexturaMaestra());
-                    }
-                    else if (selected == 2) {
-                        // _estado = LOGROS; 
-                        std::cout << "🏆 Pantalla de Logros en construccion..." << std::endl;
-                    }
-                    else if (selected == 3) {
-                        _estado = CREDITOS;
-                    }
-                    else if (selected == 4) {
-                        _ventana.close();
-                    }
-                }
-            }
-            break;
-
-            // =======================================================
-            // UI CREADOR DE ÍTEMS
-            // =======================================================
-        case CREADOR_ITEMS:
-            _uiCreadorItems.procesarEventos(evento, _itemManager);
-
-            if (evento.type == sf::Event::KeyPressed &&
-                (evento.key.code == sf::Keyboard::Left || evento.key.code == sf::Keyboard::Right)) {
-                _uiCreadorItems.actualizarSprite(_itemManager.getTexturaMaestra());
-            }
-
-            if (_uiCreadorItems.quiereGuardar()) {
-                ItemReg nuevoItem = _uiCreadorItems.generarRegistro();
-
-                if (_itemManager.guardarRegistro(nuevoItem)) {
-                    std::cout << "✅ ÍTEM GUARDADO EN LA BASE DE DATOS: " << nuevoItem.nombre << std::endl;
-                }
-                else {
-                    std::cout << "❌ Error al guardar el ítem." << std::endl;
-                }
-
-                _uiCreadorItems.confirmarGuardado();
-            }
-
-            if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::Escape) {
-                _estado = MENU;
-            }
-            break;
-
-        case CREDITOS:
-            if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::Escape) {
-                _estado = MENU;
-            }
-            break;
+        // Delegación polimórfica:
+        if (_estadoActual != nullptr) {
+            _estadoActual->procesarEventos(evento, *this);
         }
     }
 }
 
-// ============================================================================
-// 4. ACTUALIZACIÓN LÓGICA (Física, IA, Interacciones)
-// ============================================================================
 void GameManager::actualizar() {
+    _cursor.actualizar(_ventana);
 
-    /// =================
-    /// CURSOR VISUAL
-    /// ==================
-    _cursor.actualizar(_ventana); // Movemos el sprite del cursor a donde está el mouse en este frame
+    // Solo medimos el dt si no estamos en un menú pausado (opcional),
+    // pero por ahora lo dejamos global como lo tenías:
+    float dt = _reloj.restart().asSeconds();
 
-    if (_estado != JUGANDO) return;
-
-    float dt = _reloj.restart().asSeconds(); // Calculamos el delta time para que el juego corra a la misma velocidad sin importar el rendimiento de la máquina
-
-    // 1. SISTEMAS CORE
-    _input.actualizarEstadoTiempoReal(_ventana);
-    _camara.seguir(_personaje.getPosicion(), dt);
-    _ventana.setView(_camara.getVista()); // Aseguramos que la vista esté actualizada antes de procesar la lógica del juego para que las posiciones del mouse sean correctas en relación al mundo
-
-    // 2. SISTEMAS DE INTERFAZ E INVENTARIO
-    if (_input.quiereAbrirInventario()) {
-        _hudInventario.toggle();
-        std::cout << "🎮 Inventario: " << (_hudInventario.isOpen() ? "Abierto" : "Cerrado") << std::endl;
-    }
-
-    if (_input.quiereAtacar()) {
-        _hudInventario.detectarClicCasillero(_input.getPosicionMouse(), _personaje.getInventario(), _ventana);
-    }
-
-    if (_input.quiereTirarItem()) {
-        Item* itemATirar = _personaje.getInventario().extraerItemPorIndice();
-        if (itemATirar != nullptr) {
-            itemATirar->setPosicion(_personaje.getPosicion());
-            _objectsManager.recibirItemSoltado(itemATirar);
-            std::cout << "📥 Drop: " << itemATirar->getNombre() << std::endl;
-        }
-    }
-
-    // =======================================================================
-    // 3.               ACTUALIZACIÓN DE ENTIDADES
-    // =======================================================================
-
-    // 1. Primero movemos al jugador
-    _personaje.manejarInput(_input, _mapa, _ventana, _hudInventario.isOpen(), dt);
-    _personaje.actualizar(dt); // Actualizamos al personaje antes que a los NPCs para que su posición esté actualizada para la IA
-    // 2. AHORA calculamos el centro, cuando ya está en su posición final del frame
-    sf::Vector2f centroJugador = _personaje.getCentroFisico(); // Obtenemos el centro físico real del personaje para que la IA tenga un objetivo preciso y consistente.
-    // 3. Pasamos la posición real y actualizada
-
-    // Si _golem es nullptr (porque ya lo matamos), esto se ignora y no crashea.
-    if (_golem != nullptr) {
-        _golem->setPosicionObjetivo(centroJugador);
-        _golem->actualizar(dt);
-		colisionEntreEntidades(_personaje, *_golem); // Chequeamos Colision entre el jugador y el Gólem para aplicar daño si es necesario
-    };
-
-    _mascota.setPosicionObjetivo(centroJugador);
-    _mascota.actualizar(dt);
-    _niebla.actualizar(dt);
-
-    // =======================================================================
-    // 4. INTERACCIONES FÍSICAS MUNDO-PERSONAJE
-    // =======================================================================
-    _objectsManager.chequearInteracciones(_personaje, _input);
-    _debug.actualizar(_hudInventario, _personaje, _golem);
-    if (_golem != nullptr) {
-    }
-
-    //========================================================================
-    // 5. COMBATE: MAGIA VS ENEMIGOS
-    //========================================================================
-    BolaDeFuego& magia = _personaje.getBolaDeFuego();
-
-    // 1. Verificamos si la bola está actualmente volando por la pantalla
-    if (magia.estaActiva() && _golem != nullptr) {
-
-        // 2. Si la hitbox de la bola se cruza con la hitbox del Gólem
-        if (magia.getBounds().intersects(_golem->getBounds())) {
-
-            // ¡Impacto! Le restamos vida usando el daño del mago (heredado de EntidadViva)
-            _golem->recibirDanio(_personaje.getDanio());
-
-            // Destruimos/ocultamos la bola de fuego para que no siga de largo y pegue 2 veces
-            magia.desactivar();
-
-            std::cout << "🔥 ¡IMPACTO! El Gólem recibió " << _personaje.getDanio() << " de daño." << std::endl;
-            // 3. Verificamos si este golpe en particular le bajó la vida a 0 o menos
-            if (_golem->estaMuerto()) {
-                std::cout << "💀 ¡EL GÓLEM HA SIDO DERROTADO! Liberando memoria..." << std::endl;
-
-                // Lo borramos físicamente de la RAM
-                delete _golem;
-
-                // ⚠️ CRÍTICO: Ponemos el puntero en nulo. 
-                // Si no hacés esto, C++ cree que el objeto sigue ahí y explota en el próximo frame.
-                _golem = nullptr;
-            }
-        }
+    if (_estadoActual != nullptr) {
+        _estadoActual->actualizar(dt, *this);
     }
 }
 
-// ============================================================================
-// 5. RENDERIZADO (Dibujado en pantalla)
-// ============================================================================
 void GameManager::renderizar() {
     _ventana.clear(sf::Color(30, 30, 30));
 
-    if (_estado == MENU) {
-        _ventana.setView(_ventana.getDefaultView());
-        _menu.draw(_ventana);
+    if (_estadoActual != nullptr) {
+        _estadoActual->renderizar(*this);
     }
-    else if (_estado == CREDITOS) {
-        _ventana.setView(_ventana.getDefaultView());
-        _ventana.draw(_textoCreditos);
-    }
-	else if (_estado == CREADOR_ITEMS) {
-		_ventana.setView(_ventana.getDefaultView());
-		_uiCreadorItems.dibujar(_ventana);
-	}
-    else if (_estado == JUGANDO) {
 
-        // --- CAPA 1: MUNDO Y ENTIDADES (Camara del Jugador) ---
-        _ventana.setView(_camara.getVista());
-
-        _mapa.dibujarMapa(_ventana);
-        _objectsManager.dibujarItems(_ventana);
-        _personaje.dibujar(_ventana);
-        _mascota.dibujar(_ventana);
-        if (_golem != nullptr) {
-            _golem->dibujar(_ventana);
-        };
-        _niebla.dibujar(_ventana, _camara.getVista());
-
-        // --- CAPA 2: MODO DEBUG POLIMÓRFICO ---
-        if (_debug.estaActivo()) {
-            _mapa.dibujarDebug(_ventana);
-
-            // Dibujado de colisiones con colores semánticos
-            _debug.dibujarCajaColision(_ventana, _personaje, sf::Color::Green);
-            if (_golem != nullptr) {
-                _golem->dibujarPathFinder(_ventana);
-                _debug.dibujarCajaColision(_ventana, *_golem, sf::Color::Magenta);
-            }
-            // _debug.dibujarCajaColision(_ventana, _mascota, sf::Color::Cyan); 
-        }
-
-        // --- CAPA 3: INTERFAZ Y HUD (Cámara Estática) ---
-        _ventana.setView(_ventana.getDefaultView());
-        _hudInventario.dibujar(_ventana, _personaje.getInventario());
-    }
-    //--- CAPA 4: MODO DEBUG: EXTRACTOR DE TEXTURAS (Solo si el debug está activo y el objetivo es EXTRACTOR) ---
-    if (_debug.estaActivo() && _debug.getObjetivoActual() == ObjetivoDebug::EXTRACTOR) {
-        _debug.dibujarExtractor(_ventana, _itemManager.getTexturaMaestra());
-    } 
-    
-    /// =================
-    /// CURSOR VISUAL
-    /// ==================
-    _cursor.dibujar(_ventana);      // Dibujamos el cursor al último para que quede encima de todo
-
+    _cursor.dibujar(_ventana);
     _ventana.display();
 }
 
-// ============================================================================
-// 6. FUNCIONES AUXILIARES (Utilidades del mundo)
-// ============================================================================
-void GameManager::spawnearDropSeguro(Item* item, float startX, float startY) {
-    sf::FloatRect hitbox = item->getBounds();
-    hitbox.left = startX;
-    hitbox.top = startY;
-
-    int intentos = 0;
-    const int MAX_INTENTOS = 100;
-
-    while (_mapa.hayColision(hitbox) && intentos < MAX_INTENTOS) {
-        startX += (rand() % 21 - 10);
-        startY += (rand() % 21 - 10);
-        hitbox.left = startX;
-        hitbox.top = startY;
-        intentos++;
-    }
-
-    if (intentos >= MAX_INTENTOS) {
-        std::cout << "⚠️ Advertencia: Drop bloqueado en pared: " << item->getNombre() << std::endl;
-    }
-
-    _objectsManager.agregarItemAlMundo(item, startX, startY);
-}
 // ============================================================================
 // RESOLUCIÓN DE COLISIONES ENTRE ENTIDADES (Jugador vs NPCS)
 // ============================================================================
@@ -422,16 +183,43 @@ void GameManager::colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enem
         jugador.setPosicion(sf::Vector2f(posActual.x + correccion.x, posActual.y + correccion.y));
     }
 }
+
+// ============================================================================
+// FUNCIONES AUXILIARES (Utilidades del mundo)
+// ============================================================================
+void GameManager::spawnearDropSeguro(Item* item, float startX, float startY) {
+    sf::FloatRect hitbox = item->getBounds();
+    hitbox.left = startX;
+    hitbox.top = startY;
+
+    int intentos = 0;
+    const int MAX_INTENTOS = 100;
+
+    while (_mapa.hayColision(hitbox) && intentos < MAX_INTENTOS) {
+        startX += (rand() % 21 - 10);
+        startY += (rand() % 21 - 10);
+        hitbox.left = startX;
+        hitbox.top = startY;
+        intentos++;
+    }
+
+    if (intentos >= MAX_INTENTOS) {
+        std::cout << "⚠️ Advertencia: Drop bloqueado en pared: " << item->getNombre() << std::endl;
+    }
+
+    _objectsManager.agregarItemAlMundo(item, startX, startY);
+}
+
 // ============================================================================
 // CAMBIO DE MÚSICA DE FONDO SEGÚN EL ESTADO DEL JUEGO
 // ============================================================================
-void GameManager::cambiarMusica(GameState nuevoEstado) {
+void GameManager::cambiarMusica(int musicaID) {
     _musicaAmbiente.stop();
 
-    if (nuevoEstado == MENU) {
+	if (musicaID == 0) { // 0=Menú
         _musicaAmbiente.openFromFile("assets/menu_song.ogg");
     }
-    else if (nuevoEstado == JUGANDO) {
+	else if (musicaID == 1) { // 1=Jugando
         _musicaAmbiente.openFromFile("assets/ambient.wav");
     }
 
