@@ -1,7 +1,7 @@
 #include "DebugManager.h"
 #include "UI_Inventario.h"
 #include "Personaje.h"
-#include "Enemy.h"
+#include "EntidadViva.h" // 🌟 FIX: Incluimos al Padre
 #include "map.h"
 #include <iostream>
 
@@ -13,6 +13,7 @@ DebugManager::DebugManager() {
 
 void DebugManager::toggleDebug() {
     _modoDebugActivo = !_modoDebugActivo;
+
     if (_modoDebugActivo) {
         std::cout << "🔧 MODO DEBUG ACTIVADO" << std::endl;
         std::cout << "👉 Presiona 1 para HUD | 2 para Personaje | 3 para Enemigo | 4 para Extractor | 0 para Ninguno" << std::endl;
@@ -23,30 +24,27 @@ void DebugManager::toggleDebug() {
     }
 }
 
-// =====================================================================
-// SELECTOR DE OBJETIVO (Eventos únicos de teclado)
-// =====================================================================
-void DebugManager::procesarEventos(sf::Event& evento, sf::RenderWindow& ventana, UI_Inventario& hud, Personaje& personaje, Enemy* enemigo) {
+// 🌟 FIX: Cambiamos Boss por EntidadViva*
+void DebugManager::procesarEventos(sf::Event& evento, sf::RenderWindow& ventana, UI_Inventario& hud, Personaje& personaje, EntidadViva* enemigoFocus) {
     if (!_modoDebugActivo) return;
 
     // --- 1. CLIC IZQUIERDO: EL MOTOR MATEMÁTICO DEL EXTRACTOR ---
     if (evento.type == sf::Event::MouseButtonPressed && _objetivoActual == ObjetivoDebug::EXTRACTOR) {
         if (evento.mouseButton.button == sf::Mouse::Left) {
 
-            // Leemos dónde hizo clic en la pantalla
+            // 🌟 LA MAGIA DEL ZOOM Y LA CÁMARA (SFML mapPixelToCoords)
             sf::Vector2i pixelPos = sf::Mouse::getPosition(ventana);
+            // Esto traduce el píxel de la pantalla a la coordenada real del mundo 2D, considerando el zoom y la posición de la cámara
             sf::Vector2f worldPos = ventana.mapPixelToCoords(pixelPos);
 
-            // Le restamos el offset de la imagen para saber qué parte real del PNG tocó
+            // Calculamos relativo al offset de donde moviste la imagen del Extractor
             float imgX = worldPos.x - _offsetExtractor.x;
             float imgY = worldPos.y - _offsetExtractor.y;
 
-            // Si hizo clic dentro de los límites de la imagen
             if (imgX >= 0 && imgY >= 0) {
                 int col = static_cast<int>(imgX) / 32;
                 int fila = static_cast<int>(imgY) / 32;
 
-                // 🌟 TU FÓRMULA MÁGICA: 64 columnas fijas
                 int idTextura = (fila * 64) + col;
 
                 std::cout << "\n============================================\n";
@@ -58,38 +56,17 @@ void DebugManager::procesarEventos(sf::Event& evento, sf::RenderWindow& ventana,
         }
     }
 
-    // --- 2. TECLAS DE SELECCIÓN Y AJUSTE: Cambia el objetivo o ajusta su posición/origen ---
     if (evento.type == sf::Event::KeyPressed) {
 
-        // ==========================================
-        // 1. SELECTOR DE OBJETIVO (Teclas 1, 2, 3, 4, 0)
-        // ==========================================
-        if (evento.key.code == sf::Keyboard::Num1) {
-            _objetivoActual = ObjetivoDebug::HUD;
-            std::cout << "🎯 [MODO EDICIÓN]: HUD del Inventario seleccionado." << std::endl;
-        }
-        else if (evento.key.code == sf::Keyboard::Num2) {
-            _objetivoActual = ObjetivoDebug::PERSONAJE;
-            std::cout << "🎯 [MODO EDICIÓN]: Origen del Personaje seleccionado." << std::endl;
-        }
-        else if (evento.key.code == sf::Keyboard::Num3) {
-            _objetivoActual = ObjetivoDebug::ENEMIGO;
-            std::cout << "🎯 [MODO EDICIÓN]: Origen del Enemigo seleccionado." << std::endl;
-        }
-        else if (evento.key.code == sf::Keyboard::Num4) {
-            _objetivoActual = ObjetivoDebug::EXTRACTOR;
-            std::cout << "🎯 [MODO EXTRACTOR]: Usa las flechas para moverte y click izquierdo para extraer ID." << std::endl;
-        }
-        else if (evento.key.code == sf::Keyboard::Num0) {
-            _objetivoActual = ObjetivoDebug::NINGUNO;
-            std::cout << "🎯 [MODO EDICIÓN]: Ningún objeto seleccionado." << std::endl;
-        }
+        // El selector original (teclas 1, 2, 3, 4, 0)...
+        if (evento.key.code == sf::Keyboard::Num1) _objetivoActual = ObjetivoDebug::HUD;
+        if (evento.key.code == sf::Keyboard::Num2) _objetivoActual = ObjetivoDebug::PERSONAJE;
+        if (evento.key.code == sf::Keyboard::Num3) _objetivoActual = ObjetivoDebug::ENEMIGO;
+        if (evento.key.code == sf::Keyboard::Num4) _objetivoActual = ObjetivoDebug::EXTRACTOR;
+        if (evento.key.code == sf::Keyboard::Num0) _objetivoActual = ObjetivoDebug::NINGUNO;
 
-        // ==========================================
-        // 2. EL CONSOLA DE MANDOS (Las flechitas)
-        // ==========================================
+        // Movimientos puntuales según el objetivo
         switch (_objetivoActual) {
-
         case ObjetivoDebug::HUD:
             if (evento.key.code == sf::Keyboard::Up) hud.ajustarPosicion(0.f, -5.f);
             if (evento.key.code == sf::Keyboard::Down) hud.ajustarPosicion(0.f, 5.f);
@@ -98,78 +75,61 @@ void DebugManager::procesarEventos(sf::Event& evento, sf::RenderWindow& ventana,
             if (evento.key.code == sf::Keyboard::U) hud.ajustarOrigen(-1.f, 0.f);
             if (evento.key.code == sf::Keyboard::O) hud.ajustarOrigen(1.f, 0.f);
             break;
-
         case ObjetivoDebug::PERSONAJE:
             if (evento.key.code == sf::Keyboard::Up) personaje.ajustarOrigenSprite(0.f, -1.f);
             if (evento.key.code == sf::Keyboard::Down) personaje.ajustarOrigenSprite(0.f, 1.f);
             if (evento.key.code == sf::Keyboard::Left) personaje.ajustarOrigenSprite(-1.f, 0.f);
             if (evento.key.code == sf::Keyboard::Right) personaje.ajustarOrigenSprite(1.f, 0.f);
             break;
-
         case ObjetivoDebug::ENEMIGO:
-            if (enemigo != nullptr && !enemigo->estaMuerto()) {
-                if (evento.key.code == sf::Keyboard::Up) enemigo->ajustarOrigenSprite(0.f, -1.f);
-                if (evento.key.code == sf::Keyboard::Down) enemigo->ajustarOrigenSprite(0.f, 1.f);
-                if (evento.key.code == sf::Keyboard::Left) enemigo->ajustarOrigenSprite(-1.f, 0.f);
-                if (evento.key.code == sf::Keyboard::Right) enemigo->ajustarOrigenSprite(1.f, 0.f);
+            // Ahora no nos importa si es un Boss o un Marciano, mientras esté vivo, le podemos ajustar el origen
+            if (enemigoFocus != nullptr && enemigoFocus->estaVivo()) {
+                if (evento.key.code == sf::Keyboard::Up) enemigoFocus->ajustarOrigenSprite(0.f, -1.f);
+                if (evento.key.code == sf::Keyboard::Down) enemigoFocus->ajustarOrigenSprite(0.f, 1.f);
+                if (evento.key.code == sf::Keyboard::Left) enemigoFocus->ajustarOrigenSprite(-1.f, 0.f);
+                if (evento.key.code == sf::Keyboard::Right) enemigoFocus->ajustarOrigenSprite(1.f, 0.f);
             }
             break;
-
-        case ObjetivoDebug::NINGUNO:
-        default:
-            break;
+        default: break;
         }
     }
 }
 
-// =====================================================================
-// EDICIÓN EN TIEMPO REAL (Movimiento fluido con las flechas)
-// =====================================================================
-void DebugManager::actualizar(UI_Inventario& hud, Personaje& personaje, Enemy* enemigo) {
+void DebugManager::actualizar(UI_Inventario& hud, Personaje& personaje, EntidadViva* enemigoFocus) {
     if (!_modoDebugActivo || _objetivoActual == ObjetivoDebug::NINGUNO) return;
 
-    // 🛡️ ESCUDO: Si el objetivo seleccionado es el enemigo pero ya murió, volvemos a NINGUNO para evitar problemas
-    if (_objetivoActual == ObjetivoDebug::ENEMIGO && (enemigo == nullptr || enemigo->estaMuerto())) {
+    if (_objetivoActual == ObjetivoDebug::ENEMIGO && (enemigoFocus == nullptr || !enemigoFocus->estaVivo())) {
         _objetivoActual = ObjetivoDebug::NINGUNO;
         std::cout << "👻 El enemigo seleccionado murió. Volviendo a Objetivo: NINGUNO." << std::endl;
         return;
     }
 
-    // Detectamos las direcciones en tiempo real
-    float dx = 0.f;
-    float dy = 0.f;
-
+    float dx = 0.f; float dy = 0.f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) dy = -1.f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) dy = 1.f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) dx = -1.f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) dx = 1.f;
 
-    // Si no se tocó nada, salimos para no hacer cálculos en vano
     if (dx == 0.f && dy == 0.f && !sf::Keyboard::isKeyPressed(sf::Keyboard::U) && !sf::Keyboard::isKeyPressed(sf::Keyboard::O)) return;
 
-    // Aplicamos el movimiento al objetivo seleccionado
     switch (_objetivoActual) {
     case ObjetivoDebug::HUD:
         hud.ajustarPosicion(dx * 2.f, dy * 2.f);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::U)) hud.ajustarOrigen(-1.f, 0.f);
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::O)) hud.ajustarOrigen(1.f, 0.f);
         break;
-
     case ObjetivoDebug::PERSONAJE:
         personaje.ajustarOrigenSprite(dx, dy);
         break;
-
     case ObjetivoDebug::ENEMIGO:
-        enemigo->ajustarOrigenSprite(dx, dy);
+        if (enemigoFocus != nullptr && enemigoFocus->estaVivo()) {
+            enemigoFocus->ajustarOrigenSprite(dx, dy);
+        }
         break;
-
-        // 🌟 AGREGÁ ESTE CASE ACÁ:
     case ObjetivoDebug::EXTRACTOR:
-        // Movemos el mapa de texturas 25 píxeles por frame con las flechas
         _offsetExtractor.x += dx * -25.f;
         _offsetExtractor.y += dy * -25.f;
         break;
-
     default: break;
     }
 }
@@ -184,8 +144,6 @@ void DebugManager::dibujarCajaColision(sf::RenderWindow& ventana, const Colision
 
     sf::RectangleShape caja(sf::Vector2f(limites.width, limites.height));
     caja.setPosition(limites.left, limites.top);
-
-    // Fondo semitransparente (alpha 80) y borde sólido
     caja.setFillColor(sf::Color(color.r, color.g, color.b, 80));
     caja.setOutlineColor(color);
     caja.setOutlineThickness(1.f);
@@ -193,17 +151,14 @@ void DebugManager::dibujarCajaColision(sf::RenderWindow& ventana, const Colision
     ventana.draw(caja);
 }
 
-// =====================================================================
-// EL DIBUJADOR DEL EXTRACTOR
-// =====================================================================
 void DebugManager::dibujarExtractor(sf::RenderWindow& ventana, const sf::Texture& texturaMaestra) {
     if (!_modoDebugActivo || _objetivoActual != ObjetivoDebug::EXTRACTOR) return;
 
-    // Ponemos la pantalla de color oscuro para tapar el juego normal
     ventana.clear(sf::Color(15, 15, 15));
-    ventana.setView(ventana.getDefaultView()); // Clavamos la vista
 
-    // Dibujamos la textura completa en su posición offseteada
+    // IMPORTANTE: Reseteamos la vista a la de por defecto para que el spritesheet no se vea afectado por la cámara del jugador
+    ventana.setView(ventana.getDefaultView());
+
     sf::Sprite spriteSpritesheet(texturaMaestra);
     spriteSpritesheet.setPosition(_offsetExtractor);
     ventana.draw(spriteSpritesheet);

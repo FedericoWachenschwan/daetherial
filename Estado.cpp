@@ -1,6 +1,7 @@
 #include "Estado.h"
 #include "GameManager.h"
 #include <iostream>
+#include "Enemy.h"
 
 // ============================================================================
 // ESTADO: MENÚ
@@ -48,6 +49,18 @@ void EstadoMenu::renderizar(GameManager& GameManager) {
 // ============================================================================
 // ESTADO: JUGANDO
 // ============================================================================
+// ============================================================================
+// ESTADO: JUGANDO
+// ============================================================================
+
+// 🌟 EL DESTRUCTOR: Acá limpiamos la RAM para que el compilador no grite (Error LNK2019)
+EstadoJugando::~EstadoJugando() {
+    for (int i = 0; i < (int)_enemigos.size(); i++) {
+        delete _enemigos[i];
+    }
+    _enemigos.clear();
+}
+
 void EstadoJugando::procesarEventos(sf::Event& evento, GameManager& GameManager) {
     GameManager._input.procesarEvento(evento);
     GameManager._camara.procesarZoom(evento);
@@ -83,14 +96,103 @@ void EstadoJugando::actualizar(float dt, GameManager& GameManager) {
     // 3. ACTUALIZACIÓN DE ENTIDADES
     GameManager._personaje.manejarInput(GameManager._input, GameManager._mapa, GameManager._ventana, GameManager._hudInventario.isOpen(), dt);
     GameManager._personaje.actualizar(dt);
-
     sf::Vector2f centroJugador = GameManager._personaje.getCentroFisico();
+
+    // CONDICION PARA DEJAR DE SPAWNEAR (SI MUERE EL GOLEM)
+    if (GameManager._golem != nullptr && GameManager._golem->estaVivo()) {
+
+        // 4.LÓGICA DEL SPAWN DE ENMIGOS
+        _relojSpawn += dt;
+        if (_relojSpawn >= _intervaloSpawn) {
+            EntidadViva* marcianitos = new Enemy(sf::Vector2f(450.f, 550.f), &GameManager._mapa, "assets/marciano.png");
+            _enemigos.push_back(marcianitos);
+            _relojSpawn = 0.f;
+        }
+    }
+
+    for (int i = 0; i < (int)_enemigos.size(); i++) {
+        _enemigos[i]->setPosicionObjetivo(centroJugador);
+        _enemigos[i]->actualizar(dt);
+        // 1. Chequeamos colision
+        if (_enemigos[i]->getBounds().intersects(GameManager._personaje.getBounds())) {
+
+            // 2. Si el enemigo tiene permiso para morder...
+            if (_enemigos[i]->puedeAtacar()) {
+                // A) Recibimos daño
+                GameManager._personaje.recibirDanio(_enemigos[i]->getDanio());
+                // B) Calculamos el vector de empuje (Del enemigo hacia el jugador)
+                sf::Vector2f dirEmpuje = GameManager._personaje.getPosicion() - _enemigos[i]->getPosicion();
+
+                // Normalizamos (para que el empuje sea siempre de la misma intensidad)
+                float len = std::hypot(dirEmpuje.x, dirEmpuje.y);
+                if (len != 0) dirEmpuje /= len;
+
+                // C) Aplicamos el empuje (ej: 25 píxeles de fuerza)
+                // Usamos nuestro sistema de resolverColisiones con un get para que, si el empuje te tira contra un árbol, NO atravieses el árbol.
+                sf::Vector2f fuerzaEmpuje = dirEmpuje * 25.f;
+                GameManager._personaje.getresolverColisiones(fuerzaEmpuje, GameManager._mapa);
+
+                std::cout << "💥 ¡GOLPE Y EMPUJE!" << std::endl;
+            }
+        }
+    }
+
 
     if (GameManager._golem != nullptr) {
         GameManager._golem->setPosicionObjetivo(centroJugador);
         GameManager._golem->actualizar(dt);
         GameManager.colisionEntreEntidades(GameManager._personaje, *GameManager._golem);
     }
+
+    // 5. COMBATE: MAGIA VS ENEMIGOS
+    BolaDeFuego& magia = GameManager._personaje.getBolaDeFuego();
+
+    if (magia.estaActiva()) { // 🌟 LLAVE PRINCIPAL ABRE (Acá nace impacto)
+        bool impacto = false;
+
+        // A. Chequeamos colision contra la horda de marcianos
+        for (int i = 0; i < (int)_enemigos.size(); i++) {
+
+            // ¡Tiene que intersectar al marciano para hacerle daño!
+            if (magia.getBounds().intersects(_enemigos[i]->getBounds())) {
+
+                _enemigos[i]->recibirDanio(GameManager._personaje.getDanio());
+                impacto = true;
+                std::cout << "🔥 ¡IMPACTO! Marciano herido." << std::endl;
+
+                // Si el marciano muere, lo borramos de la RAM y de la pantalla
+                if (_enemigos[i]->estaMuerto()) {
+                    std::cout << "💀 ¡Marciano fulminado!" << std::endl;
+                    delete _enemigos[i];
+                    _enemigos.erase(_enemigos.begin() + i);
+                    i--;
+                }
+                break;
+            }
+        }
+
+        // B. Chequeamos colision contra el boss (solo si existe y la habilidad no choco contra un minion)
+        if (!impacto && GameManager._golem != nullptr) {
+            if (magia.getBounds().intersects(GameManager._golem->getBounds())) {
+                GameManager._golem->recibirDanio(GameManager._personaje.getDanio());
+                impacto = true;
+                std::cout << "🔥 ¡IMPACTO! El Gólem recibió daño." << std::endl;
+
+                if (GameManager._golem->estaMuerto()) {
+                    std::cout << "💀 ¡EL GÓLEM HA SIDO DERROTADO!" << std::endl;
+                    delete GameManager._golem;
+                    GameManager._golem = nullptr;
+                }
+            }
+        }
+
+        // Si la bola le pegó a ALGO, la desactivamos visualmente
+        if (impacto) {
+            magia.desactivar();
+        }
+
+    }
+
 
     GameManager._mascota.setPosicionObjetivo(centroJugador);
     GameManager._mascota.actualizar(dt);
@@ -100,22 +202,7 @@ void EstadoJugando::actualizar(float dt, GameManager& GameManager) {
     GameManager._objectsManager.chequearInteracciones(GameManager._personaje, GameManager._input);
     GameManager._debug.actualizar(GameManager._hudInventario, GameManager._personaje, GameManager._golem);
 
-    // 5. COMBATE: MAGIA VS ENEMIGOS
-    BolaDeFuego& magia = GameManager._personaje.getBolaDeFuego();
-    if (magia.estaActiva() && GameManager._golem != nullptr) {
-        if (magia.getBounds().intersects(GameManager._golem->getBounds())) {
-
-            GameManager._golem->recibirDanio(GameManager._personaje.getDanio());
-            magia.desactivar();
-            std::cout << "🔥 ¡IMPACTO! El Gólem recibió " << GameManager._personaje.getDanio() << " de daño." << std::endl;
-
-            if (GameManager._golem->estaMuerto()) {
-                std::cout << "💀 ¡EL GÓLEM HA SIDO DERROTADO! Liberando memoria..." << std::endl;
-                delete GameManager._golem;
-                GameManager._golem = nullptr; // Clave para no crashear
-            }
-        }
-    }
+    
 }
 
 void EstadoJugando::renderizar(GameManager& GameManager) {
@@ -123,6 +210,10 @@ void EstadoJugando::renderizar(GameManager& GameManager) {
     GameManager._ventana.setView(GameManager._camara.getVista());
     GameManager._mapa.dibujarMapa(GameManager._ventana);
     GameManager._objectsManager.dibujarItems(GameManager._ventana);
+    // 🌟 LA MAGIA VISUAL: Dibujar a todos los marcianitos vivos
+    for (int i = 0; i < (int)_enemigos.size(); i++) {
+        _enemigos[i]->dibujar(GameManager._ventana);
+    }
     GameManager._personaje.dibujar(GameManager._ventana);
     GameManager._mascota.dibujar(GameManager._ventana);
 

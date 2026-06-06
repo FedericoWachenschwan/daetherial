@@ -25,7 +25,7 @@ GameManager::GameManager()
     _ventana.setMouseCursorVisible(false); // Ocultamos el cursor de Windows para que no se vea encima del nuestro
 
 	// --- Configuración de Entidades ---
-	_golem = new Enemy(sf::Vector2f(968.f, 380.f), &_mapa); // Creamos el Gólem con su posición inicial y referencia al mapa
+	_golem = new Boss(sf::Vector2f(968.f, 380.f), &_mapa); // Creamos el Gólem con su posición inicial y referencia al mapa
 	_golem->setObjetivoJugador(&_personaje); // Pasamos la referencia del jugador para que el Gólem pueda perseguirlo y atacarlo
 
     // --- Carga del Mundo ---

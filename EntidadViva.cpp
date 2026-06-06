@@ -10,6 +10,9 @@ EntidadViva::EntidadViva() {
     _tiempoFrame = 0.f;
     _velocidadAnimacion = 0.09f;
     _maxFrames = 1;
+    _danio = 0;
+    _cooldownAtaque = 0.f;
+    _rangoAtaque = 0.f;
 
 	// Configuración de la barra de vida (puede ser personalizada por cada hijo si quieren)
     float anchoBarra = 50.f;
@@ -91,3 +94,4 @@ void EntidadViva::resolverColisiones(sf::Vector2f movimiento, Map& mapa) {
         }
     }
 }
+

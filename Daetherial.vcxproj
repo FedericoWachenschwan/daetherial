@@ -163,6 +163,7 @@
     <ClCompile Include="Cursor_Visual.cpp" />
     <ClCompile Include="DebugManager.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Boss.cpp" />
     <ClCompile Include="EntidadViva.cpp" />
     <ClCompile Include="Estado.cpp" />
     <ClCompile Include="GameManager.cpp" />
@@ -291,6 +292,7 @@
     <ClInclude Include="dependencias\SFML\include\SFML\Window\WindowHandle.hpp" />
     <ClInclude Include="dependencias\SFML\include\SFML\Window\WindowStyle.hpp" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="Boss.h" />
     <ClInclude Include="EntidadViva.h" />
     <ClInclude Include="Estado.h" />
     <ClInclude Include="GameManager.h" />

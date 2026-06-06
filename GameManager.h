@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include <vector>
 #include "Colisionable.h"
 #include "map.h"
 #include "menu.h"
@@ -8,7 +9,7 @@
 #include "Mascota.h"
 #include "Camara.h"
 #include "Niebla.h"
-#include "Enemy.h"
+#include "Boss.h"
 #include "ItemManager.h"    
 #include "ObjectsManager.h" 
 #include "UI_Inventario.h"  
@@ -44,8 +45,7 @@ private:
 	Map _mapa; // Mapa del mundo con colisiones y dibujo
 	Personaje _personaje; // El jugador controlable
 	Mascota _mascota; // Compañero que sigue al jugador
-	Enemy* _golem; // Enemigo principal del juego (inicializado dinámicamente para poder matarlo y liberar su memoria)
-
+	Boss* _golem; // Enemigo principal del juego (inicializado dinámicamente para poder matarlo y liberar su memoria)
 	Cursor_Visual _cursor; // Cursor personalizado que sigue al mouse
 
     // Managers

@@ -7,7 +7,7 @@
 // ============================================================================
 BolaDeFuego::BolaDeFuego() : Habilidades("Bola de fuego", 5, 10.0f, 0.5f) // Nombre, daño, rango, cooldown
 {
-	// Estado inicial del proyectil: inactivo y sin distancia recorrida
+
 	_activo = false;                // El proyectil inicia apagado
 	_velocidad = 400.0f;            // Velocidad en píxeles/segundo
 	_distanciaRecorrida = 0.0f;     // Contador de distancia acumulada
@@ -37,20 +37,20 @@ void BolaDeFuego::activar(sf::Vector2f inicio, sf::Vector2f objetivo, float rang
 {
 	if (_cdListo && !_activo)
 	{
-		// Posicionamos el origen del proyectil en la posición del personaje
+
 		_sprite.setPosition(inicio);
 		_distanciaRecorrida = 0.0f; // Reiniciamos el contador de distancia
-		_rango = rangoPixeles; // Actualizamos el rango dinámico según el personaje
+        _rango = rangoPixeles;     // Actualizamos el rango dinámico según el personaje
 
 
-		// Calculamos el vector hacia el objetivo y lo normalizamos
+
 		float diffX = objetivo.x - inicio.x;
 		float diffY = objetivo.y - inicio.y;
 		
-		// 🌟 FIX 1: std::hypot evita la pérdida de precisión al hacer zoom
+        // Calculamos el vector hacia el objetivo y lo normalizamos
 		float distanciaReal = std::hypot(diffX, diffY);
 
-		if (distanciaReal > 0.001f) // 🌟 FIX 2: Tolerancia mínima para evitar bugs si el mouse está pegado al mago
+        if (distanciaReal > 0.001f)
 		{
 			_direccion.x = diffX / distanciaReal;
 			_direccion.y = diffY / distanciaReal;
@@ -74,26 +74,54 @@ void BolaDeFuego::activar(sf::Vector2f inicio, sf::Vector2f objetivo, float rang
 // ============================================================================
 // ACTUALIZAR: Mueve el proyectil y gestiona sus ciclos de vida y cooldowns
 // ============================================================================
-void BolaDeFuego::actualizar(float deltaTime)
-{
-	// Reducimos el temporizador del cooldown frame a frame
-	cdActualizar(deltaTime);
+void BolaDeFuego::actualizar(float dt) {
 
-	if (_activo)
-	{
-		// Espacio que debe avanzar el proyectil en este frame
-		float avance = _velocidad * deltaTime;
+	// 0. GESTIÓN DEL COOLDOWN (Para poder volver a disparar)
+	if (!_cdListo) {
+		_cdActual -= dt;
+		if (_cdActual <= 0.f) {
+			_cdActual = 0.f;
+			_cdListo = true;
+		}
+	}
 
-		// Desplazamos el sprite en el espacio bidimensional
-		_sprite.move(_direccion.x * avance, _direccion.y * avance);
+	// 1. LÓGICA DE LA BOLA (Solo si está activa/volando)
+	if (_activo) {
 
-		// Acumulamos la distancia total que se alejó desde el origen
-		_distanciaRecorrida += avance;
+		// A) Emitir partículas de rastro
+		_relojSpawnRastro += dt;
+		if (_relojSpawnRastro >= 0.015f) {
+			ParticulaFuego nueva;
+			nueva.sprite = _sprite;
+			nueva.opacidad = 255.f;
+			nueva.sprite.setColor(sf::Color(255, 120, 0, static_cast<sf::Uint8>(nueva.opacidad)));
+			_rastroFuego.push_back(nueva);
+			_relojSpawnRastro = 0.f;
+		}
 
-		// Si alcanza el rango límite de la habilidad, la apagamos
-		if (_distanciaRecorrida >= (_rango))
-		{
-			_activo = false;
+		// B) Mover la bola físicamente
+		float pasoEfectivo = _velocidad * dt;
+		_sprite.move(_direccion * pasoEfectivo);
+		_distanciaRecorrida += pasoEfectivo;
+
+		// C) Destruir la bola si superó su rango máximo (no le pegó a nada)
+		if (_distanciaRecorrida >= _rango) {
+			desactivar(); // O simplemente _activo = false;
+		}
+	}
+
+	// 2. LÓGICA DE DESVANECIMIENTO DEL RASTRO (Se ejecuta siempre)
+	for (int i = 0; i < (int)_rastroFuego.size(); i++) {
+
+		_rastroFuego[i].opacidad -= 600.f * dt;
+		_rastroFuego[i].sprite.setScale(_rastroFuego[i].sprite.getScale() * 0.92f);
+
+		if (_rastroFuego[i].opacidad <= 0.f) {
+			_rastroFuego.erase(_rastroFuego.begin() + i);
+			i--;
+		}
+		else {
+			_rastroFuego[i].sprite.setColor(sf::Color(255, 80, 0, static_cast<sf::Uint8>(_rastroFuego[i].opacidad)));
 		}
 	}
 }
@@ -101,13 +129,19 @@ void BolaDeFuego::actualizar(float deltaTime)
 // ============================================================================
 // DIBUJAR: Renderiza el sprite en la ventana de juego
 // ============================================================================
-void BolaDeFuego::dibujar(sf::RenderWindow& ventana)
-{
-	if (_activo)
-	{
+void BolaDeFuego::dibujar(sf::RenderWindow& ventana) {
+	
+	// 1. Dibujamos la estela
+	for (auto& particula : _rastroFuego) {
+		ventana.draw(particula.sprite);
+	}
+
+	// 2. Depsues dibujamos el sprite encima (si esta activa
+	if (_activo) {
 		ventana.draw(_sprite);
 	}
 }
+
 
 // ============================================================================
 // SUBIR NIVEL: Incrementa las estadísticas base de la magia

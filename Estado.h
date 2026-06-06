@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "Boss.h"
 
 // Forward declaration: Le avisamos a C++ que GameManager existe, 
 // sin tener que incluir GameManager.h acá (evita errores de dependencias circulares)
@@ -30,10 +31,17 @@ public:
 };
 
 class EstadoJugando : public Estado {
+private:
+    std::vector<EntidadViva*> _enemigos; // Vector para el spawn de npcs usando memoria dinamica
+    float _relojSpawn = 0.f;
+    float _intervaloSpawn = 5.0f; // Spawn cada 5 segundos
 public:
+    ~EstadoJugando() override; // Declaracion del destructor para limpiar la memoria
+
     void procesarEventos(sf::Event& evento, GameManager& GameManager) override;
     void actualizar(float dt, GameManager& GameManager) override;
     void renderizar(GameManager& GameManager) override;
+
 };
 
 class EstadoCreadorItems : public Estado {

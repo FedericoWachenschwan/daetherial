@@ -10,11 +10,10 @@ using namespace std;
 class BloqueMapa : public Colisionable {
 private:
 	sf::FloatRect _hitbox; // La caja de colisión real en el mundo
+
 public:
 	BloqueMapa(float x, float y, float tam)
-		: _hitbox(x, y, tam, tam) {
-	}
-
+		: _hitbox(x, y, tam, tam) {}
 	// Implementación obligatoria de la interfaz
 	sf::FloatRect getBounds() const override { return _hitbox; }
 };
@@ -35,11 +34,20 @@ private:
 	vector<BloqueMapa> _bloquesSolidos;
 
 public:
-	// Metodos públicos del mapa
+    // Constructor del mapa
 	Map(int tamTile = 32, float escala = 1.0f);
 
 	// Cargar el mapa desde un archivo CSV
 	bool cargarMapa(const string& csvPath, const string& texturaPath);
+
+	// Funciones de dibujado
+	void dibujarMapa(sf::RenderWindow& ventana) const;
+
+	// Funciones de dibujado en modo debug
+	void dibujarDebug(sf::RenderWindow& ventana) const;
+
+	// Getter para que el GameManager pueda pedirle al mapa sus bloques sólidos más adelante
+	const vector<BloqueMapa>& getBloquesSolidos() const { return _bloquesSolidos; }
 
 	// 🛡️ Mantenemos la función de Fede declarada acá para que no rompa el Personaje
 	bool hayColision(float x, float y);
@@ -47,11 +55,6 @@ public:
 	// Nueva sobrecarga: chequear colisión con un rectángulo AABB
 	bool hayColision(const sf::FloatRect& rect) const;
 
-	// Getter para que el GameManager pueda pedirle al mapa sus bloques sólidos más adelante
-	const vector<BloqueMapa>& getBloquesSolidos() const { return _bloquesSolidos; }
-
-	// Funciones de dibujado
-	void dibujarMapa(sf::RenderWindow& ventana) const;
-	void dibujarDebug(sf::RenderWindow& ventana) const;
-	bool esSolido(int f, int c) const; // Función para que el Pathfinder pueda consultar si una baldosa es sólida o no sin tener que lidiar con coordenadas del mundo
+    // Función para que el Pathfinder pueda consultar si una baldosa es sólida o no sin tener que lidiar con coordenadas del mundo
+    bool esSolido(int f, int c) const;
 };

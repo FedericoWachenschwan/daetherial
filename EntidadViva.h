@@ -44,12 +44,27 @@ public:
 
     // Funciones comunes que hacen lo mismo para todos
     virtual void dibujar(sf::RenderWindow& ventana);
+    virtual void setPosicionObjetivo(sf::Vector2f pos) {}
     sf::Vector2f getPosicion() const;
 	void setPosicion(sf::Vector2f nuevaPos) { _sprite.setPosition(nuevaPos); } // Función para que los hijos (personaje y enemigos) puedan mover la entidad
+    // Ajuste de origen para el modo Debug (Lo heredan todos los personajes y monstruos)
+    virtual void ajustarOrigenSprite(float dx, float dy) {
+        sf::Vector2f origenActual = _sprite.getOrigin();
+        _sprite.setOrigin(origenActual.x + dx, origenActual.y + dy);
+    }
+    bool puedeAtacar() {
+        if (_relojAtaque.getElapsedTime().asSeconds() >= _cooldownAtaque) {
+            _relojAtaque.restart();
+            return true;
+        }
+        return false;
+    }
+   
 
     // Sistema de vida base
     void recibirDanio(int cantidad);
     bool estaMuerto() const { return _vidaActual <= 0; }
+    bool estaVivo() const { return _vidaActual >= 0; }
     int getDanio() const { return _danio; }
    
     sf::Vector2f getCentroFisico() const {
@@ -66,4 +81,6 @@ public:
 
     // Mantenemos el contrato de Colisionable abierto para que cada hijo 
     virtual sf::FloatRect getBounds() const override = 0;
+
+    void getresolverColisiones(sf::Vector2f movimiento, Map& mapa) { resolverColisiones(movimiento, mapa); }
 };
