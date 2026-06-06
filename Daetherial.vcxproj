@@ -187,6 +187,7 @@
     <ClCompile Include="habilidad_5.cpp" />
     <ClCompile Include="UI_CreadorItems.cpp" />
     <ClCompile Include="UI_Inventario.cpp" />
+    <ClCompile Include="VisualFX.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camara.h" />
@@ -415,6 +416,7 @@
     <ClInclude Include="SFML\include\SFML\Window\WindowStyle.hpp" />
     <ClInclude Include="UI_CreadorItems.h" />
     <ClInclude Include="UI_Inventario.h" />
+    <ClInclude Include="VisualFX.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\cat_abajo.png" />

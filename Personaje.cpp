@@ -191,7 +191,7 @@ void Personaje::procesarHabilidades(const InputManager& input, sf::RenderWindow&
 // ============================================================================
 // ACTUALIZAR: El motor temporal de los relojes de animación y lógicas hijas
 // ============================================================================
-void Personaje::actualizar(float dt) {
+void Personaje::actualizar(float dt, VisualFX& VisualFX) {
     
     // 1. LÓGICA DEL DASH
     if (_estadoActual == EstadoPersonaje::DASH) {
@@ -201,44 +201,16 @@ void Personaje::actualizar(float dt) {
         // Ajustes: spawn más espaciado, opacidad inicial mayor para que se vea a simple vista
         _relojSpawnRastro += dt;
         if (_relojSpawnRastro >= 0.02f) { // 🌟 Más rápido (cada 0.02s) para que la línea sea continua
-            RastroDash nuevoRastro;
-            nuevoRastro.sprite = _sprite;
-
-            // 🌟 Blindamos la textura heredada por si la copia la pierde en memoria
-            nuevoRastro.sprite.setTexture(_textura);
-
-            nuevoRastro.opacidad = 255.f; // 🌟 Arrancamos al máximo de luz
-            nuevoRastro.sprite.setScale(_sprite.getScale() * 0.95f);
-
-            // Un cian mucho más brillante
-            nuevoRastro.sprite.setColor(sf::Color(0, 255, 255, static_cast<sf::Uint8>(nuevoRastro.opacidad)));
-
-            _rastroDash.push_back(nuevoRastro);
+            VisualFX.agregarRastro(_sprite, sf::Color(0, 255, 255), 500.f, true);
             _relojSpawnRastro = 0.f;
         }
-
         if (_tiempoDash <= 0.f) {
             _estadoActual = EstadoPersonaje::IDLE;
             _velocidadActual = { 0.f, 0.f };
         }
     }
 
-    // 2. LÓGICA DE LOS RASTROS
-    for (int i = 0; i < (int)_rastroDash.size(); i++) {
-        // 🌟 Subimos de 250 a 500 para que el desvanecimiento sea explosivo y fluido
-        _rastroDash[i].opacidad -= 500.f * dt;
 
-        if (_rastroDash[i].opacidad <= 0.f) {
-            _rastroDash.erase(_rastroDash.begin() + i);
-            i--;
-        }
-        else {
-            _rastroDash[i].sprite.setColor(sf::Color(0, 255, 255, static_cast<sf::Uint8>(_rastroDash[i].opacidad)));
-        }
-    }
-    
-    
-    
     // 2. 💀 CONTROL DE MUERTE
     if (this->estaMuerto()) {
         _estadoActual = EstadoPersonaje::MUERTO;
@@ -246,7 +218,7 @@ void Personaje::actualizar(float dt) {
         if (_frameActual >= 5) {
             _frameActual = 5; // Congelamos en el cuadro del piso
             actualizarSpriteRect();
-            _bolaDeFuego.actualizar(dt);
+            _bolaDeFuego.actualizar(dt, VisualFX); // Sincronizamos
             return;
         }
     }
@@ -274,7 +246,21 @@ void Personaje::actualizar(float dt) {
     }
 
     actualizarSpriteRect();
-    _bolaDeFuego.actualizar(dt);
+    _bolaDeFuego.actualizar(dt, VisualFX);
+}
+
+// ============================================================================
+// DIBUJAR: Renderizado en capas ordenadas
+// ============================================================================
+void Personaje::dibujar(sf::RenderWindow& ventana) {
+    // 1. Dibujamos el proyectil de la bola de fuego
+    _bolaDeFuego.dibujar(ventana);
+
+    if (_estadoActual == EstadoPersonaje::AIMING) {
+        ventana.draw(_circuloRango);
+    }
+    // 2. Dibujamos al personaje encima de todo
+    EntidadViva::dibujar(ventana);
 }
 
 // ============================================================================
@@ -356,27 +342,6 @@ void Personaje::actualizarSpriteRect() {
     // 🌟 Usamos _sprite
     _sprite.setTextureRect(sf::IntRect(columna * 64, filaMatriz * 64, 64, 64));
     _sprite.setOrigin(32.f, 32.f);
-}
-
-// ============================================================================
-// DIBUJAR: Renderizado en capas ordenadas
-// ============================================================================
-void Personaje::dibujar(sf::RenderWindow& ventana) {
-    // 🌟 Usamos la función de dibujo de la clase madre para renderizar el sprite
-    _bolaDeFuego.dibujar(ventana);
-
-    if (_estadoActual == EstadoPersonaje::AIMING) {
-        ventana.draw(_circuloRango);
-    }
-
-    // 1. DIBUJAR RASTROS (¡Si esto no está, no hay magia!)
-    for (const auto& rastro : _rastroDash) {
-        ventana.draw(rastro.sprite, sf::BlendAdd);
-    }
-
-    // 2. DIBUJAR AL PERSONAJE REAL
-    EntidadViva::dibujar(ventana);
-
 }
 
 //============================================================================

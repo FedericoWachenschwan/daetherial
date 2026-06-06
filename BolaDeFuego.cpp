@@ -1,6 +1,8 @@
 #include "BolaDeFuego.h"
+#include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
+#include "VisualFX.h"
 
 // ============================================================================
 // CONSTRUCTOR: Inicializa las estadísticas base de la Bola de Fuego
@@ -74,7 +76,7 @@ void BolaDeFuego::activar(sf::Vector2f inicio, sf::Vector2f objetivo, float rang
 // ============================================================================
 // ACTUALIZAR: Mueve el proyectil y gestiona sus ciclos de vida y cooldowns
 // ============================================================================
-void BolaDeFuego::actualizar(float dt) {
+void BolaDeFuego::actualizar(float dt, VisualFX& vfx) {
 
 	// 0. GESTIÓN DEL COOLDOWN (Para poder volver a disparar)
 	if (!_cdListo) {
@@ -91,37 +93,19 @@ void BolaDeFuego::actualizar(float dt) {
 		// A) Emitir partículas de rastro
 		_relojSpawnRastro += dt;
 		if (_relojSpawnRastro >= 0.015f) {
-			ParticulaFuego nueva;
-			nueva.sprite = _sprite;
-			nueva.opacidad = 255.f;
-			nueva.sprite.setColor(sf::Color(255, 120, 0, static_cast<sf::Uint8>(nueva.opacidad)));
-			_rastroFuego.push_back(nueva);
+			vfx.agregarRastro(_sprite, sf::Color(255, 120, 0), 600.f, true);
+			float dispersionY = (rand() % 100 - 50) * 2.f; // entre 100 y -100
+			sf::Vector2f velChispa = -_direccion * (_velocidad * 0.4f) + sf::Vector2f(0.f, dispersionY);
+			vfx.agregarParticulaDinamica(*_sprite.getTexture(), _sprite.getPosition(), velChispa, sf::Color(255, 200, 0), 800.f, true);
 			_relojSpawnRastro = 0.f;
 		}
-
 		// B) Mover la bola físicamente
 		float pasoEfectivo = _velocidad * dt;
 		_sprite.move(_direccion * pasoEfectivo);
 		_distanciaRecorrida += pasoEfectivo;
-
 		// C) Destruir la bola si superó su rango máximo (no le pegó a nada)
 		if (_distanciaRecorrida >= _rango) {
 			desactivar(); // O simplemente _activo = false;
-		}
-	}
-
-	// 2. LÓGICA DE DESVANECIMIENTO DEL RASTRO (Se ejecuta siempre)
-	for (int i = 0; i < (int)_rastroFuego.size(); i++) {
-
-		_rastroFuego[i].opacidad -= 600.f * dt;
-		_rastroFuego[i].sprite.setScale(_rastroFuego[i].sprite.getScale() * 0.92f);
-
-		if (_rastroFuego[i].opacidad <= 0.f) {
-			_rastroFuego.erase(_rastroFuego.begin() + i);
-			i--;
-		}
-		else {
-			_rastroFuego[i].sprite.setColor(sf::Color(255, 80, 0, static_cast<sf::Uint8>(_rastroFuego[i].opacidad)));
 		}
 	}
 }
@@ -131,14 +115,9 @@ void BolaDeFuego::actualizar(float dt) {
 // ============================================================================
 void BolaDeFuego::dibujar(sf::RenderWindow& ventana) {
 	
-	// 1. Dibujamos la estela
-	for (auto& particula : _rastroFuego) {
-		ventana.draw(particula.sprite);
-	}
-
 	// 2. Depsues dibujamos el sprite encima (si esta activa
 	if (_activo) {
-		ventana.draw(_sprite);
+		ventana.draw(_sprite, sf::BlendAdd);
 	}
 }
 

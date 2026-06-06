@@ -18,6 +18,7 @@ struct ParticulaFuego {
 // Hereda de Habilidades e implementa la mecánica de un proyectil que viaja
 // en línea recta hasta alcanzar su rango máximo
 // ============================================================================
+class VisualFX;
 
 class BolaDeFuego : public Habilidades
 {
@@ -27,7 +28,6 @@ private:
 	sf::Sprite _sprite;
 
 	// ========== SISTEMA DE PARTÍCULAS (RASTRO) ==========
-	std::vector<ParticulaFuego> _rastroFuego; // 🌟 Contenedor de la estela
 	float _relojSpawnRastro = 0.0f;           // 🌟 Temporizador para emitir
 
 	// ========== ESTADO DEL PROYECTIL ==========
@@ -47,7 +47,7 @@ public:
 	void subirNivel() override;
 
 	// ========== MÉTODOS ADICIONALES ESPECÍFICOS ==========
-	void actualizar(float deltaTime);
+	void actualizar(float deltaTime, VisualFX& vfx);
 	void dibujar(sf::RenderWindow& ventana);
 	bool estaActiva() const { return _activo; }
 	void desactivar() { _activo = false; }

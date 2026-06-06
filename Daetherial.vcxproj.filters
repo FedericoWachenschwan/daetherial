@@ -30,6 +30,7 @@
     <ClCompile Include="Cursor_Visual.cpp" />
     <ClCompile Include="Estado.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="VisualFX.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="map.h" />
@@ -258,6 +259,7 @@
     <ClInclude Include="Cursor_Visual.h" />
     <ClInclude Include="Estado.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="VisualFX.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\cat_abajo.png" />

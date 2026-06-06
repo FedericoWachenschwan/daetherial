@@ -19,6 +19,7 @@
 #include "Cursor_Visual.h"      
 #include "UI_CreadorItems.h" 
 #include "Estado.h"
+#include "VisualFX.h"
 
 class GameManager {
 	// Para que los estados puedan acceder a los métodos privados del GameManager sin hacerlos públicos para todo el mundo
@@ -51,6 +52,7 @@ private:
     // Managers
 	ItemManager _itemManager; // Manejo de creación, almacenamiento y consulta de ítems (base de datos)
 	ObjectsManager _objectsManager; // Manejo de objetos que existen en el mundo (items tirados en el piso, muebles interactuables, etc.)
+	VisualFX _VisualFX; // Manejo de efectos visuales (Dash del personaje, bola de fuego, etc)
 
     // Elementos para pantalla de créditos
     sf::Font _fontCreditos;

@@ -49,18 +49,6 @@ void EstadoMenu::renderizar(GameManager& GameManager) {
 // ============================================================================
 // ESTADO: JUGANDO
 // ============================================================================
-// ============================================================================
-// ESTADO: JUGANDO
-// ============================================================================
-
-// 🌟 EL DESTRUCTOR: Acá limpiamos la RAM para que el compilador no grite (Error LNK2019)
-EstadoJugando::~EstadoJugando() {
-    for (int i = 0; i < (int)_enemigos.size(); i++) {
-        delete _enemigos[i];
-    }
-    _enemigos.clear();
-}
-
 void EstadoJugando::procesarEventos(sf::Event& evento, GameManager& GameManager) {
     GameManager._input.procesarEvento(evento);
     GameManager._camara.procesarZoom(evento);
@@ -95,7 +83,7 @@ void EstadoJugando::actualizar(float dt, GameManager& GameManager) {
 
     // 3. ACTUALIZACIÓN DE ENTIDADES
     GameManager._personaje.manejarInput(GameManager._input, GameManager._mapa, GameManager._ventana, GameManager._hudInventario.isOpen(), dt);
-    GameManager._personaje.actualizar(dt);
+    GameManager._personaje.actualizar(dt, GameManager._VisualFX);
     sf::Vector2f centroJugador = GameManager._personaje.getCentroFisico();
 
     // CONDICION PARA DEJAR DE SPAWNEAR (SI MUERE EL GOLEM)
@@ -104,7 +92,7 @@ void EstadoJugando::actualizar(float dt, GameManager& GameManager) {
         // 4.LÓGICA DEL SPAWN DE ENMIGOS
         _relojSpawn += dt;
         if (_relojSpawn >= _intervaloSpawn) {
-            EntidadViva* marcianitos = new Enemy(sf::Vector2f(450.f, 550.f), &GameManager._mapa, "assets/marciano.png");
+            EntidadViva* marcianitos = new Enemy(sf::Vector2f(827.f, 341.f), &GameManager._mapa, "assets/marciano.png");
             _enemigos.push_back(marcianitos);
             _relojSpawn = 0.f;
         }
@@ -146,7 +134,6 @@ void EstadoJugando::actualizar(float dt, GameManager& GameManager) {
 
     // 5. COMBATE: MAGIA VS ENEMIGOS
     BolaDeFuego& magia = GameManager._personaje.getBolaDeFuego();
-
     if (magia.estaActiva()) { // 🌟 LLAVE PRINCIPAL ABRE (Acá nace impacto)
         bool impacto = false;
 
@@ -194,22 +181,26 @@ void EstadoJugando::actualizar(float dt, GameManager& GameManager) {
     }
 
 
+
+
+    // 4. INTERACCIONES FÍSICAS MUNDO-PERSONAJE
+    GameManager._VisualFX.actualizar(dt);
     GameManager._mascota.setPosicionObjetivo(centroJugador);
     GameManager._mascota.actualizar(dt);
     GameManager._niebla.actualizar(dt);
-
-    // 4. INTERACCIONES FÍSICAS MUNDO-PERSONAJE
     GameManager._objectsManager.chequearInteracciones(GameManager._personaje, GameManager._input);
     GameManager._debug.actualizar(GameManager._hudInventario, GameManager._personaje, GameManager._golem);
 
-    
+
 }
 
 void EstadoJugando::renderizar(GameManager& GameManager) {
     // --- CAPA 1: MUNDO Y ENTIDADES ---
     GameManager._ventana.setView(GameManager._camara.getVista());
     GameManager._mapa.dibujarMapa(GameManager._ventana);
+    GameManager._VisualFX.dibujar(GameManager._ventana);
     GameManager._objectsManager.dibujarItems(GameManager._ventana);
+
     // 🌟 LA MAGIA VISUAL: Dibujar a todos los marcianitos vivos
     for (int i = 0; i < (int)_enemigos.size(); i++) {
         _enemigos[i]->dibujar(GameManager._ventana);
@@ -242,31 +233,39 @@ void EstadoJugando::renderizar(GameManager& GameManager) {
     }
 }
 
+// --- DESTRUCTOR ---
+EstadoJugando::~EstadoJugando() {
+    for (int i = 0; i < (int)_enemigos.size(); i++) {
+        delete _enemigos[i];
+    }
+    _enemigos.clear();
+} 
+
 // ============================================================================
 // ESTADO: CREADOR DE ÍTEMS
 // ============================================================================
-void EstadoCreadorItems::procesarEventos(sf::Event& evento, GameManager& GameManager) {
-    GameManager._uiCreadorItems.procesarEventos(evento, GameManager._itemManager);
+void EstadoCreadorItems::procesarEventos(sf::Event& evento, GameManager& gm) {
+    gm._uiCreadorItems.procesarEventos(evento, gm._itemManager);
 
     if (evento.type == sf::Event::KeyPressed &&
         (evento.key.code == sf::Keyboard::Left || evento.key.code == sf::Keyboard::Right)) {
-        GameManager._uiCreadorItems.actualizarSprite(GameManager._itemManager.getTexturaMaestra());
+        gm._uiCreadorItems.actualizarSprite(gm._itemManager.getTexturaMaestra());
     }
 
-    if (GameManager._uiCreadorItems.quiereGuardar()) {
-        ItemReg nuevoItem = GameManager._uiCreadorItems.generarRegistro();
+    if (gm._uiCreadorItems.quiereGuardar()) {
+        ItemReg nuevoItem = gm._uiCreadorItems.generarRegistro();
 
-        if (GameManager._itemManager.guardarRegistro(nuevoItem)) {
+        if (gm._itemManager.guardarRegistro(nuevoItem)) {
             std::cout << "✅ ÍTEM GUARDADO: " << nuevoItem.nombre << std::endl;
         }
         else {
             std::cout << "❌ Error al guardar el ítem." << std::endl;
         }
-        GameManager._uiCreadorItems.confirmarGuardado();
+        gm._uiCreadorItems.confirmarGuardado();
     }
 
     if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::Escape) {
-        GameManager.cambiarEstado(new EstadoMenu());
+        gm.cambiarEstado(new EstadoMenu());
     }
 }
 

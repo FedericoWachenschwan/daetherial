@@ -2,8 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include "Boss.h"
 
-// Forward declaration: Le avisamos a C++ que GameManager existe, 
-// sin tener que incluir GameManager.h acá (evita errores de dependencias circulares)
+// Forward declaration: Le avisamos a C++ que gm existe, 
+// sin tener que incluir gm.h acá (evita errores de dependencias circulares)
 class GameManager;
 
 // ==========================================
@@ -15,8 +15,8 @@ public:
 
     // Los 3 métodos obligatorios para cualquier pantalla del juego
     virtual void procesarEventos(sf::Event& evento, GameManager& GameManager) = 0;
-    virtual void actualizar(float dt, GameManager& GameManager) = 0;
-    virtual void renderizar(GameManager& GameManager) = 0; // Solo pasamos GameManager porque adentro tiene la ventana
+    virtual void actualizar(float dt, GameManager& gm) = 0;
+    virtual void renderizar(GameManager& GameManager) = 0; // Solo pasamos gm porque adentro tiene la ventana
 };
 
 // ==========================================

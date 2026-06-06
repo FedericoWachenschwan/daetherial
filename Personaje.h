@@ -2,6 +2,7 @@
 #include "EntidadViva.h" 
 #include "Inventario.h"
 #include "BolaDeFuego.h"
+#include "VisualFX.h"
 
 class InputManager;
 
@@ -28,7 +29,7 @@ enum class DireccionLPC {
     RIGHT = 3
 };
 
-class Personaje : public EntidadViva { // 🌟 AHORA SÍ: Hereda de la clase madre
+class Personaje : public EntidadViva { // Hereda de la clase madre
 private:
     // --- COMPONENTES EXCLUSIVOS DEL JUGADOR ---
     EstadoPersonaje _estadoActual = EstadoPersonaje::IDLE;
@@ -51,13 +52,6 @@ private:
     void procesarHabilidades(const InputManager& input, sf::RenderWindow& ventana, bool uiCapturaMouse);
     void controlarLimitesYTransiciones();
     void actualizarSpriteRect();
-	
-	// --- FX VISUAL DASH ---
-    struct RastroDash {
-		sf::Sprite sprite;
-        float opacidad;
-    };
-	std::vector<RastroDash> _rastroDash;
 
 	// --- CONTROL DE DASH ---
 	float _tiempoDash = 0.f;
@@ -69,13 +63,20 @@ public:
     Personaje();
 
     Inventario& getInventario() { return _inventario; }
+
     const Inventario& getInventario() const { return _inventario; }
+
 	void manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse, float dt); // Método para procesar el input del jugador (movimiento, habilidades, etc.)	
+
     BolaDeFuego& getBolaDeFuego() { return _bolaDeFuego; } // Getter para acceder a la bola de fuego desde el GameManager o la UI
     
     // 🌟 Funciones que el Personaje está obligado a implementar por heredar de EntidadViva
-    void actualizar(float dt) override;
+    void actualizar(float dt) override {}
+
+    void actualizar(float dt, VisualFX& vfx);
+
     void dibujar(sf::RenderWindow& ventana) override;
+
     sf::FloatRect getBounds() const override {
         // _sprite heredado de EntidadViva
         sf::Vector2f pos = _sprite.getPosition();
