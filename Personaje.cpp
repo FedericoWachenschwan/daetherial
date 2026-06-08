@@ -13,8 +13,8 @@ Personaje::Personaje() {
     }
     _sprite.setTexture(_textura);
     _sprite.setPosition(100.f, 100.f);
-
-	// 🌟 Estadisticas base del personaje heredades de EntidadViva
+    
+    // 🌟 Estadisticas base del personaje heredades de EntidadViva
     _velocidad = 170.f;
     _aceleracion = 10.f; // Que tan rapido alcanza la velocidad máxima
     _desaceleracion = 08.f; // Que tan rapido frena al soltar el movimiento (debe ser mayor que la aceleración para que no se sienta pegajoso)
@@ -31,6 +31,17 @@ Personaje::Personaje() {
     _circuloRango.setOrigin(_radioAlcance, _radioAlcance);     // Origen clavado al centro
 
     actualizarSpriteRect();
+}
+
+
+///====================================================
+///                     ORO DEL JUGADOR
+///====================================================
+int Personaje::getOro() {
+    return _oro; // Devuelve el oro actual del jugador
+}
+void Personaje::setOro(int nuevo_oro_del_jugador) {
+    _oro = nuevo_oro_del_jugador; // Pisamos el oro actual con el nuevo valor
 }
 
 // ============================================================================

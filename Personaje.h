@@ -6,7 +6,7 @@
 class InputManager;
 
 // =========================================================================
-// 🌟 ENUM ALINEADO CON LAS 21 FILAS DE LA MATRIZ LPC
+// 🌟 ENUM ALINEADO CON LAS 21 FILAS QDE LA MATRIZ LPC
 // =========================================================================
 enum class EstadoPersonaje {
     SPELLCAST = 0,
@@ -34,6 +34,10 @@ private:
     DireccionLPC _direccionActual = DireccionLPC::DOWN;
     Inventario _inventario;
     BolaDeFuego _bolaDeFuego;
+    
+	///  --------------ORO DEL JUGADOR----------------
+    int _oro = 100; // Oro inicial que tiene el jugador para comprar en la tienda (empieza con 100)
+
 
 	// --- FISICAS DEL PERSONAJE ---
 	sf::Vector2f _velocidadActual = { 0.f, 0.f };
@@ -54,6 +58,12 @@ private:
 
 public:
     Personaje();
+
+	///===================================================
+    ///      MÉTODOS DE ORO - Getter y setter del oro
+	///===================================================
+    int getOro(); // Devuelve cuánto oro tiene el jugador
+	void setOro(int nuevo_oro_del_jugador); // Establece la cantidad de oro del jugador
 
     Inventario& getInventario() { return _inventario; }
     const Inventario& getInventario() const { return _inventario; }

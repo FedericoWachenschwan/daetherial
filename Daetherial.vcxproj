@@ -183,6 +183,7 @@
     <ClCompile Include="habilidad_3.cpp" />
     <ClCompile Include="habilidad_4.cpp" />
     <ClCompile Include="habilidad_5.cpp" />
+    <ClCompile Include="Tienda.cpp" />
     <ClCompile Include="UI_CreadorItems.cpp" />
     <ClCompile Include="UI_Inventario.cpp" />
   </ItemGroup>
@@ -408,6 +409,7 @@
     <ClInclude Include="SFML\include\SFML\Window\Window.hpp" />
     <ClInclude Include="SFML\include\SFML\Window\WindowHandle.hpp" />
     <ClInclude Include="SFML\include\SFML\Window\WindowStyle.hpp" />
+    <ClInclude Include="Tienda.h" />
     <ClInclude Include="UI_CreadorItems.h" />
     <ClInclude Include="UI_Inventario.h" />
   </ItemGroup>

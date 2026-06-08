@@ -7,8 +7,8 @@
 class Cursor_Visual {
 private:
 
-    sf::Texture _textura_cursor;    // La imagen del cursor cargada en memoria
-    sf::Sprite  _sprite_cursor;     // Lo que se dibuja en pantalla siguiendo al mouse
+    sf::Texture _textura_cursor; // La imagen del cursor cargada en memoria
+    sf::Sprite  _sprite_cursor; // Lo que se dibuja en pantalla siguiendo al mouse
 
 public:
 
