@@ -21,6 +21,8 @@ private:
     bool _modoDebugActivo;
     ObjetivoDebug _objetivoActual;
     sf::Vector2f _offsetExtractor; //Para guardar cuánto scrolleaste la imagen gigante
+    sf::Vector2f _posTileMarcado;
+    bool _dibujarMarcaTile = false;
 
 public:
     DebugManager();
@@ -40,4 +42,8 @@ public:
 
     // Dibuja todas las hitboxes útiles: personaje, Boss, marcianos y bloques del mapa
     void dibujarCajaColision(sf::RenderWindow& ventana, const Colisionable& entidad, sf::Color color) const;
+
+    // Funciones para manejar la grilla
+    void procesarClicMapa(sf::Vector2i pixelPos, const sf::View& vistaActiva, const sf::RenderWindow& ventana);
+    void dibujarGrillaMapa(sf::RenderWindow& ventana) const;
 };

@@ -24,7 +24,7 @@ void DebugManager::toggleDebug() {
     }
 }
 
-// 🌟 FIX: Cambiamos Boss por EntidadViva*
+// 
 void DebugManager::procesarEventos(sf::Event& evento, sf::RenderWindow& ventana, UI_Inventario& hud, Personaje& personaje, EntidadViva* enemigoFocus) {
     if (!_modoDebugActivo) return;
 
@@ -94,7 +94,6 @@ void DebugManager::procesarEventos(sf::Event& evento, sf::RenderWindow& ventana,
         }
     }
 }
-
 void DebugManager::actualizar(UI_Inventario& hud, Personaje& personaje, EntidadViva* enemigoFocus) {
     if (!_modoDebugActivo || _objetivoActual == ObjetivoDebug::NINGUNO) return;
 
@@ -150,7 +149,6 @@ void DebugManager::dibujarCajaColision(sf::RenderWindow& ventana, const Colision
 
     ventana.draw(caja);
 }
-
 void DebugManager::dibujarExtractor(sf::RenderWindow& ventana, const sf::Texture& texturaMaestra) {
     if (!_modoDebugActivo || _objetivoActual != ObjetivoDebug::EXTRACTOR) return;
 
@@ -162,4 +160,37 @@ void DebugManager::dibujarExtractor(sf::RenderWindow& ventana, const sf::Texture
     sf::Sprite spriteSpritesheet(texturaMaestra);
     spriteSpritesheet.setPosition(_offsetExtractor);
     ventana.draw(spriteSpritesheet);
+}
+
+// ============================================================================
+// HERRAMIENTA DE GRILLA (Tile Snapping para Debug del Mapa)
+// ============================================================================
+void DebugManager::procesarClicMapa(sf::Vector2i pixelPos, const sf::View& vistaActiva, const sf::RenderWindow& ventana) {
+    if (!_modoDebugActivo) return;
+
+    // Traducimos el clic usando la cámara actual del juego
+    sf::Vector2f worldPos = ventana.mapPixelToCoords(pixelPos, vistaActiva);
+
+    // Matemática de Snapping: redondea a múltiplo de 32
+    float tileX = std::floor(worldPos.x / 32.f) * 32.f;
+    float tileY = std::floor(worldPos.y / 32.f) * 32.f;
+
+    _posTileMarcado = sf::Vector2f(tileX, tileY);
+    _dibujarMarcaTile = true;
+
+    std::cout << "🟨 [GRILLA] Clic en Tile -> X: " << _posTileMarcado.x
+        << " | Y: " << _posTileMarcado.y << std::endl;
+}
+void DebugManager::dibujarGrillaMapa(sf::RenderWindow& ventana) const {
+    if (!_modoDebugActivo || !_dibujarMarcaTile) return;
+
+    sf::RectangleShape marcaTile(sf::Vector2f(32.f, 32.f));
+    marcaTile.setPosition(_posTileMarcado);
+
+    // Color Amarillo Transparente
+    marcaTile.setFillColor(sf::Color(255, 255, 0, 60));
+    marcaTile.setOutlineColor(sf::Color::Yellow);
+    marcaTile.setOutlineThickness(1.5f);
+
+    ventana.draw(marcaTile);
 }

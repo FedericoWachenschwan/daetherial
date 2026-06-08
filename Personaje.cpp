@@ -17,7 +17,7 @@ Personaje::Personaje() {
 	// 🌟 Estadisticas base del personaje heredades de EntidadViva
     _velocidad = 170.f;
     _aceleracion = 10.f; // Que tan rapido alcanza la velocidad máxima
-    _desaceleracion = 08.f; // Que tan rapido frena al soltar el movimiento (debe ser mayor que la aceleración para que no se sienta pegajoso)
+    _desaceleracion = 8.f; // Que tan rapido frena al soltar el movimiento (debe ser mayor que la aceleración para que no se sienta pegajoso)
     _vidaMaxima = 100;
     _vidaActual = _vidaMaxima;
     _danio = 50;
@@ -63,11 +63,9 @@ void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWin
             _estadoActual = EstadoPersonaje::DASH;
             _tiempoDash = _DuracionDash;
             _cooldownDash = 1.5f;
-
             // Impulso inicial bestial (4 veces la velocidad base, ajustalo a gusto)
             _velocidadActual = direccion * (_velocidad * 4.0f);
-
-            return; // ⚠️ CORTAMOS ACÁ: Evitamos que la inercia de abajo frene el impulso
+            return;
         }
     }
 
@@ -105,12 +103,10 @@ void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWin
 
     // Actualizamos la mirada y la intención de movimiento de forma inteligente
     determinarEstadoYDireccion(_velocidadActual);
-
     // Procesamos el intento de apuntar, cancelar o disparar la magia
     procesarHabilidades(input, ventana, uiCapturaMouse);
 
     sf::Vector2f movimientoEsteFrame = _velocidadActual * dt;
-
     // 🌟 Ejecutamos las colisiones AABB contra el mapa (Llama a la función de la clase madre)
     resolverColisiones(movimientoEsteFrame, mapa);
 }
@@ -120,15 +116,13 @@ void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWin
 // ============================================================================
 void Personaje::determinarEstadoYDireccion(sf::Vector2f direccion) {
     if (direccion.x == 0.f && direccion.y == 0.f) {
-        if (_estadoActual != EstadoPersonaje::AIMING) {
-            if (_estadoActual != EstadoPersonaje::IDLE) {
-                _estadoActual = EstadoPersonaje::IDLE;
-                _frameActual = 9;
-				_tiempoFrame = 0.f; // Congelamos el último frame de caminata para que no se vea tan raro el cambio a idle
-            }
-        }
-        else {
+        if (_estadoActual == EstadoPersonaje::AIMING) {
             _frameActual = 0;
+            _tiempoFrame = 0.f;
+        }
+        else if (_estadoActual != EstadoPersonaje::IDLE) {
+            _estadoActual = EstadoPersonaje::IDLE;
+            _frameActual = 9;
             _tiempoFrame = 0.f;
         }
         return;
@@ -173,9 +167,8 @@ void Personaje::procesarHabilidades(const InputManager& input, sf::RenderWindow&
 
         sf::Vector2i mousePantalla = input.getPosicionMouse();
         sf::Vector2f mouseMundo = ventana.mapPixelToCoords(mousePantalla);
-
-        // 🌟 Usamos getPosicion() de la clase madre
         sf::Vector2f posPersonaje = this->getPosicion();
+
         if (std::abs(mouseMundo.x - posPersonaje.x) > std::abs(mouseMundo.y - posPersonaje.y)) {
             _direccionActual = (mouseMundo.x > posPersonaje.x) ? DireccionLPC::RIGHT : DireccionLPC::LEFT;
         }
@@ -196,7 +189,6 @@ void Personaje::actualizar(float dt, VisualFX& VisualFX) {
     // 1. LÓGICA DEL DASH
     if (_estadoActual == EstadoPersonaje::DASH) {
         _tiempoDash -= dt;
-
         // Generar rastro (mientras dasheamos)
         // Ajustes: spawn más espaciado, opacidad inicial mayor para que se vea a simple vista
         _relojSpawnRastro += dt;
@@ -342,23 +334,4 @@ void Personaje::actualizarSpriteRect() {
     // 🌟 Usamos _sprite
     _sprite.setTextureRect(sf::IntRect(columna * 64, filaMatriz * 64, 64, 64));
     _sprite.setOrigin(32.f, 32.f);
-}
-
-//============================================================================
-// FUNCIÓN DE DEBUG: Dibuja la caja de colisión (AABB) del personaje para pruebas y ajustes de Origen con sprite
-//============================================================================
-void Personaje::dibujarDebug(sf::RenderWindow& ventana) const {
-    sf::FloatRect limites = this->getBounds();
-    sf::RectangleShape rectDebug(sf::Vector2f(limites.width, limites.height));
-    rectDebug.setPosition(limites.left, limites.top);
-    rectDebug.setFillColor(sf::Color(0, 255, 0, 100));
-    rectDebug.setOutlineColor(sf::Color::Green);
-    rectDebug.setOutlineThickness(-1.f);
-    ventana.draw(rectDebug);
-}
-
-void Personaje::ajustarOrigenSprite(float x, float y) {
-    // 🌟 Usamos _sprite
-    sf::Vector2f origenActual = _sprite.getOrigin();
-    _sprite.setOrigin(origenActual.x + x, origenActual.y + y);
 }

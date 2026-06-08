@@ -47,34 +47,30 @@ private:
     float _radioAlcance = 200.f;
     float _radioActual = 0.f;
 
-    // --- MÉTODOS PRIVADOS DE LÓGICA ---
-    void determinarEstadoYDireccion(sf::Vector2f direccion);
-    void procesarHabilidades(const InputManager& input, sf::RenderWindow& ventana, bool uiCapturaMouse);
-    void controlarLimitesYTransiciones();
-    void actualizarSpriteRect();
-
 	// --- CONTROL DE DASH ---
 	float _tiempoDash = 0.f;
 	const float _DuracionDash = 0.15f; // Duración total del dash en segundos
 	float _relojSpawnRastro = 0.f; // Reloj para controlar el spawn de los rastros
 	float _cooldownDash = 0.f; // Tiempo de recarga del dash
 
+    // --- MÉTODOS PRIVADOS DE LÓGICA ---
+    void determinarEstadoYDireccion(sf::Vector2f direccion);
+    void procesarHabilidades(const InputManager& input, sf::RenderWindow& ventana, bool uiCapturaMouse);
+    void controlarLimitesYTransiciones();
+    void actualizarSpriteRect();
+
 public:
     Personaje();
 
     Inventario& getInventario() { return _inventario; }
-
     const Inventario& getInventario() const { return _inventario; }
+    BolaDeFuego& getBolaDeFuego() { return _bolaDeFuego; } // Getter para acceder a la bola de fuego desde el GameManager o la UI
 
 	void manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse, float dt); // Método para procesar el input del jugador (movimiento, habilidades, etc.)	
-
-    BolaDeFuego& getBolaDeFuego() { return _bolaDeFuego; } // Getter para acceder a la bola de fuego desde el GameManager o la UI
     
     // 🌟 Funciones que el Personaje está obligado a implementar por heredar de EntidadViva
     void actualizar(float dt) override {}
-
     void actualizar(float dt, VisualFX& vfx);
-
     void dibujar(sf::RenderWindow& ventana) override;
 
     sf::FloatRect getBounds() const override {
@@ -85,7 +81,4 @@ public:
 		return sf::FloatRect(hitboxX, hitboxY, 16.f, 16.f); // Caja de colisión de 16x16 centrada en la base del sprite
     }
 
-    // Métodos debug para visualizar la hitbox 
-    void dibujarDebug(sf::RenderWindow& ventana) const;
-    void ajustarOrigenSprite(float x, float y);
 };

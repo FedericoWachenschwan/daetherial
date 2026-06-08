@@ -1,4 +1,5 @@
 #include "map.h"
+#include "VisualFX.h"
 #include <iostream>
 #include <fstream> // para poder abrir y leer archivos CSV
 #include <sstream> // para separar los numeros del CSV usando las comas
@@ -106,6 +107,14 @@ bool Map::cargarMapa(const string& csvPath, const string& texturaPath) {
 void Map::dibujarMapa(sf::RenderWindow& ventana) const {
 	// Dibuja el sprite de fondo gigante que ya configuramos en cargarMapa
 	ventana.draw(_spriteTile);
+}
+
+// =================================================================================================================================
+// FUNCIÓN PARA DIBUJAR FX AMBIENTAL
+// =================================================================================================================================
+void Map::generarClima(VisualFX& vfx) {
+	sf::Vector2f tamanoMapa(2000.f, 2000.f);
+	vfx.agregarParticulasAmbiente(tamanoMapa, 50, sf::Color(130, 200, 36));
 }
 
 // =================================================================================================================================

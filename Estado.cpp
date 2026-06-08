@@ -6,240 +6,241 @@
 // ============================================================================
 // ESTADO: MENÚ
 // ============================================================================
-void EstadoMenu::procesarEventos(sf::Event& evento, GameManager& GameManager) {
+void EstadoMenu::procesarEventos(sf::Event& evento, GameManager& gm) {
     if (evento.type == sf::Event::KeyPressed) {
-        if (evento.key.code == sf::Keyboard::Up) GameManager._menu.moveUp();
-        if (evento.key.code == sf::Keyboard::Down) GameManager._menu.moveDown();
+        if (evento.key.code == sf::Keyboard::Up) gm._menu.moveUp();
+        if (evento.key.code == sf::Keyboard::Down) gm._menu.moveDown();
 
         if (evento.key.code == sf::Keyboard::Enter) {
-            int selected = GameManager._menu.getSelectedIndex();
+            int selected = gm._menu.getSelectedIndex();
 
             if (selected == 0) {
-                // Pasamos al juego
-                GameManager.cambiarEstado(new EstadoJugando());
-                GameManager.cambiarMusica(1); // 1 = JUGANDO
-                GameManager._reloj.restart(); // Reiniciamos el reloj para evitar un delta time gigante
+                // ---- PASAMOS AL JUEGO ----
+                gm.cambiarEstado(new EstadoJugando());
+                gm.cambiarMusica(1); // 1 = JUGANDO
+                gm._reloj.restart(); // Reiniciamos el reloj para evitar un delta time gigante
+                gm._mapa.generarClima(gm._VisualFX);
             }
             else if (selected == 1) {
-                GameManager.cambiarEstado(new EstadoCreadorItems());
-                GameManager._uiCreadorItems.actualizarSprite(GameManager._itemManager.getTexturaMaestra());
+                gm.cambiarEstado(new EstadoCreadorItems());
+                gm._uiCreadorItems.actualizarSprite(gm._itemManager.getTexturaMaestra());
             }
             else if (selected == 2) {
                 std::cout << "🏆 Pantalla de Logros en construccion..." << std::endl;
             }
             else if (selected == 3) {
-                GameManager.cambiarEstado(new EstadoCreditos());
+                gm.cambiarEstado(new EstadoCreditos());
             }
             else if (selected == 4) {
-                GameManager._ventana.close();
+                gm._ventana.close();
             }
         }
     }
 }
 
-void EstadoMenu::actualizar(float dt, GameManager& GameManager) {
+void EstadoMenu::actualizar(float dt, GameManager& gm) {
     // El menú es estático, no necesita actualizar físicas por ahora.
 }
 
-void EstadoMenu::renderizar(GameManager& GameManager) {
-    GameManager._ventana.setView(GameManager._ventana.getDefaultView());
-    GameManager._menu.draw(GameManager._ventana);
+void EstadoMenu::renderizar(GameManager& gm) {
+    gm._ventana.setView(gm._ventana.getDefaultView());
+    gm._menu.draw(gm._ventana);
 }
 
 // ============================================================================
 // ESTADO: JUGANDO
 // ============================================================================
-void EstadoJugando::procesarEventos(sf::Event& evento, GameManager& GameManager) {
-    GameManager._input.procesarEvento(evento);
-    GameManager._camara.procesarZoom(evento);
-
-    // Toggle Debug
-    if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::F3) {
-        GameManager._debug.toggleDebug();
-    }
-    GameManager._debug.procesarEventos(evento, GameManager._ventana, GameManager._hudInventario, GameManager._personaje, GameManager._golem);
-}
-
-void EstadoJugando::actualizar(float dt, GameManager& GameManager) {
-    // 1. SISTEMAS CORE
-    GameManager._input.actualizarEstadoTiempoReal(GameManager._ventana);
-    GameManager._camara.seguir(GameManager._personaje.getPosicion(), dt);
-    GameManager._ventana.setView(GameManager._camara.getVista());
-
-    // 2. SISTEMAS DE INTERFAZ E INVENTARIO
-    if (GameManager._input.quiereAbrirInventario()) GameManager._hudInventario.toggle();
-
-    if (GameManager._input.quiereAtacar()) {
-        GameManager._hudInventario.detectarClicCasillero(GameManager._input.getPosicionMouse(), GameManager._personaje.getInventario(), GameManager._ventana);
-    }
-
-    if (GameManager._input.quiereTirarItem()) {
-        Item* itemATirar = GameManager._personaje.getInventario().extraerItemPorIndice();
-        if (itemATirar != nullptr) {
-            itemATirar->setPosicion(GameManager._personaje.getPosicion());
-            GameManager._objectsManager.recibirItemSoltado(itemATirar);
-        }
-    }
-
-    // 3. ACTUALIZACIÓN DE ENTIDADES
-    GameManager._personaje.manejarInput(GameManager._input, GameManager._mapa, GameManager._ventana, GameManager._hudInventario.isOpen(), dt);
-    GameManager._personaje.actualizar(dt, GameManager._VisualFX);
-    sf::Vector2f centroJugador = GameManager._personaje.getCentroFisico();
-
-    // CONDICION PARA DEJAR DE SPAWNEAR (SI MUERE EL GOLEM)
-    if (GameManager._golem != nullptr && GameManager._golem->estaVivo()) {
-
-        // 4.LÓGICA DEL SPAWN DE ENMIGOS
-        _relojSpawn += dt;
-        if (_relojSpawn >= _intervaloSpawn) {
-            EntidadViva* marcianitos = new Enemy(sf::Vector2f(827.f, 341.f), &GameManager._mapa, "assets/marciano.png");
-            _enemigos.push_back(marcianitos);
-            _relojSpawn = 0.f;
-        }
-    }
-
-    for (int i = 0; i < (int)_enemigos.size(); i++) {
-        _enemigos[i]->setPosicionObjetivo(centroJugador);
-        _enemigos[i]->actualizar(dt);
-        // 1. Chequeamos colision
-        if (_enemigos[i]->getBounds().intersects(GameManager._personaje.getBounds())) {
-
-            // 2. Si el enemigo tiene permiso para morder...
-            if (_enemigos[i]->puedeAtacar()) {
-                // A) Recibimos daño
-                GameManager._personaje.recibirDanio(_enemigos[i]->getDanio());
-                // B) Calculamos el vector de empuje (Del enemigo hacia el jugador)
-                sf::Vector2f dirEmpuje = GameManager._personaje.getPosicion() - _enemigos[i]->getPosicion();
-
-                // Normalizamos (para que el empuje sea siempre de la misma intensidad)
-                float len = std::hypot(dirEmpuje.x, dirEmpuje.y);
-                if (len != 0) dirEmpuje /= len;
-
-                // C) Aplicamos el empuje (ej: 25 píxeles de fuerza)
-                // Usamos nuestro sistema de resolverColisiones con un get para que, si el empuje te tira contra un árbol, NO atravieses el árbol.
-                sf::Vector2f fuerzaEmpuje = dirEmpuje * 25.f;
-                GameManager._personaje.getresolverColisiones(fuerzaEmpuje, GameManager._mapa);
-
-                std::cout << "💥 ¡GOLPE Y EMPUJE!" << std::endl;
-            }
-        }
-    }
-
-
-    if (GameManager._golem != nullptr) {
-        GameManager._golem->setPosicionObjetivo(centroJugador);
-        GameManager._golem->actualizar(dt);
-        GameManager.colisionEntreEntidades(GameManager._personaje, *GameManager._golem);
-    }
-
-    // 5. COMBATE: MAGIA VS ENEMIGOS
-    BolaDeFuego& magia = GameManager._personaje.getBolaDeFuego();
-    if (magia.estaActiva()) { // 🌟 LLAVE PRINCIPAL ABRE (Acá nace impacto)
-        bool impacto = false;
-
-        // A. Chequeamos colision contra la horda de marcianos
-        for (int i = 0; i < (int)_enemigos.size(); i++) {
-
-            // ¡Tiene que intersectar al marciano para hacerle daño!
-            if (magia.getBounds().intersects(_enemigos[i]->getBounds())) {
-
-                _enemigos[i]->recibirDanio(GameManager._personaje.getDanio());
-                impacto = true;
-                std::cout << "🔥 ¡IMPACTO! Marciano herido." << std::endl;
-
-                // Si el marciano muere, lo borramos de la RAM y de la pantalla
-                if (_enemigos[i]->estaMuerto()) {
-                    std::cout << "💀 ¡Marciano fulminado!" << std::endl;
-                    delete _enemigos[i];
-                    _enemigos.erase(_enemigos.begin() + i);
-                    i--;
-                }
-                break;
-            }
-        }
-
-        // B. Chequeamos colision contra el boss (solo si existe y la habilidad no choco contra un minion)
-        if (!impacto && GameManager._golem != nullptr) {
-            if (magia.getBounds().intersects(GameManager._golem->getBounds())) {
-                GameManager._golem->recibirDanio(GameManager._personaje.getDanio());
-                impacto = true;
-                std::cout << "🔥 ¡IMPACTO! El Gólem recibió daño." << std::endl;
-
-                if (GameManager._golem->estaMuerto()) {
-                    std::cout << "💀 ¡EL GÓLEM HA SIDO DERROTADO!" << std::endl;
-                    delete GameManager._golem;
-                    GameManager._golem = nullptr;
-                }
-            }
-        }
-
-        // Si la bola le pegó a ALGO, la desactivamos visualmente
-        if (impacto) {
-            magia.desactivar();
-        }
-
-    }
-
-
-
-
-    // 4. INTERACCIONES FÍSICAS MUNDO-PERSONAJE
-    GameManager._VisualFX.actualizar(dt);
-    GameManager._mascota.setPosicionObjetivo(centroJugador);
-    GameManager._mascota.actualizar(dt);
-    GameManager._niebla.actualizar(dt);
-    GameManager._objectsManager.chequearInteracciones(GameManager._personaje, GameManager._input);
-    GameManager._debug.actualizar(GameManager._hudInventario, GameManager._personaje, GameManager._golem);
-
-
-}
-
-void EstadoJugando::renderizar(GameManager& GameManager) {
-    // --- CAPA 1: MUNDO Y ENTIDADES ---
-    GameManager._ventana.setView(GameManager._camara.getVista());
-    GameManager._mapa.dibujarMapa(GameManager._ventana);
-    GameManager._VisualFX.dibujar(GameManager._ventana);
-    GameManager._objectsManager.dibujarItems(GameManager._ventana);
-
-    // 🌟 LA MAGIA VISUAL: Dibujar a todos los marcianitos vivos
-    for (int i = 0; i < (int)_enemigos.size(); i++) {
-        _enemigos[i]->dibujar(GameManager._ventana);
-    }
-    GameManager._personaje.dibujar(GameManager._ventana);
-    GameManager._mascota.dibujar(GameManager._ventana);
-
-    if (GameManager._golem != nullptr) {
-        GameManager._golem->dibujar(GameManager._ventana);
-    }
-    GameManager._niebla.dibujar(GameManager._ventana, GameManager._camara.getVista());
-
-    // --- CAPA 2: MODO DEBUG POLIMÓRFICO ---
-    if (GameManager._debug.estaActivo()) {
-        GameManager._mapa.dibujarDebug(GameManager._ventana);
-        GameManager._debug.dibujarCajaColision(GameManager._ventana, GameManager._personaje, sf::Color::Green);
-        if (GameManager._golem != nullptr) {
-            GameManager._golem->dibujarPathFinder(GameManager._ventana);
-            GameManager._debug.dibujarCajaColision(GameManager._ventana, *GameManager._golem, sf::Color::Magenta);
-        }
-    }
-
-    // --- CAPA 3: INTERFAZ Y HUD ---
-    GameManager._ventana.setView(GameManager._ventana.getDefaultView());
-    GameManager._hudInventario.dibujar(GameManager._ventana, GameManager._personaje.getInventario());
-
-    // --- CAPA 4: EXTRACTOR DEBUG ---
-    if (GameManager._debug.estaActivo() && GameManager._debug.getObjetivoActual() == ObjetivoDebug::EXTRACTOR) {
-        GameManager._debug.dibujarExtractor(GameManager._ventana, GameManager._itemManager.getTexturaMaestra());
-    }
-}
-
-// --- DESTRUCTOR ---
 EstadoJugando::~EstadoJugando() {
     for (int i = 0; i < (int)_enemigos.size(); i++) {
         delete _enemigos[i];
     }
     _enemigos.clear();
-} 
+}
+
+void EstadoJugando::procesarEventos(sf::Event& evento, GameManager& gm) {
+    gm._input.procesarEvento(evento);
+    gm._camara.procesarZoom(evento);
+
+    // Toggle Debug
+    if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::F3) {
+        gm._debug.toggleDebug();
+    }
+    // El DebugManager procesa sus eventos internos (teclado, extractor, etc)
+    gm._debug.procesarEventos(evento, gm._ventana, gm._hudInventario, gm._personaje, gm._golem);
+    // Le pasamos el clic izquierdo al DebugManager para la grilla
+    if (evento.type == sf::Event::MouseButtonPressed && evento.mouseButton.button == sf::Mouse::Left) {
+        gm._debug.procesarClicMapa(sf::Mouse::getPosition(gm._ventana), gm._camara.getVista(), gm._ventana);
+    }
+}
+
+void EstadoJugando::actualizar(float dt, GameManager& gm) {
+    // 1. SISTEMAS CORE
+    gm._input.actualizarEstadoTiempoReal(gm._ventana);
+    gm._camara.seguir(gm._personaje.getPosicion(), dt);
+    gm._ventana.setView(gm._camara.getVista());
+
+    // 2. SISTEMAS DE INTERFAZ E INVENTARIO
+    if (gm._input.quiereAbrirInventario()) gm._hudInventario.toggle();
+
+    if (gm._input.quiereAtacar()) {
+        gm._hudInventario.detectarClicCasillero(gm._input.getPosicionMouse(), gm._personaje.getInventario(), gm._ventana);
+    }
+
+    if (gm._input.quiereTirarItem()) {
+        Item* itemATirar = gm._personaje.getInventario().extraerItemPorIndice();
+        if (itemATirar != nullptr) {
+            itemATirar->setPosicion(gm._personaje.getPosicion());
+            gm._objectsManager.recibirItemSoltado(itemATirar);
+        }
+    }
+
+    // 3. ACTUALIZACIÓN DE ENTIDADES (Personaje y Boss)
+    gm._personaje.manejarInput(gm._input, gm._mapa, gm._ventana, gm._hudInventario.isOpen(), dt);
+    gm._personaje.actualizar(dt, gm._VisualFX);
+
+    if (gm._golem != nullptr) {
+        gm._golem->setPosicionObjetivo(gm._personaje.getCentroFisico());
+        gm._golem->actualizar(dt);
+        gm.colisionEntreEntidades(gm._personaje, *gm._golem);
+    }
+
+    // 4. LOGICA MODULAR DE ENEMIGOS EN COMBATE
+    actualizarHordaYSpawns(dt, gm);
+    resolverCombateMagia(gm);
+
+    // 5. INTERACCIONES FÍSICAS MUNDO-PERSONAJE
+    gm._VisualFX.actualizar(dt);
+    gm._mascota.setPosicionObjetivo(gm._personaje.getCentroFisico());
+    gm._mascota.actualizar(dt);
+    gm._niebla.actualizar(dt);
+    gm._objectsManager.chequearInteracciones(gm._personaje, gm._input);
+    gm._debug.actualizar(gm._hudInventario, gm._personaje, gm._golem);
+}
+
+void EstadoJugando::renderizar(GameManager& gm) {
+    // --- CAPA 1: MUNDO Y ENTIDADES ---
+    gm._ventana.setView(gm._camara.getVista());
+    gm._mapa.dibujarMapa(gm._ventana);
+    gm._VisualFX.dibujar(gm._ventana);
+    gm._objectsManager.dibujarItems(gm._ventana);
+
+    // 🌟 LA MAGIA VISUAL: Dibujar a todos los marcianitos vivos
+    for (int i = 0; i < (int)_enemigos.size(); i++) {
+        _enemigos[i]->dibujar(gm._ventana);
+    }
+    gm._personaje.dibujar(gm._ventana);
+    gm._mascota.dibujar(gm._ventana);
+
+    if (gm._golem != nullptr) {
+        gm._golem->dibujar(gm._ventana);
+    }
+    gm._niebla.dibujar(gm._ventana, gm._camara.getVista());
+
+    // --- CAPA 2: MODO DEBUG POLIMÓRFICO ---
+    if (gm._debug.estaActivo()) {
+        gm._mapa.dibujarDebug(gm._ventana);
+        gm._debug.dibujarCajaColision(gm._ventana, gm._personaje, sf::Color::Green);
+        gm._debug.dibujarGrillaMapa(gm._ventana);
+
+        for (int i = 0; i < (int)_enemigos.size(); i++) {
+            gm._debug.dibujarCajaColision(gm._ventana, *_enemigos[i], sf::Color::Red);
+        }
+
+        if (gm._golem != nullptr) {
+            gm._golem->dibujarPathFinder(gm._ventana);
+            gm._debug.dibujarCajaColision(gm._ventana, *gm._golem, sf::Color::Magenta);
+        }
+    }
+
+    // --- CAPA 3: INTERFAZ Y HUD ---
+    gm._ventana.setView(gm._ventana.getDefaultView());
+    gm._hudInventario.dibujar(gm._ventana, gm._personaje.getInventario());
+
+    // --- CAPA 4: EXTRACTOR DEBUG ---
+    if (gm._debug.estaActivo() && gm._debug.getObjetivoActual() == ObjetivoDebug::EXTRACTOR) {
+        gm._debug.dibujarExtractor(gm._ventana, gm._itemManager.getTexturaMaestra());
+    }
+}
+
+// ----------------------------------------------------------------------------
+// SUB-FUNCIONES DE LÓGICA (SRP)
+// ----------------------------------------------------------------------------
+void EstadoJugando::actualizarHordaYSpawns(float dt, GameManager& gm) {
+    sf::Vector2f centroJugador = gm._personaje.getCentroFisico();
+
+    // Spawn
+    if (gm._golem != nullptr && gm._golem->estaVivo()) {
+        _relojSpawn += dt;
+        if (_relojSpawn >= _intervaloSpawn) {
+            sf::Vector2f posVFX(1344.f, 1408.f);
+            gm._VisualFX.agregarPortal(posVFX);
+            EntidadViva* marcianitos = new Enemy(posVFX, &gm._mapa, "assets/marciano.png");
+            _enemigos.push_back(marcianitos);
+            _relojSpawn = 0.f;
+        }
+    }
+
+    // Movimiento y Daño
+    for (int i = 0; i < (int)_enemigos.size(); i++) {
+        _enemigos[i]->setPosicionObjetivo(centroJugador);
+        _enemigos[i]->actualizar(dt);
+
+        if (_enemigos[i]->getBounds().intersects(gm._personaje.getBounds())) {
+            if (_enemigos[i]->puedeAtacar()) {
+                gm._personaje.recibirDanio(_enemigos[i]->getDanio());
+
+                sf::Vector2f dirEmpuje = gm._personaje.getPosicion() - _enemigos[i]->getPosicion();
+                float len = std::hypot(dirEmpuje.x, dirEmpuje.y);
+                if (len != 0) dirEmpuje /= len;
+
+                sf::Vector2f fuerzaEmpuje = dirEmpuje * 25.f;
+                // 🌟 FIX: Usamos el puente público correcto
+                gm._personaje.aplicarMovimientoConColisiones(fuerzaEmpuje, gm._mapa);
+
+                std::cout << "💥 ¡GOLPE Y EMPUJE!" << std::endl;
+            }
+        }
+    }
+}
+
+void EstadoJugando::resolverCombateMagia(GameManager& gm) {
+    BolaDeFuego& magia = gm._personaje.getBolaDeFuego();
+    if (!magia.estaActiva()) return;
+
+    bool impacto = false;
+    // A. Horda
+    for (int i = 0; i < (int)_enemigos.size(); i++) {
+        if (magia.getBounds().intersects(_enemigos[i]->getBounds())) {
+            _enemigos[i]->recibirDanio(gm._personaje.getDanio());
+            impacto = true;
+            std::cout << "🔥 ¡IMPACTO! Marciano herido." << std::endl;
+
+            if (_enemigos[i]->estaMuerto()) {
+                std::cout << "💀 ¡Marciano fulminado!" << std::endl;
+                delete _enemigos[i];
+                _enemigos.erase(_enemigos.begin() + i);
+                i--;
+            }
+            break;
+        }
+    }
+    // B. Boss
+    if (!impacto && gm._golem != nullptr) {
+        if (magia.getBounds().intersects(gm._golem->getBounds())) {
+            gm._golem->recibirDanio(gm._personaje.getDanio());
+            impacto = true;
+            std::cout << "🔥 ¡IMPACTO! El Gólem recibió daño." << std::endl;
+
+            if (gm._golem->estaMuerto()) {
+                std::cout << "💀 ¡EL GÓLEM HA SIDO DERROTADO!" << std::endl;
+                delete gm._golem;
+                gm._golem = nullptr;
+            }
+        }
+    }
+
+    if (impacto) magia.desactivar();
+}
 
 // ============================================================================
 // ESTADO: CREADOR DE ÍTEMS
@@ -269,29 +270,29 @@ void EstadoCreadorItems::procesarEventos(sf::Event& evento, GameManager& gm) {
     }
 }
 
-void EstadoCreadorItems::actualizar(float dt, GameManager& GameManager) {
+void EstadoCreadorItems::actualizar(float dt, GameManager& gm) {
     // La UI se actualiza por eventos principalmente
 }
 
-void EstadoCreadorItems::renderizar(GameManager& GameManager) {
-    GameManager._ventana.setView(GameManager._ventana.getDefaultView());
-    GameManager._uiCreadorItems.dibujar(GameManager._ventana);
+void EstadoCreadorItems::renderizar(GameManager& gm) {
+    gm._ventana.setView(gm._ventana.getDefaultView());
+    gm._uiCreadorItems.dibujar(gm._ventana);
 }
 
 // ============================================================================
 // ESTADO: CRÉDITOS
 // ============================================================================
-void EstadoCreditos::procesarEventos(sf::Event& evento, GameManager& GameManager) {
+void EstadoCreditos::procesarEventos(sf::Event& evento, GameManager& gm) {
     if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::Escape) {
-        GameManager.cambiarEstado(new EstadoMenu());
+        gm.cambiarEstado(new EstadoMenu());
     }
 }
 
-void EstadoCreditos::actualizar(float dt, GameManager& GameManager) {
+void EstadoCreditos::actualizar(float dt, GameManager& gm) {
     // Créditos estáticos
 }
 
-void EstadoCreditos::renderizar(GameManager& GameManager) {
-    GameManager._ventana.setView(GameManager._ventana.getDefaultView());
-    GameManager._ventana.draw(GameManager._textoCreditos);
+void EstadoCreditos::renderizar(GameManager& gm) {
+    gm._ventana.setView(gm._ventana.getDefaultView());
+    gm._ventana.draw(gm._textoCreditos);
 }

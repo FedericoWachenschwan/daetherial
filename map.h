@@ -3,6 +3,7 @@
 #include <vector>            // Para crear la matriz del mapa
 #include <string>            // Para manejar rutas de archivos
 #include "Colisionable.h"    // Interfaz polimórfica
+#include "VisualFX.h"
 
 using namespace std;
 
@@ -57,4 +58,6 @@ public:
 
     // Función para que el Pathfinder pueda consultar si una baldosa es sólida o no sin tener que lidiar con coordenadas del mundo
     bool esSolido(int f, int c) const;
+
+	void generarClima(VisualFX& vfx);
 };
