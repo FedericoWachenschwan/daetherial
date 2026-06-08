@@ -2,6 +2,7 @@
 #include "EntidadViva.h" 
 #include "Inventario.h"
 #include "BolaDeFuego.h"
+#include "VisualFX.h"
 
 class InputManager;
 
@@ -9,15 +10,16 @@ class InputManager;
 // 🌟 ENUM ALINEADO CON LAS 21 FILAS QDE LA MATRIZ LPC
 // =========================================================================
 enum class EstadoPersonaje {
-    SPELLCAST = 0,
-    THRUST = 1,
-    WALK = 2,
-    SLASH = 3,
-    SHOOT = 4,
-    HURT = 5,
-    IDLE,
-    AIMING,
-    MUERTO
+	SPELLCAST = 0, // El estado de lanzar magia (con animación de carga)
+	THRUST = 1, // El estado de ataque cuerpo a cuerpo (con animación de estocada)
+	WALK = 2, // El estado de movimiento normal (con animación de caminata)
+	SLASH = 3, // El estado de ataque cuerpo a cuerpo alternativo (con animación de tajo horizontal)
+	SHOOT = 4, // El estado de ataque a distancia (con animación de disparo)
+	HURT = 5, // El estado de recibir daño (con animación de golpe)
+	IDLE, // El estado de estar quieto (con animación de respiración)
+	AIMING, // El estado de apuntar la magia (con animación de preparación)
+	MUERTO, // El estado de muerte (con animación de caída al suelo)
+	DASH // El estado de impulso rápido (FX de walk ghost trail)
 };
 
 enum class DireccionLPC {
@@ -27,7 +29,7 @@ enum class DireccionLPC {
     RIGHT = 3
 };
 
-class Personaje : public EntidadViva { // 🌟 AHORA SÍ: Hereda de la clase madre
+class Personaje : public EntidadViva { // Hereda de la clase madre
 private:
     // --- COMPONENTES EXCLUSIVOS DEL JUGADOR ---
     EstadoPersonaje _estadoActual = EstadoPersonaje::IDLE;
@@ -49,12 +51,17 @@ private:
     float _radioAlcance = 200.f;
     float _radioActual = 0.f;
 
+	// --- CONTROL DE DASH ---
+	float _tiempoDash = 0.f;
+	const float _DuracionDash = 0.15f; // Duración total del dash en segundos
+	float _relojSpawnRastro = 0.f; // Reloj para controlar el spawn de los rastros
+	float _cooldownDash = 0.f; // Tiempo de recarga del dash
+
     // --- MÉTODOS PRIVADOS DE LÓGICA ---
     void determinarEstadoYDireccion(sf::Vector2f direccion);
     void procesarHabilidades(const InputManager& input, sf::RenderWindow& ventana, bool uiCapturaMouse);
     void controlarLimitesYTransiciones();
     void actualizarSpriteRect();
-	
 
 public:
     Personaje();
@@ -67,12 +74,15 @@ public:
 
     Inventario& getInventario() { return _inventario; }
     const Inventario& getInventario() const { return _inventario; }
-	void manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse, float dt); // Método para procesar el input del jugador (movimiento, habilidades, etc.)	
     BolaDeFuego& getBolaDeFuego() { return _bolaDeFuego; } // Getter para acceder a la bola de fuego desde el GameManager o la UI
+
+	void manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse, float dt); // Método para procesar el input del jugador (movimiento, habilidades, etc.)	
     
     // 🌟 Funciones que el Personaje está obligado a implementar por heredar de EntidadViva
-    void actualizar(float dt) override;
+    void actualizar(float dt) override {}
+    void actualizar(float dt, VisualFX& vfx);
     void dibujar(sf::RenderWindow& ventana) override;
+
     sf::FloatRect getBounds() const override {
         // _sprite heredado de EntidadViva
         sf::Vector2f pos = _sprite.getPosition();
@@ -81,7 +91,4 @@ public:
 		return sf::FloatRect(hitboxX, hitboxY, 16.f, 16.f); // Caja de colisión de 16x16 centrada en la base del sprite
     }
 
-    // Métodos debug para visualizar la hitbox 
-    void dibujarDebug(sf::RenderWindow& ventana) const;
-    void ajustarOrigenSprite(float x, float y);
 };

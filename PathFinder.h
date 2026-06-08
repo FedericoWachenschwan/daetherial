@@ -35,22 +35,21 @@ private:
     static bool esCaminable(Map& mapa, sf::Vector2i posGrilla);
 };
 
-/*Implementar A* (A-Star): El algoritmo de búsqueda de caminos más famoso y eficiente.
-Para que este algoritmo funcione, tenemos que enseñarle a la computadora a pensar en "baldosas" (nodos) y a calcular costos. 
-El Pathfinder no ve texturas bonitas, ve una grilla de Excel.
-🧠 La Matemática del Algoritmo (El Secreto)Para decidir qué camino tomar, 
-A* analiza los cuadraditos que tiene alrededor y les asigna un "puntaje" usando esta 
-fórmula sagrada:$F = G + H$Costo $G$: Es el esfuerzo real que le tomó al Gólem llegar desde el inicio hasta esa baldosa (cuánta nafta gastó).
-Costo $H$ (Heurística): Es una "adivinanza" matemática de la distancia en línea recta desde esa baldosa hasta vos (cuánta nafta falta).
-Costo $F$: Es la suma de los dos. El algoritmo SIEMPRE va a elegir pisar la baldosa que tenga el $F$ más bajo.
-
-Para que el A* funcione en C++, necesitamos dos listas fundamentales:
-
-La Lista Abierta (Open List): Son las baldosas que el algoritmo "ve" pero todavía no pisó. 
-Es como mirar el mapa y decir "puedo ir por acá o por allá".
-
-La Lista Cerrada (Closed List): Son las baldosas que ya pisamos y evaluamos. 
-Las guardamos acá para no volver atrás y quedarnos en un bucle infinito.
-
-Además, tenemos que traducir los píxeles (coordenadas del mundo de SFML) a "baldosas" (coordenadas de la grilla del mapa). 
-*/
+/*Concepto general del Pathfinder : > Imaginemos que es un GPS.El algoritmo A* (A - Star)
+funciona de la misma manera: el objetivo es llevar a la IA del punto A (el enemigo) al punto B (el personaje) calculando la ruta más corta, pero esquivando obstáculos.
+Para lograrlo, a cada tile (baldosa) del mapa se le calcula un puntaje llamado COSTO F. El algoritmo siempre va a elegir caminar por donde le salga más barato. 
+Este puntaje se calcula sumando el COSTO G (cansancio), que son los pasos reales que tiene que dar hasta llegar ahí, y el COSTO H (intuición),
+que es una adivinanza de cuántos pasos faltan en línea recta hasta el destino usando la Distancia Manhattan (que es contar casilleros en forma de L, sin diagonales).
+Los personajes se mueven en el plano X/Y, pero para la IA sería lentísimo pensar en píxeles. Entonces, la primera parte del código traduce el mundo real a una cuadrícula. 
+Divide la posición por TAMANO_TILE (16) para saber en qué casillero exacto está parado. Acá hay una validación clave: si el algoritmo detecta que el casillero de DESTINO FINAL es una colisión (una pared), cancela todo de entrada para no calcular un viaje imposible a lo bobo. 
+Si el destino está libre, arranca a buscar y simplemente rodea los obstáculos que se cruza en el camino.
+También cuenta con una LISTA ABIERTA (Frontera), que son las baldosas que el algoritmo "ve" pero todavía no pisó (es como mirar a tu alrededor en la vida real),
+y una LISTA CERRADA, que son las baldosas que ya pisó, analizó y descartó para no dar vueltas en círculos.
+Lo que además implementamos fue un Costo de Incomodidad. De la forma tradicional, el NPC es tan vago que costea los bordes del mapa para acortar camino, 
+lo que hace que parezca que se desliza rozando las paredes. Lo que hicimos es que el NPC mire un área de 5x5 a su alrededor; 
+si detecta que hay paredes cerca, le suma puntos de castigo a esa baldosa. 
+Como el A* siempre busca el puntaje más bajo, el personaje va a preferir caminar por el medio de los pasillos anchos en lugar de ir pegado a la pared 
+(logrando un movimiento mucho más natural).
+Y después, una vez que llega a la meta, usamos el concepto de Hansel y Gretel: ir leyendo las "migas de pan" nodo por nodo hacia atrás
+(el padre del padre) para reconstruir el camino final. Finalmente, para hacerlo eficiente de verdad y que no nos mate la CPU ni la memoria RAM, 
+el código hace una limpieza masiva con delete de todos esos nodos temporales que ya no sirven, liberando la memoria.*/

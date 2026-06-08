@@ -6,23 +6,23 @@ Menu::Menu(float width, float height) { // Constructor del menú, recibe el anch
     // Carga la fuente desde el archivo especificado (necesaria para mostrar texto)
 
     // Cargando la imagen de fondo del menu
-    if ( !fondoTexture.loadFromFile("assets/fondo-menu3.jpeg"))
+    if (!fondoTexture.loadFromFile("assets/fondo_menu.png"))
     {
         //Mensaje que se muestra en caso de que no se pueda cargar la imagen de fondo
         std::cout << "Error cargando fondo del menu" << std::endl;
     }
 
-	fondoSprite.setTexture(fondoTexture);
+    fondoSprite.setTexture(fondoTexture);
 
     // Esto hace que la imagen ocupe toda la pantalla
-	fondoSprite.setScale(
-       width / fondoTexture.getSize().x,
-       height / fondoTexture.getSize().y
+    fondoSprite.setScale(
+        width / fondoTexture.getSize().x,
+        height / fondoTexture.getSize().y
     );
 
     std::string items[] = {
         "Inicio",
-        "Creador de Items",
+        "Crear items",
         "Logros",
         "Creditos",
         "Salir"
@@ -120,9 +120,9 @@ Menu::Menu(float width, float height) { // Constructor del menú, recibe el anch
 
 void Menu::draw(sf::RenderWindow& window) {
     // Primero pintamos la imagen en la ventana
-	window.draw(fondoSprite);
-    
-	// Funcion que dubuja los botones del menu
+    window.draw(fondoSprite);
+
+    // Funcion que dubuja los botones del menu
     for (auto& boton : botones)
         window.draw(boton);
 

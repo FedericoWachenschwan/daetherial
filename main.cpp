@@ -19,14 +19,23 @@
 // INTEGRACION DE MEMORIA DINAMICA PARA LOS ENEMIGOS (ENEMY) PARA PODER CREAR Y DESTRUIR ENEMIGOS EN TIEMPO DE EJECUCIÓN SIN CRASHEAR EL JUEGO CON SUS IF NULLPTR
 // INTEGRACION DE UN SISTEMA DE TELEMETRÍA VISUAL PARA DEBUGEAR LA IA DEL GOLEM, MOSTRANDO SU RUTA PLANIFICADA EN TIEMPO REAL Y SU RADIO DE DETECCIÓN
 // INTEGRACION DE CARACTERES DE EMOJI EN LOS MENSAJES DE CONSOLA PARA HACER EL DEBUG MÁS DIVERTIDO Y VISUAL (Y PARA DEMOSTRAR QUE LA CONSOLA ESTÁ CONFIGURADA CORRECTAMENTE EN UTF-8)
-//
+// REFACTORIZACION DEL GameManager AHORA ESTA EN LA CLASE ESTADO (ESTADO MENU, ESTADO JUGANDO, ESTADO CREDITOS, ESTADO CREADOR DE ITEMS)
+// EL MAGUITO RECIBIO SU DASH CON ANIMACION
+// LA BOLA DE FUEGO TAMBIEN PORQUE COMPARTEN LA MISMA LOGICA
+// SE IMPLEMENTA NUESTRO SPAWN DE MARCIANITOS QUE TERMINA CUANDO MUERE EL BOSS
+// SE REFACTORIZO ENEMY PASO A SER BOSS Y CREAMOS UNA CLASE NUEVA LLAMADA ENEMY (PARA DELEGAR A LOS NPC COMUNES)
+// 
 // COSITAS PARA IMPLEMENTAR:
-//
+// NUEVA CLASE "VisualFX" para liberar al Personaje con su dash y a la habilidad bolaDeFuego que comparten la misma logica para la animacion
 // Sistema de Guardado /serializacion para guardar el progreso del jugador (nivel, inventario, posición, etc) y cargarlo después
 // Sistema de lectura de IDs especiales en el CSV para el agua (sistema de pesca) y las escaleras con efecto 2.5D (subir/bajar pisos)
 // Sistema de partículas para efectos visuales (explosiones, magia, etc)
 // Sistema de Pesca para el jugador
 // Sistema por si el jugador muere (pantalla de muerte, reinicio de nivel, etc)
+// 
+// 
+// 
+// 
 //-------------------------------------------------------------------------------------------------------------------
 
 

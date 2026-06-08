@@ -1,13 +1,15 @@
 #include "BolaDeFuego.h"
+#include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
+#include "VisualFX.h"
 
 // ============================================================================
 // CONSTRUCTOR: Inicializa las estadísticas base de la Bola de Fuego
 // ============================================================================
 BolaDeFuego::BolaDeFuego() : Habilidades("Bola de fuego", 5, 10.0f, 0.5f) // Nombre, daño, rango, cooldown
 {
-	// Estado inicial del proyectil: inactivo y sin distancia recorrida
+
 	_activo = false;                // El proyectil inicia apagado
 	_velocidad = 400.0f;            // Velocidad en píxeles/segundo
 	_distanciaRecorrida = 0.0f;     // Contador de distancia acumulada
@@ -37,20 +39,20 @@ void BolaDeFuego::activar(sf::Vector2f inicio, sf::Vector2f objetivo, float rang
 {
 	if (_cdListo && !_activo)
 	{
-		// Posicionamos el origen del proyectil en la posición del personaje
+
 		_sprite.setPosition(inicio);
 		_distanciaRecorrida = 0.0f; // Reiniciamos el contador de distancia
-		_rango = rangoPixeles; // Actualizamos el rango dinámico según el personaje
+        _rango = rangoPixeles;     // Actualizamos el rango dinámico según el personaje
 
 
-		// Calculamos el vector hacia el objetivo y lo normalizamos
+
 		float diffX = objetivo.x - inicio.x;
 		float diffY = objetivo.y - inicio.y;
 		
-		// 🌟 FIX 1: std::hypot evita la pérdida de precisión al hacer zoom
+        // Calculamos el vector hacia el objetivo y lo normalizamos
 		float distanciaReal = std::hypot(diffX, diffY);
 
-		if (distanciaReal > 0.001f) // 🌟 FIX 2: Tolerancia mínima para evitar bugs si el mouse está pegado al mago
+        if (distanciaReal > 0.001f)
 		{
 			_direccion.x = diffX / distanciaReal;
 			_direccion.y = diffY / distanciaReal;
@@ -74,26 +76,36 @@ void BolaDeFuego::activar(sf::Vector2f inicio, sf::Vector2f objetivo, float rang
 // ============================================================================
 // ACTUALIZAR: Mueve el proyectil y gestiona sus ciclos de vida y cooldowns
 // ============================================================================
-void BolaDeFuego::actualizar(float deltaTime)
-{
-	// Reducimos el temporizador del cooldown frame a frame
-	cdActualizar(deltaTime);
+void BolaDeFuego::actualizar(float dt, VisualFX& vfx) {
 
-	if (_activo)
-	{
-		// Espacio que debe avanzar el proyectil en este frame
-		float avance = _velocidad * deltaTime;
+	// 0. GESTIÓN DEL COOLDOWN (Para poder volver a disparar)
+	if (!_cdListo) {
+		_cdActual -= dt;
+		if (_cdActual <= 0.f) {
+			_cdActual = 0.f;
+			_cdListo = true;
+		}
+	}
 
-		// Desplazamos el sprite en el espacio bidimensional
-		_sprite.move(_direccion.x * avance, _direccion.y * avance);
+	// 1. LÓGICA DE LA BOLA (Solo si está activa/volando)
+	if (_activo) {
 
-		// Acumulamos la distancia total que se alejó desde el origen
-		_distanciaRecorrida += avance;
-
-		// Si alcanza el rango límite de la habilidad, la apagamos
-		if (_distanciaRecorrida >= (_rango))
-		{
-			_activo = false;
+		// A) Emitir partículas de rastro
+		_relojSpawnRastro += dt;
+		if (_relojSpawnRastro >= 0.015f) {
+			vfx.agregarRastro(_sprite, sf::Color(255, 120, 0), 600.f, true);
+			float dispersionY = (rand() % 100 - 50) * 2.f; // entre 100 y -100
+			sf::Vector2f velChispa = -_direccion * (_velocidad * 0.4f) + sf::Vector2f(0.f, dispersionY);
+			vfx.agregarParticulaDinamica(*_sprite.getTexture(), _sprite.getPosition(), velChispa, sf::Color(255, 200, 0), 800.f, true);
+			_relojSpawnRastro = 0.f;
+		}
+		// B) Mover la bola físicamente
+		float pasoEfectivo = _velocidad * dt;
+		_sprite.move(_direccion * pasoEfectivo);
+		_distanciaRecorrida += pasoEfectivo;
+		// C) Destruir la bola si superó su rango máximo (no le pegó a nada)
+		if (_distanciaRecorrida >= _rango) {
+			desactivar(); // O simplemente _activo = false;
 		}
 	}
 }
@@ -101,13 +113,14 @@ void BolaDeFuego::actualizar(float deltaTime)
 // ============================================================================
 // DIBUJAR: Renderiza el sprite en la ventana de juego
 // ============================================================================
-void BolaDeFuego::dibujar(sf::RenderWindow& ventana)
-{
-	if (_activo)
-	{
-		ventana.draw(_sprite);
+void BolaDeFuego::dibujar(sf::RenderWindow& ventana) {
+	
+	// 2. Depsues dibujamos el sprite encima (si esta activa
+	if (_activo) {
+		ventana.draw(_sprite, sf::BlendAdd);
 	}
 }
+
 
 // ============================================================================
 // SUBIR NIVEL: Incrementa las estadísticas base de la magia

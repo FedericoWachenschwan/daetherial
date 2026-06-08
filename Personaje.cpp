@@ -17,7 +17,7 @@ Personaje::Personaje() {
     // 🌟 Estadisticas base del personaje heredades de EntidadViva
     _velocidad = 170.f;
     _aceleracion = 10.f; // Que tan rapido alcanza la velocidad máxima
-    _desaceleracion = 08.f; // Que tan rapido frena al soltar el movimiento (debe ser mayor que la aceleración para que no se sienta pegajoso)
+    _desaceleracion = 8.f; // Que tan rapido frena al soltar el movimiento (debe ser mayor que la aceleración para que no se sienta pegajoso)
     _vidaMaxima = 100;
     _vidaActual = _vidaMaxima;
     _danio = 50;
@@ -48,11 +48,42 @@ void Personaje::setOro(int nuevo_oro_del_jugador) {
 // MANEJAR INPUT: El filtro principal de acciones y movimiento
 // ============================================================================
 void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWindow& ventana, bool uiCapturaMouse, float dt) {
+    
+    // 🌟 1. EL ESCUDO DEL DASH: Si está dasheando, solo calculamos colisiones y SALIMOS.
+    if (_estadoActual == EstadoPersonaje::DASH) {
+        // Movemos al personaje con la velocidad bestial, chequeando la pared
+        resolverColisiones(_velocidadActual * dt, mapa);
+        return; // ¡CORTAMOS ACÁ! No dejamos que la física normal lo frene ni que cambie el estado a WALK
+    }
 
-    // 1. FILTRO ABSOLUTO: Si está casteando o muerto, se congela por completo SIEMPRE
-    if (_estadoActual == EstadoPersonaje::SPELLCAST || _estadoActual == EstadoPersonaje::HURT || _estadoActual == EstadoPersonaje::MUERTO) return;
+    // 2. FILTRO ABSOLUTO: Si está casteando, herido, muerto, o en medio de un DASH, ignoramos el input normal
+    if (_estadoActual == EstadoPersonaje::SPELLCAST ||
+        _estadoActual == EstadoPersonaje::HURT ||
+        _estadoActual == EstadoPersonaje::MUERTO ||
+        uiCapturaMouse) return;
+
+    // 3. CONTROL DE COOLDOWN DEL DASH (Lo restamos cada frame)
+    if (_cooldownDash > 0.f) _cooldownDash -= dt;
 
     sf::Vector2f direccion = input.getDireccionMovimiento();
+
+    // 4. EL DISPARADOR DEL DASH (Interceptamos el input antes de la física de inercia)
+    if (input.quiereCorrer() && _cooldownDash <= 0.f) {
+        // Solo puede dashear si se está intentando mover hacia algún lado
+        if (direccion.x != 0.f || direccion.y != 0.f) {
+            _estadoActual = EstadoPersonaje::DASH;
+            _tiempoDash = _DuracionDash;
+            _cooldownDash = 1.5f;
+            // Impulso inicial bestial (4 veces la velocidad base, ajustalo a gusto)
+            _velocidadActual = direccion * (_velocidad * 4.0f);
+            return;
+        }
+    }
+
+    // ========================================================================
+    // TUS FÍSICAS ORIGINALES (Intactas)
+    // ========================================================================
+
     // 🌟 _velocidad viene heredada de EntidadViva
     sf::Vector2f movimiento = direccion * _velocidad;
 
@@ -60,36 +91,33 @@ void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWin
     if (direccion.x != 0.f && direccion.y != 0.f) {
         movimiento *= 0.7071f;
     }
-    
-	// 1. FILTRO DE VELOCIDAD: Aplica aceleración y desaceleración para suavizar el movimiento
+
+    // 1. FILTRO DE VELOCIDAD: Aplica aceleración y desaceleración para suavizar el movimiento
     sf::Vector2f velocidadObjetivo = movimiento;
-    
-	// 2. FILTRO DE INERCIA: Aplica aceleración para alcanzar la velocidad objetivo y desaceleración para frenar al soltar el movimiento
-        if (direccion.x != 0.f || direccion.y != 0.f) {
-            // ACELERACIÓN: Nos acercamos fluidamente a la velocidad máxima
-            _velocidadActual.x += (velocidadObjetivo.x - _velocidadActual.x) * _aceleracion * dt;
-            _velocidadActual.y += (velocidadObjetivo.y - _velocidadActual.y) * _aceleracion * dt;
+
+    // 2. FILTRO DE INERCIA: Aplica aceleración para alcanzar la velocidad objetivo...
+    if (direccion.x != 0.f || direccion.y != 0.f) {
+        // ACELERACIÓN: Nos acercamos fluidamente a la velocidad máxima
+        _velocidadActual.x += (velocidadObjetivo.x - _velocidadActual.x) * _aceleracion * dt;
+        _velocidadActual.y += (velocidadObjetivo.y - _velocidadActual.y) * _aceleracion * dt;
+    }
+    else {
+        // DESACELERACIÓN: Frenado progresivo hacia el cero absoluto
+        _velocidadActual.x += (0.f - _velocidadActual.x) * _desaceleracion * dt;
+        _velocidadActual.y += (0.f - _velocidadActual.y) * _desaceleracion * dt;
+
+        // Umbral de corte: Si la velocidad es insignificante, la clavamos en cero para evitar micro-desplazamientos
+        if (std::hypot(_velocidadActual.x, _velocidadActual.y) < 10.f) {
+            _velocidadActual = { 0.f, 0.f };
         }
-        else {
-            // DESACELERACIÓN: Frenado progresivo hacia el cero absoluto
-            _velocidadActual.x += (0.f - _velocidadActual.x) * _desaceleracion * dt;
-            _velocidadActual.y += (0.f - _velocidadActual.y) * _desaceleracion * dt;
-
-            // Umbral de corte: Si la velocidad es insignificante, la clavamos en cero para evitar micro-desplazamientos
-            if (std::hypot(_velocidadActual.x, _velocidadActual.y) < 10.f) {
-                _velocidadActual = { 0.f, 0.f };
-            }
-        }
-
-
+    }
 
     // Actualizamos la mirada y la intención de movimiento de forma inteligente
     determinarEstadoYDireccion(_velocidadActual);
-
     // Procesamos el intento de apuntar, cancelar o disparar la magia
     procesarHabilidades(input, ventana, uiCapturaMouse);
 
-	sf::Vector2f movimientoEsteFrame = _velocidadActual * dt;
+    sf::Vector2f movimientoEsteFrame = _velocidadActual * dt;
     // 🌟 Ejecutamos las colisiones AABB contra el mapa (Llama a la función de la clase madre)
     resolverColisiones(movimientoEsteFrame, mapa);
 }
@@ -99,15 +127,13 @@ void Personaje::manejarInput(const InputManager& input, Map& mapa, sf::RenderWin
 // ============================================================================
 void Personaje::determinarEstadoYDireccion(sf::Vector2f direccion) {
     if (direccion.x == 0.f && direccion.y == 0.f) {
-        if (_estadoActual != EstadoPersonaje::AIMING) {
-            if (_estadoActual != EstadoPersonaje::IDLE) {
-                _estadoActual = EstadoPersonaje::IDLE;
-                _frameActual = 9;
-				_tiempoFrame = 0.f; // Congelamos el último frame de caminata para que no se vea tan raro el cambio a idle
-            }
-        }
-        else {
+        if (_estadoActual == EstadoPersonaje::AIMING) {
             _frameActual = 0;
+            _tiempoFrame = 0.f;
+        }
+        else if (_estadoActual != EstadoPersonaje::IDLE) {
+            _estadoActual = EstadoPersonaje::IDLE;
+            _frameActual = 9;
             _tiempoFrame = 0.f;
         }
         return;
@@ -152,9 +178,8 @@ void Personaje::procesarHabilidades(const InputManager& input, sf::RenderWindow&
 
         sf::Vector2i mousePantalla = input.getPosicionMouse();
         sf::Vector2f mouseMundo = ventana.mapPixelToCoords(mousePantalla);
-
-        // 🌟 Usamos getPosicion() de la clase madre
         sf::Vector2f posPersonaje = this->getPosicion();
+
         if (std::abs(mouseMundo.x - posPersonaje.x) > std::abs(mouseMundo.y - posPersonaje.y)) {
             _direccionActual = (mouseMundo.x > posPersonaje.x) ? DireccionLPC::RIGHT : DireccionLPC::LEFT;
         }
@@ -170,15 +195,33 @@ void Personaje::procesarHabilidades(const InputManager& input, sf::RenderWindow&
 // ============================================================================
 // ACTUALIZAR: El motor temporal de los relojes de animación y lógicas hijas
 // ============================================================================
-void Personaje::actualizar(float dt) {
-    // 1. 💀 CONTROL DE MUERTE
+void Personaje::actualizar(float dt, VisualFX& VisualFX) {
+    
+    // 1. LÓGICA DEL DASH
+    if (_estadoActual == EstadoPersonaje::DASH) {
+        _tiempoDash -= dt;
+        // Generar rastro (mientras dasheamos)
+        // Ajustes: spawn más espaciado, opacidad inicial mayor para que se vea a simple vista
+        _relojSpawnRastro += dt;
+        if (_relojSpawnRastro >= 0.02f) { // 🌟 Más rápido (cada 0.02s) para que la línea sea continua
+            VisualFX.agregarRastro(_sprite, sf::Color(0, 255, 255), 500.f, true);
+            _relojSpawnRastro = 0.f;
+        }
+        if (_tiempoDash <= 0.f) {
+            _estadoActual = EstadoPersonaje::IDLE;
+            _velocidadActual = { 0.f, 0.f };
+        }
+    }
+
+
+    // 2. 💀 CONTROL DE MUERTE
     if (this->estaMuerto()) {
         _estadoActual = EstadoPersonaje::MUERTO;
 
         if (_frameActual >= 5) {
             _frameActual = 5; // Congelamos en el cuadro del piso
             actualizarSpriteRect();
-            _bolaDeFuego.actualizar(dt);
+            _bolaDeFuego.actualizar(dt, VisualFX); // Sincronizamos
             return;
         }
     }
@@ -206,7 +249,21 @@ void Personaje::actualizar(float dt) {
     }
 
     actualizarSpriteRect();
-    _bolaDeFuego.actualizar(dt);
+    _bolaDeFuego.actualizar(dt, VisualFX);
+}
+
+// ============================================================================
+// DIBUJAR: Renderizado en capas ordenadas
+// ============================================================================
+void Personaje::dibujar(sf::RenderWindow& ventana) {
+    // 1. Dibujamos el proyectil de la bola de fuego
+    _bolaDeFuego.dibujar(ventana);
+
+    if (_estadoActual == EstadoPersonaje::AIMING) {
+        ventana.draw(_circuloRango);
+    }
+    // 2. Dibujamos al personaje encima de todo
+    EntidadViva::dibujar(ventana);
 }
 
 // ============================================================================
@@ -229,6 +286,12 @@ void Personaje::controlarLimitesYTransiciones() {
         break;
 
     case EstadoPersonaje::WALK:
+        _maxFrames = 9;
+        if (_frameActual >= _maxFrames) _frameActual = 0;
+        break;
+
+    case EstadoPersonaje::DASH:
+        // Reutilizamos la animación de WALK para el dash (frames idénticos)
         _maxFrames = 9;
         if (_frameActual >= _maxFrames) _frameActual = 0;
         break;
@@ -262,7 +325,9 @@ void Personaje::actualizarSpriteRect() {
     int filaMatriz = 0;
 
     EstadoPersonaje estadoAnim = _estadoActual;
-    if (_estadoActual == EstadoPersonaje::IDLE || _estadoActual == EstadoPersonaje::AIMING) {
+    // Durante IDLE y AIMING mostramos la animación de WALK (misma fila)
+    // También queremos que DASH reutilice la animación de WALK para que el personaje muestre movimiento durante el impulso
+    if (_estadoActual == EstadoPersonaje::IDLE || _estadoActual == EstadoPersonaje::AIMING || _estadoActual == EstadoPersonaje::DASH) {
         estadoAnim = EstadoPersonaje::WALK;
     }
 
@@ -273,42 +338,11 @@ void Personaje::actualizarSpriteRect() {
         filaMatriz = static_cast<int>(estadoAnim) * 4 + static_cast<int>(_direccionActual);
     }
 
+
 	int columna = _frameActual; // columna recibe directamente el frame dinamico (9 o 10) para hacer la animacion de respiracion
 
 
     // 🌟 Usamos _sprite
     _sprite.setTextureRect(sf::IntRect(columna * 64, filaMatriz * 64, 64, 64));
     _sprite.setOrigin(32.f, 32.f);
-}
-
-// ============================================================================
-// DIBUJAR: Renderizado en capas ordenadas
-// ============================================================================
-void Personaje::dibujar(sf::RenderWindow& ventana) {
-    if (_estadoActual == EstadoPersonaje::AIMING) {
-        ventana.draw(_circuloRango);
-    }
-
-    // 🌟 Usamos la función de dibujo de la clase madre para renderizar el sprite
-    EntidadViva::dibujar(ventana);
-
-    _bolaDeFuego.dibujar(ventana);
-}
-
-//============================================================================
-// FUNCIÓN DE DEBUG: Dibuja la caja de colisión (AABB) del personaje para pruebas y ajustes de Origen con sprite
-//============================================================================
-void Personaje::dibujarDebug(sf::RenderWindow& ventana) const {
-    sf::FloatRect limites = this->getBounds();
-    sf::RectangleShape rectDebug(sf::Vector2f(limites.width, limites.height));
-    rectDebug.setPosition(limites.left, limites.top);
-    rectDebug.setFillColor(sf::Color(0, 255, 0, 100));
-    rectDebug.setOutlineColor(sf::Color::Green);
-    rectDebug.setOutlineThickness(-1.f);
-    ventana.draw(rectDebug);
-}
-void Personaje::ajustarOrigenSprite(float x, float y) {
-    // 🌟 Usamos _sprite
-    sf::Vector2f origenActual = _sprite.getOrigin();
-    _sprite.setOrigin(origenActual.x + x, origenActual.y + y);
 }

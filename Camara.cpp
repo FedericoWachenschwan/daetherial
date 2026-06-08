@@ -1,5 +1,5 @@
 #include "Camara.h"
-#include <algorithm> // 🌟 Obligatorio para usar std::clamp
+#include <algorithm> // Obligatorio para usar std::clamp
 
 Camara::Camara(float ancho, float alto) {
     _vista.reset(sf::FloatRect(0.f, 0.f, ancho, alto));
@@ -14,9 +14,10 @@ void Camara::setLimitesMundo(const sf::FloatRect& limites) {
 }
 
 void Camara::seguir(sf::Vector2f posicionObjetivo, float dt) {
-    // =========================================================
+    // ========================================================= //
     // 1. EFECTO LERP (Suavizado elástico)
-    // =========================================================
+    // ========================================================= //
+
     sf::Vector2f posicionActual = _vista.getCenter();
 
     // Qué tan "elástica" es la cámara. 
@@ -27,17 +28,15 @@ void Camara::seguir(sf::Vector2f posicionObjetivo, float dt) {
     float nuevaX = posicionActual.x + (posicionObjetivo.x - posicionActual.x) * velocidadSuavizado * dt;
     float nuevaY = posicionActual.y + (posicionObjetivo.y - posicionActual.y) * velocidadSuavizado * dt;
 
-    // =========================================================
+    // ========================================================= //
     // 2. EFECTO CLAMP (Chocar contra los bordes del mapa)
-    // =========================================================
+    // ========================================================= //
+
     if (_tieneLimites) {
         // Calculamos cuánto mide la mitad de la pantalla actual (varía si hiciste zoom)
         float mitadAncho = _vista.getSize().x / 2.f;
         float mitadAlto = _vista.getSize().y / 2.f;
 
-        // Clamp frena el valor para que no baje del mínimo ni pase del máximo.
-        // Mínimo: Borde izquierdo/superior del mapa + mitad de la pantalla
-        // Máximo: Borde derecho/inferior del mapa - mitad de la pantalla
         nuevaX = std::clamp(nuevaX, _limitesMundo.left + mitadAncho, _limitesMundo.left + _limitesMundo.width - mitadAncho);
         nuevaY = std::clamp(nuevaY, _limitesMundo.top + mitadAlto, _limitesMundo.top + _limitesMundo.height - mitadAlto);
     }
@@ -47,20 +46,16 @@ void Camara::seguir(sf::Vector2f posicionObjetivo, float dt) {
 }
 
 void Camara::procesarZoom(const sf::Event& evento) {
-    if (evento.type == sf::Event::MouseWheelScrolled) {
-        if (evento.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
+    if (evento.type == sf::Event::MouseWheelScrolled && evento.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
             float delta = evento.mouseWheelScroll.delta;
 
             if (delta > 0 && _vista.getSize().x > _zoomMin) {
                 _vista.zoom(0.9f); // Zoom In
-            }
-            else if (delta < 0 && _vista.getSize().x < _zoomMax) {
+        } else if (delta < 0 && _vista.getSize().x < _zoomMax) {
                 _vista.zoom(1.1f); // Zoom Out
             }
         }
     }
-}
-
 const sf::View& Camara::getVista() const {
     return _vista;
 }

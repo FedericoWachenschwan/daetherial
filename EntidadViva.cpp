@@ -1,5 +1,6 @@
 #include "EntidadViva.h"
 #include <cmath> // Para std::round
+#include <algorithm> // para poder usar std::max (re estructuramos funciones)
 
 // Constructor: Inicializa las variables protegidas que van a usar sus hijos
 EntidadViva::EntidadViva() {
@@ -10,6 +11,9 @@ EntidadViva::EntidadViva() {
     _tiempoFrame = 0.f;
     _velocidadAnimacion = 0.09f;
     _maxFrames = 1;
+    _danio = 0;
+    _cooldownAtaque = 0.f;
+    _rangoAtaque = 0.f;
 
 	// Configuración de la barra de vida (puede ser personalizada por cada hijo si quieren)
     float anchoBarra = 50.f;
@@ -19,7 +23,6 @@ EntidadViva::EntidadViva() {
     _barraFondo.setFillColor(sf::Color(100, 0, 0)); // Rojo oscuro/bordó (vacío)
     _barraFondo.setOutlineThickness(1.f);
     _barraFondo.setOutlineColor(sf::Color::Black);
-
     _barraVida.setSize(sf::Vector2f(anchoBarra, altoBarra));
     _barraVida.setFillColor(sf::Color::Red); // Rojo brillante (lleno)
 }
@@ -31,13 +34,9 @@ sf::Vector2f EntidadViva::getPosicion() const {
 
 // Función para recibir daño: Resta la cantidad al HP actual y actualiza la barra de vida
 void EntidadViva::recibirDanio(int cantidad) {
-    _vidaActual -= cantidad;
-    if (_vidaActual < 0) {
-        _vidaActual = 0;
-    }
+    _vidaActual = std::max (0, _vidaActual -cantidad); // Calcula (_vidaActual - cantidad) y compara con 0 → guarda el mayor (0 o vida restante)
     // Calculamos qué porcentaje de vida le queda (de 0.0 a 1.0)
-    float porcentajeVida = static_cast<float>(_vidaActual) / _vidaMaxima;
-
+    float porcentajeVida = static_cast<float>(_vidaActual) / static_cast<float>(_vidaMaxima);
     // Achicamos solo el ancho de la barra roja
     _barraVida.setSize(sf::Vector2f(50.f * porcentajeVida, _barraVida.getSize().y));
 }
@@ -91,3 +90,4 @@ void EntidadViva::resolverColisiones(sf::Vector2f movimiento, Map& mapa) {
         }
     }
 }
+

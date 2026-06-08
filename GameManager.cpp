@@ -11,9 +11,9 @@ using namespace std;
 GameManager::GameManager()
     : _ventana(sf::VideoMode(1280, 720), "Daetherial - UTN"),
     _camara(1280.f, 720.f),
-    _estado(MENU),
     _menu(1280.f, 720.f),
-    _mapa(16, 1.0f)
+    _mapa(16, 1.0f),
+	_estadoActual(new EstadoMenu()) // Inicializamos el estado actual apuntando al menú para que arranque ahí
 {
     _camara.setLimitesMundo(sf::FloatRect(0, 0, 2000, 2000));
     _ventana.setFramerateLimit(60);
@@ -23,15 +23,26 @@ GameManager::GameManager()
     ///=================
     _ventana.setMouseCursorVisible(false); // Ocultamos el cursor de Windows
 
+<<<<<<< HEAD
     _golem = new Enemy(sf::Vector2f(968.f, 380.f), &_mapa); // Creamos el golem en su posición inicial
     _golem->setObjetivoJugador(&_personaje); // Le pasamos al golem la referencia del jugador
+=======
+	// --- Configuración de Entidades ---
+	_golem = new Boss(sf::Vector2f(1696.f, 640.f), &_mapa); // Spawn del golem con su posición inicial y referencia al mapa
+	_golem->setObjetivoJugador(&_personaje); // Pasamos la referencia del jugador para que el Gólem pueda perseguirlo y atacarlo
+>>>>>>> 6b008c33266a47a48380b3268857eab4035f942a
 
     if (!_mapa.cargarMapa("assets/collisions_mapa_v1_background.csv", "assets/mapa_v1_background.png")) {
         cout << "❌ Error crítico: No se pudo cargar el mapa." << endl;
         _ventana.close();
     }
 
+<<<<<<< HEAD
     cambiarMusica(_estado); // Arrancamos con la música del menú
+=======
+    // --- Audio Inicial ---
+    cambiarMusica(0);
+>>>>>>> 6b008c33266a47a48380b3268857eab4035f942a
 
     // ========================================================================
     // SEED DE LA BASE DE DATOS Y SPAWN DE PRUEBA
@@ -110,14 +121,20 @@ void GameManager::run() {
 // ============================================================================
 // 3. CONTROLADOR DE EVENTOS
 // ============================================================================
+void GameManager::cambiarEstado(Estado* nuevoEstado) {
+    if (_estadoActual != nullptr) {
+        delete _estadoActual; // Liberamos la pantalla anterior
+    }
+    _estadoActual = nuevoEstado;
+}
+
 void GameManager::procesarEventos() {
     sf::Event evento;
-
     while (_ventana.pollEvent(evento)) {
-
         if (evento.type == sf::Event::Closed) {
             _ventana.close();
         }
+<<<<<<< HEAD
 
         switch (_estado) {
 
@@ -192,15 +209,25 @@ void GameManager::procesarEventos() {
                 _estado = MENU;
             }
             break;
+=======
+        // Delegación polimórfica:
+        if (_estadoActual != nullptr) {
+            _estadoActual->procesarEventos(evento, *this);
+>>>>>>> 6b008c33266a47a48380b3268857eab4035f942a
         }
     }
 }
 
+<<<<<<< HEAD
 // ============================================================================
 // 4. ACTUALIZACIÓN LÓGICA
 // ============================================================================
+=======
+>>>>>>> 6b008c33266a47a48380b3268857eab4035f942a
 void GameManager::actualizar() {
+    _cursor.actualizar(_ventana);
 
+<<<<<<< HEAD
     ///=================
     /// CURSOR VISUAL
     ///=================
@@ -284,13 +311,24 @@ void GameManager::actualizar() {
 // ============================================================================
 // 5. RENDERIZADO
 // ============================================================================
+=======
+    // Solo medimos el dt si no estamos en un menú pausado (opcional),
+    // pero por ahora lo dejamos global como lo tenías:
+    float dt = _reloj.restart().asSeconds();
+
+    if (_estadoActual != nullptr) {
+        _estadoActual->actualizar(dt, *this);
+    }
+}
+
+>>>>>>> 6b008c33266a47a48380b3268857eab4035f942a
 void GameManager::renderizar() {
     _ventana.clear(sf::Color(30, 30, 30));
 
-    if (_estado == MENU) {
-        _ventana.setView(_ventana.getDefaultView());
-        _menu.draw(_ventana);
+    if (_estadoActual != nullptr) {
+        _estadoActual->renderizar(*this);
     }
+<<<<<<< HEAD
     else if (_estado == CREDITOS) {
         _ventana.setView(_ventana.getDefaultView());
         _ventana.draw(_textoCreditos);
@@ -341,11 +379,15 @@ void GameManager::renderizar() {
     /// CURSOR VISUAL
     ///=================
     _cursor.dibujar(_ventana); // Dibujamos el cursor encima de todo
+=======
+>>>>>>> 6b008c33266a47a48380b3268857eab4035f942a
 
+    _cursor.dibujar(_ventana);
     _ventana.display();
 }
 
 // ============================================================================
+<<<<<<< HEAD
 // 6. FUNCIONES AUXILIARES
 // ============================================================================
 void GameManager::spawnearDropSeguro(Item* item, float startX, float startY) {
@@ -371,6 +413,10 @@ void GameManager::spawnearDropSeguro(Item* item, float startX, float startY) {
     _objectsManager.agregarItemAlMundo(item, startX, startY);
 }
 
+=======
+// RESOLUCIÓN DE COLISIONES ENTRE ENTIDADES (Jugador vs NPCS)
+// ============================================================================
+>>>>>>> 6b008c33266a47a48380b3268857eab4035f942a
 void GameManager::colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enemigo) {
     sf::FloatRect boundsJugador = jugador.getBounds();
     sf::FloatRect boundsEnemigo = enemigo.getBounds();
@@ -401,13 +447,46 @@ void GameManager::colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enem
     }
 }
 
+<<<<<<< HEAD
 void GameManager::cambiarMusica(GameState nuevoEstado) {
+=======
+// ============================================================================
+// FUNCIONES AUXILIARES (Utilidades del mundo)
+// ============================================================================
+void GameManager::spawnearDropSeguro(Item* item, float startX, float startY) {
+    sf::FloatRect hitbox = item->getBounds();
+    hitbox.left = startX;
+    hitbox.top = startY;
+
+    int intentos = 0;
+    const int MAX_INTENTOS = 100;
+
+    while (_mapa.hayColision(hitbox) && intentos < MAX_INTENTOS) {
+        startX += (rand() % 21 - 10);
+        startY += (rand() % 21 - 10);
+        hitbox.left = startX;
+        hitbox.top = startY;
+        intentos++;
+    }
+
+    if (intentos >= MAX_INTENTOS) {
+        std::cout << "⚠️ Advertencia: Drop bloqueado en pared: " << item->getNombre() << std::endl;
+    }
+
+    _objectsManager.agregarItemAlMundo(item, startX, startY);
+}
+
+// ============================================================================
+// CAMBIO DE MÚSICA DE FONDO SEGÚN EL ESTADO DEL JUEGO
+// ============================================================================
+void GameManager::cambiarMusica(int musicaID) {
+>>>>>>> 6b008c33266a47a48380b3268857eab4035f942a
     _musicaAmbiente.stop();
 
-    if (nuevoEstado == MENU) {
+	if (musicaID == 0) { // 0=Menú
         _musicaAmbiente.openFromFile("assets/menu_song.ogg");
     }
-    else if (nuevoEstado == JUGANDO) {
+	else if (musicaID == 1) { // 1=Jugando
         _musicaAmbiente.openFromFile("assets/ambient.wav");
     }
 

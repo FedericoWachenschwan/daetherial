@@ -29,7 +29,7 @@ protected:
     float _velocidadAnimacion;
     int _maxFrames;
 
-    // Ahora vive acá para que lo usen todos
+    // Logica interna de fisicas
     void resolverColisiones(sf::Vector2f movimiento, Map& mapa);
 
     ///============================================================================///
@@ -40,30 +40,50 @@ protected:
 
 public:
     EntidadViva();
-    virtual ~EntidadViva() {} // Destructor virtual obligatorio en herencia
+    virtual ~EntidadViva() {}
 
-    // Funciones comunes que hacen lo mismo para todos
+    // ==========================================
+    // METODOS COMUNES (Heredados tal cual)
+    // ==========================================
     virtual void dibujar(sf::RenderWindow& ventana);
-    sf::Vector2f getPosicion() const;
-	void setPosicion(sf::Vector2f nuevaPos) { _sprite.setPosition(nuevaPos); } // Función para que los hijos (personaje y enemigos) puedan mover la entidad
+    virtual void setPosicionObjetivo(sf::Vector2f pos) {}
 
-    // Sistema de vida base
+    sf::Vector2f getPosicion() const;
+    void setPosicion(sf::Vector2f nuevaPos) { _sprite.setPosition(nuevaPos); }
+
+    virtual void ajustarOrigenSprite(float dx, float dy) {
+        sf::Vector2f origenActual = _sprite.getOrigin();
+        _sprite.setOrigin(origenActual.x + dx, origenActual.y + dy);
+    }
+
+    bool puedeAtacar() {
+        if (_relojAtaque.getElapsedTime().asSeconds() >= _cooldownAtaque) {
+            _relojAtaque.restart();
+            return true;
+        }
+        return false;
+    }
+
+    // Puente público para aplicar knockback y físicas desde afuera
+    void aplicarMovimientoConColisiones(sf::Vector2f movimiento, Map& mapa) {
+        resolverColisiones(movimiento, mapa);
+    }
+
+    // ==========================================
+    // SISTEMA DE ESTADÍSTICAS Y VIDA
+    // ==========================================
     void recibirDanio(int cantidad);
     bool estaMuerto() const { return _vidaActual <= 0; }
+    bool estaVivo() const { return _vidaActual > 0; }
     int getDanio() const { return _danio; }
-   
     sf::Vector2f getCentroFisico() const {
         sf::FloatRect bounds = getBounds();
         return sf::Vector2f(bounds.left + bounds.width / 2.f, bounds.top + bounds.height / 2.f);
     }
 
     // ==========================================
-    // ⚠️ CONTRATOS VIRTUALES (Cada hijo lo hace a su manera)
+    // CONTRATOS VIRTUALES (Obligatorios para los hijos)
     // ==========================================
-
-    // Cada hijo se actualiza distinto (el mago lee el teclado, el Golem usa IA)
     virtual void actualizar(float dt) = 0;
-
-    // Mantenemos el contrato de Colisionable abierto para que cada hijo 
     virtual sf::FloatRect getBounds() const override = 0;
 };

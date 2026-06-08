@@ -9,6 +9,7 @@ private:
     bool _antesSaltar = false;
     bool _antesTirarItem = false;
     bool _antesInteractuar = false;
+    bool _antesCorrer = false;
 
     // --- MOVIMIENTO ---
     sf::Vector2f _direccionMovimiento;
