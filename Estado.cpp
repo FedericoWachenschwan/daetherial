@@ -15,10 +15,9 @@ void EstadoMenu::procesarEventos(sf::Event& evento, GameManager& gm) {
             int selected = gm._menu.getSelectedIndex();
 
             if (selected == 0) {
-                // ---- PASAMOS AL JUEGO ----
                 gm.cambiarEstado(new EstadoJugando());
-                gm.cambiarMusica(1); // 1 = JUGANDO
-                gm._reloj.restart(); // Reiniciamos el reloj para evitar un delta time gigante
+                gm.cambiarMusica(1);
+                gm._reloj.restart();
                 gm._mapa.generarClima(gm._VisualFX);
             }
             else if (selected == 1) {
@@ -61,13 +60,10 @@ void EstadoJugando::procesarEventos(sf::Event& evento, GameManager& gm) {
     gm._input.procesarEvento(evento);
     gm._camara.procesarZoom(evento);
 
-    // Toggle Debug
     if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::F3) {
         gm._debug.toggleDebug();
     }
-    // El DebugManager procesa sus eventos internos (teclado, extractor, etc)
     gm._debug.procesarEventos(evento, gm._ventana, gm._hudInventario, gm._personaje, gm._golem);
-    // Le pasamos el clic izquierdo al DebugManager para la grilla
     if (evento.type == sf::Event::MouseButtonPressed && evento.mouseButton.button == sf::Mouse::Left) {
         gm._debug.procesarClicMapa(sf::Mouse::getPosition(gm._ventana), gm._camara.getVista(), gm._ventana);
     }
@@ -115,6 +111,18 @@ void EstadoJugando::actualizar(float dt, GameManager& gm) {
     gm._niebla.actualizar(dt);
     gm._objectsManager.chequearInteracciones(gm._personaje, gm._input);
     gm._debug.actualizar(gm._hudInventario, gm._personaje, gm._golem);
+
+    ///============================================================///
+    ///     TIENDA - Actualizamos y chequeamos si el jugador compra
+    ///============================================================///
+    if (gm._tienda != nullptr) {
+        gm._tienda->actualizar_tienda(gm._personaje.getPosicion()); // Chequeamos si el jugador está cerca
+        bool jugador_quiere_comprar = sf::Keyboard::isKeyPressed(sf::Keyboard::E); // Chequeamos si presiona E
+        bool jugador_esta_cerca = gm._tienda->getJugadorEstaCercaDeLaTienda(); // Chequeamos si está cerca
+        if (jugador_esta_cerca == true && jugador_quiere_comprar == true) {
+            gm._tienda->intentar_comprar_item(gm._personaje); // Intentamos comprar
+        }
+    }
 }
 
 void EstadoJugando::renderizar(GameManager& gm) {
@@ -124,7 +132,13 @@ void EstadoJugando::renderizar(GameManager& gm) {
     gm._VisualFX.dibujar(gm._ventana);
     gm._objectsManager.dibujarItems(gm._ventana);
 
-    // 🌟 LA MAGIA VISUAL: Dibujar a todos los marcianitos vivos
+    ///============================================================///
+    ///     TIENDA - Dibujamos la tienda en el mundo con la cámara activa
+    ///============================================================///
+    if (gm._tienda != nullptr) {
+        gm._tienda->dibujar_tienda(gm._ventana, gm._debug.estaActivo()); // Dibujamos con la vista del mundo
+    }
+
     for (int i = 0; i < (int)_enemigos.size(); i++) {
         _enemigos[i]->dibujar(gm._ventana);
     }
@@ -136,7 +150,7 @@ void EstadoJugando::renderizar(GameManager& gm) {
     }
     gm._niebla.dibujar(gm._ventana, gm._camara.getVista());
 
-    // --- CAPA 2: MODO DEBUG POLIMÓRFICO ---
+    // --- CAPA 2: MODO DEBUG ---
     if (gm._debug.estaActivo()) {
         gm._mapa.dibujarDebug(gm._ventana);
         gm._debug.dibujarCajaColision(gm._ventana, gm._personaje, sf::Color::Green);
@@ -163,12 +177,11 @@ void EstadoJugando::renderizar(GameManager& gm) {
 }
 
 // ----------------------------------------------------------------------------
-// SUB-FUNCIONES DE LÓGICA (SRP)
+// SUB-FUNCIONES DE LÓGICA
 // ----------------------------------------------------------------------------
 void EstadoJugando::actualizarHordaYSpawns(float dt, GameManager& gm) {
     sf::Vector2f centroJugador = gm._personaje.getCentroFisico();
 
-    // Spawn
     if (gm._golem != nullptr && gm._golem->estaVivo()) {
         _relojSpawn += dt;
         if (_relojSpawn >= _intervaloSpawn) {
@@ -180,7 +193,6 @@ void EstadoJugando::actualizarHordaYSpawns(float dt, GameManager& gm) {
         }
     }
 
-    // Movimiento y Daño
     for (int i = 0; i < (int)_enemigos.size(); i++) {
         _enemigos[i]->setPosicionObjetivo(centroJugador);
         _enemigos[i]->actualizar(dt);
@@ -194,7 +206,6 @@ void EstadoJugando::actualizarHordaYSpawns(float dt, GameManager& gm) {
                 if (len != 0) dirEmpuje /= len;
 
                 sf::Vector2f fuerzaEmpuje = dirEmpuje * 25.f;
-                // 🌟 FIX: Usamos el puente público correcto
                 gm._personaje.aplicarMovimientoConColisiones(fuerzaEmpuje, gm._mapa);
 
                 std::cout << "💥 ¡GOLPE Y EMPUJE!" << std::endl;
@@ -208,7 +219,7 @@ void EstadoJugando::resolverCombateMagia(GameManager& gm) {
     if (!magia.estaActiva()) return;
 
     bool impacto = false;
-    // A. Horda
+
     for (int i = 0; i < (int)_enemigos.size(); i++) {
         if (magia.getBounds().intersects(_enemigos[i]->getBounds())) {
             _enemigos[i]->recibirDanio(gm._personaje.getDanio());
@@ -224,7 +235,7 @@ void EstadoJugando::resolverCombateMagia(GameManager& gm) {
             break;
         }
     }
-    // B. Boss
+
     if (!impacto && gm._golem != nullptr) {
         if (magia.getBounds().intersects(gm._golem->getBounds())) {
             gm._golem->recibirDanio(gm._personaje.getDanio());
