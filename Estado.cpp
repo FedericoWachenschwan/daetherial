@@ -185,7 +185,7 @@ void EstadoJugando::actualizarHordaYSpawns(float dt, GameManager& gm) {
     if (gm._golem != nullptr && gm._golem->estaVivo()) {
         _relojSpawn += dt;
         if (_relojSpawn >= _intervaloSpawn) {
-            sf::Vector2f posVFX(1344.f, 1408.f);
+            sf::Vector2f posVFX(1376.f, 1408.f);
             gm._VisualFX.agregarPortal(posVFX);
             EntidadViva* marcianitos = new Enemy(posVFX, &gm._mapa, "assets/marciano.png");
             _enemigos.push_back(marcianitos);
