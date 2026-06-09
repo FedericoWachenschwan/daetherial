@@ -70,27 +70,39 @@ void VisualFX::actualizarAmbiente(Particula& particula, float dt, float tiempoTo
 }
 
 void VisualFX::actualizarPortal(float dt) {
+    // Calculamos las medidas una sola vez
+    int columnas = 3;
+    int frameW = _portalTexture.getSize().x / columnas;
+    int frameH = _portalTexture.getSize().y / 2;
+
     for (int i = 0; i < (int)_portales.size(); i++) {
-        _portales[i].tiempoVidaActual -= dt;
+        auto& portal = _portales[i];
 
-        if (_portales[i].tiempoVidaActual <= 0.f) {
-            _portales.erase(_portales.begin() + i);
-            i--;
-            continue;
+        // --- CAMINO 1: EL PORTAL ESTÁ APAGADO ---
+        if (portal.estaActivado == false) {
+            portal.currentFrame = 0; // Lo mantenemos en el primer dibujo
+            portal.sprite.setTextureRect(sf::IntRect(0, 0, frameW, frameH));
         }
+        // --- CAMINO 2: EL PORTAL ESTÁ PRENDIDO ---
+        else {
+            portal.timer += dt; // El cronómetro avanza
 
-        float progreso = 1.0f - (_portales[i].tiempoVidaActual / _portales[i].tiempoVidaMaximo);
-        int frame = static_cast<int>(progreso * _portales[i].frames);
-        if (frame >= _portales[i].frames) frame = _portales[i].frames - 1;
+            // Si pasó el tiempo, cambiamos de frame
+            if (portal.timer >= portal.frameTime) {
+                portal.timer -= portal.frameTime;
+                portal.currentFrame++;
 
-        int columnas = 3;
-        int frameW = _portalTexture.getSize().x / columnas;
-        int frameH = _portalTexture.getSize().y / 2;
+                // Bucle infinito de la animación
+                if (portal.currentFrame >= portal.frames) {
+                    portal.currentFrame = 0;
+                }
+            }
 
-        int col = frame % columnas;
-        int row = frame / columnas;
-
-        _portales[i].sprite.setTextureRect(sf::IntRect(col * frameW, row * frameH, frameW, frameH));
+            // Calculamos fila, columna y recortamos la imagen
+            int col = portal.currentFrame % columnas;
+            int row = portal.currentFrame / columnas;
+            portal.sprite.setTextureRect(sf::IntRect(col * frameW, row * frameH, frameW, frameH));
+        }
     }
 }
 
@@ -105,10 +117,21 @@ void VisualFX::dibujar(sf::RenderWindow& ventana) {
     }
 
     for (auto& portal : _portales) {
-        if (portal.usarGlow)
+        if (portal.usarGlow) {
+            sf::Sprite aura;
+            aura.setTexture(*portal.sprite.getTexture());
+            aura.setTextureRect(portal.sprite.getTextureRect());
+            aura.setOrigin(portal.sprite.getOrigin());
+            aura.setPosition(portal.sprite.getPosition());
+            sf::Vector2f portalScale = portal.sprite.getScale();
+            aura.setScale(portalScale.x + 2.f, portalScale.y * 2.f);
+            aura.setColor(sf::Color(60, 209, 23, 200));
+            ventana.draw(aura, sf::BlendAdd);
             ventana.draw(portal.sprite, sf::RenderStates(sf::BlendAdd));
-        else
+        }
+        else {
             ventana.draw(portal.sprite);
+        }
     }
 }
 
@@ -149,16 +172,21 @@ void VisualFX::agregarParticulasAmbiente(sf::Vector2f areaSpawn, int cantidad, s
     }
 }
 
-void VisualFX::agregarPortal(const sf::Vector2f& posicion, float duracion, int frames, bool glow) {
-    if (_portalTexture.getSize().x == 0) return;
+void VisualFX::agregarPortal(const sf::Vector2f& posicion, int frames, bool glow, bool arrancaPrendido) {
+    if (_portalTexture.getSize().x == 0) return; // Protección anti-crashes
 
     PortalSpawn nuevoPortal;
-    nuevoPortal.tiempoVidaActual = duracion;
-    nuevoPortal.tiempoVidaMaximo = duracion;
     nuevoPortal.frames = std::max(1, frames);
-    nuevoPortal.frameTime = duracion / static_cast<float>(nuevoPortal.frames);
+
+    // CORRECCIÓN: Le clavamos una velocidad fija a la animación (ej: 0.1 segundos por frame)
+    nuevoPortal.frameTime = 0.1f;
+
     nuevoPortal.currentFrame = 0;
+    nuevoPortal.timer = 0.f; // Cronómetro en cero
     nuevoPortal.usarGlow = glow;
+
+    // Acá usamos el nuevo parámetro para decidir cómo nace el portal
+    nuevoPortal.estaActivado = arrancaPrendido;
 
     nuevoPortal.sprite.setTexture(_portalTexture);
 
@@ -176,5 +204,16 @@ void VisualFX::agregarPortal(const sf::Vector2f& posicion, float duracion, int f
     color.a = 255; // Le ponemos opacidad completa
     nuevoPortal.sprite.setColor(color); // Aplicamos el color al sprite
 
-    _portales.push_back(std::move(nuevoPortal));
+    _portales.push_back(std::move(nuevoPortal)); // lo manda a lo ultimo asegurando rendimiento
+}
+
+void VisualFX::activarPortales() {
+    // Usamos size_t para arreglar la advertencia de signed/unsigned
+    for (size_t i = 0; i < _portales.size(); i++) {
+        _portales[i].estaActivado = !_portales[i].estaActivado;
+
+        // El ! invierte el valor. 
+        // Si era true (Horda), pasa a false (se apaga).
+        // Si era false (Salida), pasa a true (se prende).
+    }
 }

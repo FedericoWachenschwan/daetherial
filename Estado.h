@@ -36,6 +36,9 @@ private:
     float _intervaloSpawn = 5.0f; // Spawn cada 5 segundos
     void actualizarHordaYSpawns(float dt, GameManager& gm);
     void resolverCombateMagia(GameManager& gm);
+    bool _bossMuerto = false;
+
+ 
   
 public:
     ~EstadoJugando() override; // Declaracion del destructor para limpiar la memoria

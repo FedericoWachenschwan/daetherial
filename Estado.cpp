@@ -19,6 +19,8 @@ void EstadoMenu::procesarEventos(sf::Event& evento, GameManager& gm) {
                 gm.cambiarMusica(1);
                 gm._reloj.restart();
                 gm._mapa.generarClima(gm._VisualFX);
+                gm._VisualFX.agregarPortal(sf::Vector2f(1632.f, 960.f), 6, true, false);    // Dibujamos dentro del menu el portal que te lleva al nivel 2
+                gm._VisualFX.agregarPortal(sf::Vector2f(1376.f, 1408.f), 6, true, true);    // Dibujamos dentro del menu el portal del spawn de la horda
             }
             else if (selected == 1) {
                 gm.cambiarEstado(new EstadoCreadorItems());
@@ -113,6 +115,35 @@ void EstadoJugando::actualizar(float dt, GameManager& gm) {
     gm._debug.actualizar(gm._hudInventario, gm._personaje, gm._golem);
 
     ///============================================================///
+    ///    LÓGICA DEL PORTAL DE SALIDA (NIVEL COMPLETADO)
+    ///============================================================///
+    sf::Vector2f coordenadaSalida(1632.f, 960.f);
+
+    // 1. Creamos la Hitbox del portal (ejemplo: un rectángulo de 64x64 píxeles)
+    sf::FloatRect hitboxPortal(coordenadaSalida.x, coordenadaSalida.y, 64.f, 64.f);
+
+    // 2. ¿El Golem acaba de morir? ¡ENCENDEMOS LA ANIMACIÓN!
+    if (gm._golem == nullptr && _bossMuerto == false) {
+        gm._VisualFX.activarPortales();
+        _bossMuerto = true; //Candado para que no vuelva a entrar al bucle
+    }
+
+    // 3. LLAMAMOS A COLISIONABLE: ¿El personaje pisa la hitbox del portal?
+    if (gm._personaje.getBounds().intersects(hitboxPortal)) {
+        if (gm._golem == nullptr) { // ¡Ganamos!
+            std::cout << "¡Nivel completado! Cruzando el portal..." << std::endl;
+            // gm.cambiarEstado(new EstadoMenu()); 
+        }
+        else {
+            // ¡El patovica te rebota!
+            // Como pisó el portal desde algún lado, lo tiramos para atrás en el eje Y o X
+            // Un rebote rápido y simple sin tanta matemática:
+            gm._personaje.setPosicion(gm._personaje.getPosicion() + sf::Vector2f(0.f, 30.f));
+        }
+    }
+
+
+    ///============================================================///
     ///     TIENDA - Actualizamos y chequeamos si el jugador compra
     ///============================================================///
     if (gm._tienda != nullptr) {
@@ -182,13 +213,12 @@ void EstadoJugando::renderizar(GameManager& gm) {
 void EstadoJugando::actualizarHordaYSpawns(float dt, GameManager& gm) {
     sf::Vector2f centroJugador = gm._personaje.getCentroFisico();
 
-    if (gm._golem != nullptr && gm._golem->estaVivo()) {
+    if (gm._personaje.estaVivo() && gm._golem != nullptr && gm._golem->estaVivo()) {
         _relojSpawn += dt;
         if (_relojSpawn >= _intervaloSpawn) {
             sf::Vector2f posVFX(1376.f, 1408.f);
-            gm._VisualFX.agregarPortal(posVFX);
-            EntidadViva* marcianitos = new Enemy(posVFX, &gm._mapa, "assets/marciano.png");
-            _enemigos.push_back(marcianitos);
+            EntidadViva* duendeHielo = new Enemy(posVFX, &gm._mapa, "assets/duendeHielo.png");
+            _enemigos.push_back(duendeHielo);
             _relojSpawn = 0.f;
         }
     }
