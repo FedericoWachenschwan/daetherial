@@ -181,57 +181,24 @@ void Boss::activarPathfinder(float dt, sf::Vector2f posActual) {
     // ------------------------------------------------------------------------
     if (!_caminoActual.empty()) {
         sf::Vector2f siguienteMiga = _caminoActual.front();
-
-        // Vector de dirección y distancia hacia el siguiente nodo de la grilla
         sf::Vector2f direccion = siguienteMiga - centroFisico;
         float distANodo = std::hypot(direccion.x, direccion.y);
 
         if (distANodo > 5.f) {
-            direccion /= distANodo; // Normalización del vector dirección
+            direccion /= distANodo; // Normalizamos dirección
 
-            // Separación ortogonal del movimiento (Base del Wall-Sliding)
-            sf::Vector2f movX(direccion.x * _velocidad * dt, 0.f);
-            sf::Vector2f movY(0.f, direccion.y * _velocidad * dt);
+            // 1. Calculamos cuánto nos queremos mover en este frame
+            sf::Vector2f movimiento = direccion * _velocidad * dt;
 
-            bool seMovio = false;
-            bool raspandoPared = false;
+            // 2. Delegamos la física al Padre (EntidadViva)
+            // Esto reemplaza todo tu bloque de lógica de colisión manual (movX/movY)
+            this->resolverColisiones(movimiento, *_mapaRef);
 
-            // --- PASO 1: Simulación y ejecución en el Eje X ---
-            sf::FloatRect hitboxX = getBounds();
-            hitboxX.left += movX.x;
-            if (std::abs(movX.x) > 0.01f) {
-                if (!_mapaRef->hayColision(hitboxX)) {
-                    _sprite.move(movX);
-                    seMovio = true;
-                }
-                else {
-                    raspandoPared = true; // Colisión detectada lateralmente
-                }
-            }
-
-            // --- PASO 2: Simulación y ejecución en el Eje Y ---
-            sf::FloatRect hitboxY = getBounds();
-            hitboxY.top += movY.y;
-            if (std::abs(movY.y) > 0.01f) {
-                if (!_mapaRef->hayColision(hitboxY)) {
-                    _sprite.move(movY);
-                    seMovio = true;
-                }
-                else {
-                    raspandoPared = true; // Colisión detectada verticalmente
-                }
-            }
-
-            // --- PASO 3: Válvula de Escape Inteligente (Rutinas de re-evaluación) ---
-            if (raspandoPared) {
-                // Si el agente detecta ineficiencia en la trayectoria por fricción con el entorno:
-                //_caminoActual.clear();         // Se invalida la ruta ineficiente actual
-               // _relojPathfinding.restart();  // Se penaliza temporalmente con un delay de reacción (0.5s)
-            }
-
+            // 3. Opcional: Si el Boss se quedó atascado (detectado por la falta de movimiento),
+            // podrías invalidar el camino, pero para la presentación, esto ya debería funcionar.
         }
         else {
-            // El agente llegó con éxito al radio de aceptación del waypoint actual: se consume el nodo
+            // Llegamos al nodo, pasamos al siguiente
             _caminoActual.erase(_caminoActual.begin());
         }
     }

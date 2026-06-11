@@ -23,40 +23,21 @@ Enemy::Enemy(sf::Vector2f posInicial, Map* mapa, const std::string& rutaTextura)
 }
 
 void Enemy::actualizar(float dt) {
-    // 1. Guardamos dónde estaba antes de pensar
     sf::Vector2f posAnterior = _sprite.getPosition();
-
-    // 2. NUEVO CEREBRO (Movimiento directo y ultra ligero)
     sf::Vector2f vectorDireccion = _posicionObjetivo - posAnterior;
     float distancia = std::hypot(vectorDireccion.x, vectorDireccion.y);
 
-    // Si no está encima del jugador, que avance hacia él
     if (distancia > 5.f) {
-        vectorDireccion /= distancia; // Normalizamos
-
-        // Calculamos cuánto píxeles se quiere mover este frame
+        vectorDireccion /= distancia;
         sf::Vector2f movimiento = vectorDireccion * _velocidad * dt;
 
-        // --- MAGIA DE WALL-SLIDING ---
-        // Chequeamos Eje X
-        sf::FloatRect hitboxX = getBounds();
-        hitboxX.left += movimiento.x;
-        if (!_mapaRef->hayColision(hitboxX)) {
-            _sprite.move(movimiento.x, 0.f);
-        }
-
-        // Chequeamos Eje Y
-        sf::FloatRect hitboxY = getBounds();
-        hitboxY.top += movimiento.y;
-        if (!_mapaRef->hayColision(hitboxY)) {
-            _sprite.move(0.f, movimiento.y);
-        }
+        // 🚀 MAGIA: Le pedimos al PADRE que se encargue de chocar
+        this->aplicarMovimientoConColisiones(movimiento, *_mapaRef);
     }
 
-    // 3. Calculamos hacia dónde lo movió la IA para saber a dónde tiene que mirar
-    sf::Vector2f posNueva = _sprite.getPosition();
-    sf::Vector2f direccionMovimiento = posNueva - posAnterior;
-
+    // El resto de la lógica de animación queda igual, pero ahora
+    // el sprite YA SE MOVIÓ correctamente gracias al Padre.
+    sf::Vector2f direccionMovimiento = _sprite.getPosition() - posAnterior;
     // 4. EL CUERPO: Ejecutamos la lógica LPC de animación
     determinarEstadoYDireccion(direccionMovimiento);
 
@@ -108,7 +89,7 @@ void Enemy::actualizarSpriteRect() {
         estadoAnim = EstadoPersonaje::WALK;
     }
 
-    filaMatriz = static_cast<int>(estadoAnim) * 4 + static_cast<int>(_direccionActual);
+    filaMatriz = static_cast<int>(estadoAnim) + static_cast<int>(_direccionActual);
 
     int columna = _frameActual;
     if (_estadoActual == EstadoPersonaje::IDLE) {
@@ -123,5 +104,15 @@ void Enemy::dibujar(sf::RenderWindow& ventana) {
 }
 
 sf::FloatRect Enemy::getBounds() const {
-    return _sprite.getGlobalBounds();
+    sf::FloatRect cajaOriginal = _sprite.getGlobalBounds();
+    float margenIzquierda = 15.f;
+    float margenDerecha = 15.f;
+    float margenArriba = 15.f;
+    float margenAbajo = 15.f;
+
+    return sf::FloatRect(
+        cajaOriginal.left + margenIzquierda,
+        cajaOriginal.top + margenArriba,
+        cajaOriginal.width - margenIzquierda - margenDerecha,
+        cajaOriginal.height - margenArriba - margenAbajo);
 }

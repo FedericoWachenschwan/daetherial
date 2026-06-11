@@ -7,26 +7,31 @@
 class InputManager;
 
 // =========================================================================
-// 🌟 ENUM ALINEADO CON LAS 21 FILAS QDE LA MATRIZ LPC
+// 🌟 ENUM ALINEADO CON LAS 21 FILAS DE LA MATRIZ LPC
 // =========================================================================
-enum class EstadoPersonaje {
-	SPELLCAST = 0, // El estado de lanzar magia (con animación de carga)
-	THRUST = 1, // El estado de ataque cuerpo a cuerpo (con animación de estocada)
-	WALK = 2, // El estado de movimiento normal (con animación de caminata)
-	SLASH = 3, // El estado de ataque cuerpo a cuerpo alternativo (con animación de tajo horizontal)
-	SHOOT = 4, // El estado de ataque a distancia (con animación de disparo)
-	HURT = 5, // El estado de recibir daño (con animación de golpe)
-	IDLE, // El estado de estar quieto (con animación de respiración)
-	AIMING, // El estado de apuntar la magia (con animación de preparación)
-	MUERTO, // El estado de muerte (con animación de caída al suelo)
-	DASH // El estado de impulso rápido (FX de walk ghost trail)
-};
 
 enum class DireccionLPC {
     UP = 0,
     LEFT = 1,
     DOWN = 2,
     RIGHT = 3
+};
+
+enum class EstadoPersonaje {
+    // --- ESTADOS LIGADOS AL SPRITESHEET (Filas Base) ---
+    SPELLCAST = 0,  // Filas 0 a 3
+    THRUST = 4,     // Filas 4 a 7
+    WALK = 8,       // Filas 8 a 11
+    SLASH = 12,     // Filas 12 a 15
+    SHOOT = 16,     // Filas 16 a 19
+    HURT = 20,      // Fila 20 (LPC suele usar 1 sola fila para Hurt)
+
+    // --- ESTADOS LÓGICOS (No tienen fila propia en el sprite) ---
+    // Les ponemos números altos para que no se pisen con las filas reales
+    IDLE = 50,      // Usa el frame 0 de la fila WALK
+    AIMING = 51,    // Usa un frame estático de SPELLCAST
+    MUERTO = 52,    // Usa el último frame de HURT
+    DASH = 53       // Usa la fila WALK pero la lógica de C++ acelera la velocidad
 };
 
 class Personaje : public EntidadViva { // Hereda de la clase madre

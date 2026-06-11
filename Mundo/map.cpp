@@ -22,7 +22,7 @@ bool Map::cargarMapa(const string& csvPath, const string& texturaPath) {
 	_filas = 0;
 	_columnas = 0;
 	mapa.clear();
-	_bloquesSolidos.clear(); // 🌟 Limpiamos también el vector de colisiones nuevas
+	_bloqueSolido.clear(); // 🌟 Limpiamos también el vector de colisiones nuevas
 
 	// Cargar la imagen de SFML
 	if (!_texture.loadFromFile(texturaPath)) {
@@ -78,23 +78,52 @@ bool Map::cargarMapa(const string& csvPath, const string& texturaPath) {
 	}
 
 	// =================================================================================================================================
-	// 🌟 NUEVA SECCIÓN: LA ADUANA DE BALDOSAS SOLIDAS
+	// 🌟 NUEVA SECCIÓN: LA ADUANA DE BALDOSAS SÓLIDAS OPTIMIZADA (FUSIÓN HORIZONTAL)
 	// =================================================================================================================================
-	// Recorremos la matriz recién fabricada. Si encontramos una pared (0 o más), calculamos su posición real 
-	// en la pantalla usando _tamTile y _escala, y creamos un objeto físico 'BloqueMapa'.
+	// Recorremos la matriz recién fabricada fila por fila. Si encontramos bloques sólidos contiguos,
+	// calculamos su ancho total y creamos un único 'BloqueMapa' alargado para aliviar al Profiler.
 	float tamRealDelTile = _tamTile * _escala;
 
 	for (int f = 0; f < _filas; f++) {
+		int inicioC = -1;       // Guarda la columna donde empieza una pared larga
+		int longitudPared = 0;  // Cuenta cuántas baldosas sólidas van en racha
+
 		for (int c = 0; c < _columnas; c++) {
 			int tileID = mapa[f][c];
 
-			if (tileID != -1) { // Si NO es -1, significa que Tiled pintó un obstáculo sólido (0, 1, 2...)
-				float posX = c * tamRealDelTile;
-				float posY = f * tamRealDelTile;
-
-				// Guardamos el bloque sólido con su posición y tamaño reales en el mundo
-				_bloquesSolidos.push_back(BloqueMapa(posX, posY, tamRealDelTile));
+			if (tileID != -1) {
+				// 🧱 ¡Es sólido! 
+				if (inicioC == -1) {
+					inicioC = c; // Si no veníamos acumulando, acá empieza una pared nueva
+				}
+				longitudPared++; // Sumamos un casillero a la racha
 			}
+			else {
+				// 💨 Es aire (Hole / Espacio vacío)
+				// Si veníamos acumulando una pared y de repente hay aire, llegó el momento de fabricar el bloque físico
+				if (inicioC != -1) {
+					float posX = inicioC * tamRealDelTile;
+					float posY = f * tamRealDelTile;
+					float anchoPared = longitudPared * tamRealDelTile;
+
+					// Creamos un solo bloque estirado: pasamos posición X, Y, ANCHO y ALTO
+					_bloqueSolido.push_back(BloqueMapa(posX, posY, anchoPared, tamRealDelTile));
+
+					// Reseteamos las variables de control para buscar la próxima pared en la misma fila
+					inicioC = -1;
+					longitudPared = 0;
+				}
+			}
+		}
+
+		// 🚨 CONTROL DE BORDE: Si terminamos de recorrer la fila completa y la pared llegaba 
+		// justo hasta el último casillero de la derecha, la guardamos antes de pasar a la siguiente fila.
+		if (inicioC != -1) {
+			float posX = inicioC * tamRealDelTile;
+			float posY = f * tamRealDelTile;
+			float anchoPared = longitudPared * tamRealDelTile;
+
+			_bloqueSolido.push_back(BloqueMapa(posX, posY, anchoPared, tamRealDelTile));
 		}
 	}
 
@@ -117,31 +146,7 @@ void Map::generarClima(VisualFX& vfx) {
 	vfx.agregarParticulasAmbiente(tamanoMapa, 50, sf::Color(130, 200, 36));
 }
 
-// =================================================================================================================================
-// EL SEGURIDAD JUBILADO (Mantenemos la función por compatibilidad, pero con lógica de rectángulos)
-// =================================================================================================================================
-bool Map::hayColision(float x, float y) {
-	// Nota: Esta función ya no es necesaria si el GameManager usa el nuevo vector polimórfico,
-	// pero la dejamos acá para que no te tire error de compilación si la llamabas desde otro lado.
-	sf::FloatRect puntoJugador(x, y, 1.f, 1.f);
 
-	for (const auto& bloque : _bloquesSolidos) {
-		if (bloque.getBounds().intersects(puntoJugador)) {
-			return true;
-		}
-	}
-	return false;
-}
-
-// Nueva implementación: comprobar colisión contra un rectángulo AABB completo
-bool Map::hayColision(const sf::FloatRect& rect) const {
-	for (const auto& bloque : _bloquesSolidos) {
-		if (bloque.getBounds().intersects(rect)) {
-			return true;
-		}
-	}
-	return false;
-}
 
 // =================================================================================================================================
 // FUNCION DEBUG REFACTORIZADA: Ahora dibuja rectángulos directamente desde nuestro vector de objetos físicos
@@ -152,7 +157,7 @@ void Map::dibujarDebug(sf::RenderWindow& ventana) const {
 	rectDebug.setFillColor(sf::Color(255, 0, 0, 100)); // Rojo semitransparente
 
 	// Recorremos el vector unificado de colisiones. Si está acá, es sólido.
-	for (const auto& bloque : _bloquesSolidos) {
+	for (const auto& bloque : _bloqueSolido) {
 		sf::FloatRect limites = bloque.getBounds();
 
 		// Seteamos el tamaño y la posición exacta que tiene el objeto físico en el mundo

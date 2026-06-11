@@ -1,8 +1,9 @@
 #include "GameManager.h"
 #include "Estado.h"
-#include <iostream>
 #include <cmath>
 #include <cstdlib>
+#include <vector>
+
 
 using namespace std;
 
@@ -191,23 +192,34 @@ void GameManager::colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enem
 // 8. FUNCIONES AUXILIARES
 // ============================================================================
 void GameManager::spawnearDropSeguro(Item* item, float startX, float startY) {
+    if (item == nullptr) return;
+
     sf::FloatRect hitbox = item->getBounds();
     hitbox.left = startX;
     hitbox.top = startY;
 
+    // 1. Cambiamos '->' por '.' porque _mapa es un objeto, no un puntero
+    // 2. Inicializamos la referencia inmediatamente (esto soluciona el C2530)
+    const std::vector<BloqueMapa>& paredes = _mapa.getBloqueSolido();
+
+    // 3. Definimos la lambda correctamente capturando 'paredes'
+    auto estaBloqueado = [&](const sf::FloatRect& rect) -> bool {
+        for (const auto& pared : paredes) {
+            if (rect.intersects(pared.getColision())) return true;
+        }
+        return false;
+        };
+
     int intentos = 0;
     const int MAX_INTENTOS = 100;
 
-    while (_mapa.hayColision(hitbox) && intentos < MAX_INTENTOS) {
+    // 4. Llamamos a la lambda pasando el hitbox
+    while (estaBloqueado(hitbox) && intentos < MAX_INTENTOS) {
         startX += (rand() % 21 - 10);
         startY += (rand() % 21 - 10);
         hitbox.left = startX;
         hitbox.top = startY;
         intentos++;
-    }
-
-    if (intentos >= MAX_INTENTOS) {
-        std::cout << "⚠️ Advertencia: Drop bloqueado en pared: " << item->getNombre() << std::endl;
     }
 
     _objectsManager.agregarItemAlMundo(item, startX, startY);
@@ -234,13 +246,18 @@ void GameManager::cambiarMusica(int musicaID) {
 // DESTRUCTOR
 // ============================================================================
 GameManager::~GameManager() {
+    if (_estadoActual != nullptr) {
+        delete _estadoActual;
+        _estadoActual = nullptr;
+    } // Destructor del estado
+
     if (_golem != nullptr) {
         delete _golem;
         _golem = nullptr;
-    }
+    } // Destructor Boss _golem (nivel 1)
 
     if (_tienda != nullptr) {
         delete _tienda;
         _tienda = nullptr;
-    }
+    } // Destructor Tienda
 }

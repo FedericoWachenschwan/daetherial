@@ -323,26 +323,21 @@ void Personaje::controlarLimitesYTransiciones() {
 // ============================================================================
 void Personaje::actualizarSpriteRect() {
     int filaMatriz = 0;
-
     EstadoPersonaje estadoAnim = _estadoActual;
     // Durante IDLE y AIMING mostramos la animación de WALK (misma fila)
-    // También queremos que DASH reutilice la animación de WALK para que el personaje muestre movimiento durante el impulso
+    // También queremos que DASH reutilice la animación de WALK
     if (_estadoActual == EstadoPersonaje::IDLE || _estadoActual == EstadoPersonaje::AIMING || _estadoActual == EstadoPersonaje::DASH) {
         estadoAnim = EstadoPersonaje::WALK;
     }
-
+    // HURT y MUERTO van directo a la fila 20 (fija)
     if (estadoAnim == EstadoPersonaje::HURT || estadoAnim == EstadoPersonaje::MUERTO) {
         filaMatriz = 20;
     }
     else {
-        filaMatriz = static_cast<int>(estadoAnim) * 4 + static_cast<int>(_direccionActual);
+        filaMatriz = static_cast<int>(estadoAnim) + static_cast<int>(_direccionActual);
     }
 
-
-	int columna = _frameActual; // columna recibe directamente el frame dinamico (9 o 10) para hacer la animacion de respiracion
-
-
-    // 🌟 Usamos _sprite
+    int columna = _frameActual; // columna recibe directamente el frame dinamico para hacer la animacion
     _sprite.setTextureRect(sf::IntRect(columna * 64, filaMatriz * 64, 64, 64));
     _sprite.setOrigin(32.f, 32.f);
 }

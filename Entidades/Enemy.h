@@ -1,6 +1,7 @@
 #pragma once
 #include "Boss.h"
 #include "Personaje.h" // Para heredar los estados del Personaje
+#include "EntidadViva.h" 
 
 class Enemy : public EntidadViva {
 private:

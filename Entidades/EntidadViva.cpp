@@ -61,33 +61,32 @@ void EntidadViva::dibujar(sf::RenderWindow& ventana) {
 }
 
 // 🌟 El sistema unificado de colisiones. ¡Sirve para el mago, el golem y la mascota!
-void EntidadViva::resolverColisiones(sf::Vector2f movimiento, Map& mapa) {
-    // 🧱 EJE X
-    if (movimiento.x != 0.f) {
-        _sprite.move(movimiento.x, 0.f);
+void EntidadViva::resolverColisiones(sf::Vector2f movimiento, const Map& mapa) {
+    // 1. Delivery: Pedimos la lista al mapa
+    const auto& paredes = mapa.getBloqueSolido();
 
-        for (const auto& bloque : mapa.getBloquesSolidos()) {
-            if (this->chequearColision(bloque)) {
-                _sprite.move(-movimiento.x, 0.f);
-                sf::Vector2f posActual = _sprite.getPosition();
-                _sprite.setPosition(std::round(posActual.x), posActual.y);
-                break;
-            }
+    // 2. Definimos la herramienta de choque (Lambda)
+    auto chocaConPared = [&](const sf::FloatRect& cajaFutura) {
+        for (const auto& pared : paredes) {
+            // Usamos getColision() tal como definimos en Colisionable
+            if (cajaFutura.intersects(pared.getColision())) return true;
         }
+        return false;
+        };
+
+    // 3. Wall-Sliding (Deslizamiento en X e Y)
+    // Eje X
+    sf::FloatRect hitboxX = getColision();
+    hitboxX.left += movimiento.x;
+    if (!chocaConPared(hitboxX)) {
+        _sprite.move(movimiento.x, 0.f);
     }
 
-    // 🧱 EJE Y
-    if (movimiento.y != 0.f) {
+    // Eje Y
+    sf::FloatRect hitboxY = getColision();
+    hitboxY.top += movimiento.y;
+    if (!chocaConPared(hitboxY)) {
         _sprite.move(0.f, movimiento.y);
-
-        for (const auto& bloque : mapa.getBloquesSolidos()) {
-            if (this->chequearColision(bloque)) {
-                _sprite.move(0.f, -movimiento.y);
-                sf::Vector2f posActual = _sprite.getPosition();
-                _sprite.setPosition(posActual.x, std::round(posActual.y));
-                break;
-            }
-        }
     }
 }
 

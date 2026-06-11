@@ -1,7 +1,8 @@
 #include "Estado.h"
 #include "GameManager.h"
-#include <iostream>
+#include "EntidadViva.h"
 #include "Enemy.h"
+#include <iostream>
 
 // ============================================================================
 // ESTADO: MENÚ
@@ -129,7 +130,7 @@ void EstadoJugando::actualizar(float dt, GameManager& gm) {
     }
 
     // 3. LLAMAMOS A COLISIONABLE: ¿El personaje pisa la hitbox del portal?
-    if (gm._personaje.getBounds().intersects(hitboxPortal)) {
+    if (gm._personaje.getColision().intersects(hitboxPortal)) {
         if (gm._golem == nullptr) { // ¡Ganamos!
             std::cout << "¡Nivel completado! Cruzando el portal..." << std::endl;
             // gm.cambiarEstado(new EstadoMenu()); 

@@ -6,31 +6,24 @@
 // La hacemos heredar de Colisionable para que pase el contrato a sus hijos
 class EntidadViva : public Colisionable {
 protected:
-    // 🌟 PROTECTED: Los hijos (Personaje, Golem) pueden ver y usar estas variables directamente
+    // 🌟 PROTECTED: Los hijos (Personaje, Mascota, Golem, NPC) pueden ver y usar estas variables directamente
 
-    // --- COMPONENTES VISUALES Y FÍSICA ---
+    // --- COMPONENTES VISUALES ---
     sf::Texture _textura;
     sf::Sprite _sprite;
-    float _velocidad;
-
-    // --- ESTADÍSTICAS BÁSICAS ---
-    int _vidaMaxima;
-    int _vidaActual;
-    int _danio;
-  
-	// --- SISTEMA DE COMBATE BASE ---
-    sf::Clock _relojAtaque;
-	float _cooldownAtaque;
-	float _rangoAtaque;
-
-    // --- ANIMACIÓN BASE ---
     int _frameActual;
     float _tiempoFrame;
     float _velocidadAnimacion;
     int _maxFrames;
-
-    // Logica interna de fisicas
-    void resolverColisiones(sf::Vector2f movimiento, Map& mapa);
+    // --- ESTADÍSTICAS ---
+    int _vidaMaxima;
+    int _vidaActual;
+    int _danio;
+    float _velocidad;
+	// --- SISTEMA DE COMBATE ---
+    sf::Clock _relojAtaque;
+	float _cooldownAtaque;
+	float _rangoAtaque;
 
     ///============================================================================///
     ///                    BARRA DE VIDA - Rectángulos para mostrar la salud       ///
@@ -42,20 +35,20 @@ public:
     EntidadViva();
     virtual ~EntidadViva() {}
 
+    // Logica interna de fisicas
+    void resolverColisiones(sf::Vector2f movimiento, const class Map& mapa);
+
     // ==========================================
     // METODOS COMUNES (Heredados tal cual)
     // ==========================================
     virtual void dibujar(sf::RenderWindow& ventana);
     virtual void setPosicionObjetivo(sf::Vector2f pos) {}
-
     sf::Vector2f getPosicion() const;
     void setPosicion(sf::Vector2f nuevaPos) { _sprite.setPosition(nuevaPos); }
-
     virtual void ajustarOrigenSprite(float dx, float dy) {
         sf::Vector2f origenActual = _sprite.getOrigin();
         _sprite.setOrigin(origenActual.x + dx, origenActual.y + dy);
     }
-
     bool puedeAtacar() {
         if (_relojAtaque.getElapsedTime().asSeconds() >= _cooldownAtaque) {
             _relojAtaque.restart();
