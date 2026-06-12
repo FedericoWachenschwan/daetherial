@@ -1,29 +1,19 @@
 #include "Inventario.h"
 #include "Personaje.h"
-#include <algorithm> // Para std::min
+#include <algorithm>
 #include <iostream>
 
-// ==========================================
-// CONSTRUCTOR
-// ==========================================
-Inventario::Inventario(int capacidad) : _capacidadMaxima(capacidad), _indiceSeleccionado (-1) {} // El indice seleccionado empieza en -1 porque no hay nada seleccionado al principio
+Inventario::Inventario(int capacidad) : _capacidadMaxima(capacidad), _indiceSeleccionado(-1) {}
 
-// ==========================================
-// DESTRUCTOR
-// ==========================================
 Inventario::~Inventario() {
-    // 🧹 Limpieza al cerrar el juego
     for (int i = 0; i < static_cast<int>(_itemsGuardados.size()); i++) {
         delete _itemsGuardados[i];
     }
     _itemsGuardados.clear();
 }
 
-// ==========================================
-// AGARRAR ÍTEM
-// ==========================================
 bool Inventario::agarrarItem(Item* nuevoItem) {
-    // 1. Intentar acumular
+    // 1. Intentar acumular en un slot existente del mismo item
     for (auto* itemActual : _itemsGuardados) {
         if (itemActual->getId() == nuevoItem->getId() && itemActual->getCantidad() < itemActual->getMaxStack()) {
             int espacioLibre = itemActual->getMaxStack() - itemActual->getCantidad();
@@ -33,138 +23,107 @@ bool Inventario::agarrarItem(Item* nuevoItem) {
             nuevoItem->setCantidad(nuevoItem->getCantidad() - cantidadAAgregar);
 
             if (nuevoItem->getCantidad() <= 0) {
-                delete nuevoItem; // 🧹 PREVENCIÓN DE LEAK: Borramos el "envase" vacío que sobró
+                delete nuevoItem;
                 return true;
             }
         }
     }
 
-    // 2. Buscar slot nuevo
+    // 2. Si no se pudo acumular, buscar un slot vacío
     if (static_cast<int>(_itemsGuardados.size()) < _capacidadMaxima) {
         _itemsGuardados.push_back(nuevoItem);
         return true;
     }
 
-    std::cout << "🎒 ¡Inventario lleno! No se pudo agarrar: " << nuevoItem->getNombre() << std::endl;
+    std::cout << "INVENTARIO LLENO. NO SE PUDO AGARRAR: " << nuevoItem->getNombre() << std::endl;
     return false;
 }
 
-// ==========================================
-// TIRAR ÍTEM
-// ==========================================
 bool Inventario::tirarItem(int idItem, int cantidad) {
     if (getCantidadTotal(idItem) < cantidad) {
-        std::cout << "⚠️ No tenés suficiente cantidad para tirar." << std::endl;
+        std::cout << "NO TENES SUFICIENTE CANTIDAD PARA TIRAR." << std::endl;
         return false;
     }
 
     for (int i = static_cast<int>(_itemsGuardados.size()) - 1; i >= 0; i--) {
         Item* item = _itemsGuardados[i];
         if (item->getId() == idItem) {
-
             if (item->getCantidad() > cantidad) {
                 item->setCantidad(item->getCantidad() - cantidad);
                 cantidad = 0;
             }
             else {
                 cantidad -= item->getCantidad();
-                delete item; // 🧹 PREVENCIÓN DE LEAK: Destruimos la memoria física primero
+                delete item;
                 _itemsGuardados.erase(_itemsGuardados.begin() + i);
             }
-
-            if (cantidad <= 0) {
-                return true;
-            }
+            if (cantidad <= 0) return true;
         }
     }
     return true;
 }
 
-// ==========================================
-// GET CANTIDAD TOTAL
-// ==========================================
 int Inventario::getCantidadTotal(int idItem) const {
     int total = 0;
     for (const auto& item : _itemsGuardados) {
-        if (item->getId() == idItem) {
-            total += item->getCantidad();
-        }
+        if (item->getId() == idItem) total += item->getCantidad();
     }
     return total;
 }
 
-// ==========================================
-// VACIAR MOCHILA
-// ==========================================
 void Inventario::vaciar() {
-    // 🧹 PREVENCIÓN DE LEAK: Primero borramos la memoria física
     for (int i = 0; i < static_cast<int>(_itemsGuardados.size()); i++) {
         delete _itemsGuardados[i];
     }
-    _itemsGuardados.clear(); // Después vaciamos la lista
+    _itemsGuardados.clear();
 }
 
-// ==========================================
-// USAR ÍTEM
-// ==========================================
+///=============================================================///
+///   USAR ITEM - Usa el item del slot indicado
+///=============================================================///
 void Inventario::usarItem(int indice, Personaje& jugador) {
-    // 1. Validación de seguridad usando el nombre correcto (_itemsGuardados)
+
     if (indice < 0 || indice >= static_cast<int>(_itemsGuardados.size())) {
-        std::cout << "❌ Slot vacío o inválido." << std::endl;
+        std::cout << "SLOT VACIO O INVALIDO." << std::endl;
         return;
     }
 
-    Item* itemElegido = _itemsGuardados[indice];
+    Item* itemElegido = _itemsGuardados[indice]; // El item que eligió el jugador
 
-    // 2. Ejecutamos el comportamiento
-    itemElegido->usar(jugador);
+    itemElegido->usar(jugador); // Ejecutamos el efecto del item sobre el jugador
 
-    // 3. Regla de desgaste para consumibles
-    if (itemElegido->getTipo() == TipoItem::Consumible) {
-        itemElegido->setCantidad(itemElegido->getCantidad() - 1);
+    ///=========================================================///
+    ///   DESGASTE - Los consumibles y pociones se gastan al usarse
+    ///=========================================================///
+    bool es_pocion_de_vida = itemElegido->getTipo() == TipoItem::Consumible;
+    bool es_pocion_de_mana = itemElegido->getTipo() == TipoItem::PocionMana;
 
-        // 4. Limpieza de memoria
+    if (es_pocion_de_vida == true || es_pocion_de_mana == true) {
+        itemElegido->setCantidad(itemElegido->getCantidad() - 1); // Gastamos una unidad
+
         if (itemElegido->getCantidad() <= 0) {
-            delete itemElegido;
-            _itemsGuardados.erase(_itemsGuardados.begin() + indice);
-            std::cout << "💧 Consumible agotado. Memoria liberada." << std::endl;
+            delete itemElegido;                                         // Liberamos la memoria
+            _itemsGuardados.erase(_itemsGuardados.begin() + indice);   // Lo sacamos del inventario
+            std::cout << "POCION AGOTADA." << std::endl;
         }
     }
 }
 
 TipoItem Inventario::getItemTipo(int indice) const {
-    // 1. 🛡️ Escudo de seguridad: validamos índice y que el slot no sea un puntero nulo
     if (indice < 0 || indice >= static_cast<int>(_itemsGuardados.size()) || _itemsGuardados[indice] == nullptr) {
-
-        // Si el slot está vacío o es inválido, C++ te obliga a retornar un TipoItem.
-        // Lo ideal es que en tu enum 'TipoItem' tengas un valor por defecto como Desconocido o Ninguno.
         return TipoItem::Desconocido;
     }
-
-    // 2. El único trabajo del getter: retornar el dato puro hacia afuera
     return _itemsGuardados[indice]->getTipo();
 }
 
-// ==========================================
-// EXTRAER ÍTEM SELECCIONADO (Para tirar con la Q)
-// ==========================================
 Item* Inventario::extraerItemPorIndice() {
-    // 1. Validamos que el índice esté dentro del rango actual del vector
     if (_indiceSeleccionado >= 0 && _indiceSeleccionado < static_cast<int>(_itemsGuardados.size())) {
-
         Item* itemATirar = _itemsGuardados[_indiceSeleccionado];
-
-        // 2. Si realmente hay un puntero válido ahí
         if (itemATirar != nullptr) {
-            // Lo removemos del vector dinámico (así el vector se achica correctamente)
             _itemsGuardados.erase(_itemsGuardados.begin() + _indiceSeleccionado);
-
-            // Reseteamos el índice de selección para que no quede apuntando a la nada
             _indiceSeleccionado = -1;
-
-            return itemATirar; // Devolvemos el puntero VIVO (sin hacer delete) para spawnearlo en el mapa
+            return itemATirar;
         }
     }
-
-    return nullptr; // No había una selección válida o el vector estaba vacío
+    return nullptr;
 }

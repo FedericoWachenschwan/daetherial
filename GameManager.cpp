@@ -33,9 +33,9 @@ GameManager::GameManager()
     if (_itemManager.contarRegistros() == 0) {
         cout << "BASE DE DATOS VACIA. GENERANDO ITEMS DE PRUEBA..." << endl;
 
-        ItemReg pocion = { 1, static_cast<int>(TipoItem::Consumible),   "Pocion de Vida",     20, 10, static_cast<int>(RarezaItem::Comun), 0, true };
-        ItemReg espada = { 2, static_cast<int>(TipoItem::Equipamiento), "Espada Corta",        15,  0, static_cast<int>(RarezaItem::Raro),  1, true };
-        ItemReg horno = { 3, static_cast<int>(TipoItem::Mueble),       "Horno de Fundicion",   2, 50, static_cast<int>(RarezaItem::Comun), 2, true };
+        ItemReg pocion = { 1, static_cast<int>(TipoItem::Consumible),   "Pocion de Vida",    20, 10, static_cast<int>(RarezaItem::Comun), 0, true };
+        ItemReg espada = { 2, static_cast<int>(TipoItem::Equipamiento), "Espada Corta",       15,  0, static_cast<int>(RarezaItem::Raro),  1, true };
+        ItemReg horno = { 3, static_cast<int>(TipoItem::Mueble),       "Horno de Fundicion",  2, 50, static_cast<int>(RarezaItem::Comun), 2, true };
 
         _itemManager.guardarRegistro(pocion);
         _itemManager.guardarRegistro(espada);
@@ -47,18 +47,17 @@ GameManager::GameManager()
     spawnearDropSeguro(_itemManager.crearItemPorId(3), 400.f, 300.f);
 
     ///=====================================================================================///
-    ///     TIENDA - Creamos los items directamente con sus datos, sin base de datos
-    ///     Formato: Item(id, nombre, tipo, precio, cantidad, maxStack, esAgarrable, curacion, ataque, defensa)
+    ///     TIENDA - Creamos los items directamente con sus datos
+    ///     Formato: Item(id, nombre, tipo, precio, cantidad, maxStack, esAgarrable,
+    ///                   curacion, ataque, defensa, mana)
     ///=====================================================================================///
-    Item* pocion_de_vida = new Item(1, "Pocion de Vida", TipoItem::Consumible, 10, 1, 64, true, 20, 0, 0);
-    Item* espada_corta = new Item(2, "Espada Corta", TipoItem::Equipamiento, 50, 1, 1, true, 0, 15, 0);
-    Item* escudo_de_hierro = new Item(3, "Escudo de Hierro", TipoItem::Equipamiento, 30, 1, 1, true, 0, 0, 10);
+    Item* pocion_de_vida = new Item(1, "Pocion de Vida", TipoItem::Consumible, 10, 1, 64, true, 20, 0, 0, 0);
+    Item* pocion_de_mana = new Item(2, "Pocion de Mana", TipoItem::PocionMana, 15, 1, 64, true, 0, 0, 0, 10);
 
-    _tienda = new Tienda(sf::Vector2f(100.f, 260.f)); // Creamos la tienda en su posición
-    _tienda->agregarItemEnVenta(pocion_de_vida);       // Agregamos la poción
-    _tienda->agregarItemEnVenta(espada_corta);         // Agregamos la espada
-    _tienda->agregarItemEnVenta(escudo_de_hierro);     // Agregamos el escudo
-    _tienda->cargar_fuente_y_cartel();                 // Cargamos el texto del cartel
+    _tienda = new Tienda(sf::Vector2f(100.f, 260.f));
+    _tienda->agregarItemEnVenta(pocion_de_vida);  // Poción de vida - 10 oro
+    _tienda->agregarItemEnVenta(pocion_de_mana);  // Poción de maná - 15 oro
+    _tienda->cargar_fuente_y_cartel();
 
     if (!_fontCreditos.loadFromFile("assets/NorthEternal.otf")) {
         cout << "ERROR CARGANDO FUENTE DE CREDITOS" << endl;
@@ -118,7 +117,6 @@ void GameManager::colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enem
 
     if (boundsJugador.intersects(boundsEnemigo, interseccion)) {
         sf::Vector2f correccion(0.f, 0.f);
-
         if (interseccion.width < interseccion.height) {
             if (boundsJugador.left < boundsEnemigo.left) correccion.x = -interseccion.width;
             else                                          correccion.x = interseccion.width;
@@ -127,7 +125,6 @@ void GameManager::colisionEntreEntidades(EntidadViva& jugador, EntidadViva& enem
             if (boundsJugador.top < boundsEnemigo.top) correccion.y = -interseccion.height;
             else                                        correccion.y = interseccion.height;
         }
-
         sf::Vector2f posActual = jugador.getPosicion();
         jugador.setPosicion(sf::Vector2f(posActual.x + correccion.x, posActual.y + correccion.y));
     }
@@ -137,10 +134,8 @@ void GameManager::spawnearDropSeguro(Item* item, float startX, float startY) {
     sf::FloatRect hitbox = item->getBounds();
     hitbox.left = startX;
     hitbox.top = startY;
-
     int intentos = 0;
     const int MAX_INTENTOS = 100;
-
     while (_mapa.hayColision(hitbox) && intentos < MAX_INTENTOS) {
         startX += (rand() % 21 - 10);
         startY += (rand() % 21 - 10);
@@ -148,11 +143,9 @@ void GameManager::spawnearDropSeguro(Item* item, float startX, float startY) {
         hitbox.top = startY;
         intentos++;
     }
-
     if (intentos >= MAX_INTENTOS) {
         std::cout << "DROP BLOQUEADO EN PARED: " << item->getNombre() << std::endl;
     }
-
     _objectsManager.agregarItemAlMundo(item, startX, startY);
 }
 

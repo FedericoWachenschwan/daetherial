@@ -344,7 +344,8 @@ void Tienda::intentar_comprar_item_seleccionado(Personaje& jugador) {
             item_seleccionado->esAgarrable(),
             item_seleccionado->getPuntosDeCluracion(),
             item_seleccionado->getBonusDeAtaque(),
-            item_seleccionado->getBonusDeDefensa()
+            item_seleccionado->getBonusDeDefensa(),
+            item_seleccionado->getPuntosDeMana()
         );
         const sf::Texture* textura_del_item_original = item_seleccionado->getSprite().getTexture(); // Obtenemos el puntero a la textura
         if (textura_del_item_original != nullptr) {

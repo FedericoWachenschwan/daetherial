@@ -56,41 +56,53 @@ EstadoJugando::~EstadoJugando() {
 void EstadoJugando::procesarEventos(sf::Event& evento, GameManager& gm) {
 
     ///============================================================///
-    ///     TIENDA - Si está abierta, las teclas controlan el menú
-    ///     WASD y flechas hacen lo mismo: navegar y cambiar cantidad
+    ///     INVENTARIO - Si está abierto, WASD y flechas lo navegan
+    ///============================================================///
+    if (gm._hudInventario.isOpen() && evento.type == sf::Event::KeyPressed) {
+
+        int indice_actual = gm._personaje.getInventario().getIndiceSeleccionado();
+        int cantidad_de_slots = (int)gm._personaje.getInventario().getSlots().size();
+
+        if (evento.key.code == sf::Keyboard::Right || evento.key.code == sf::Keyboard::D) {
+            if (indice_actual < cantidad_de_slots - 1) {
+                gm._personaje.getInventario().setIndiceSeleccionado(indice_actual + 1);
+            }
+        }
+        if (evento.key.code == sf::Keyboard::Left || evento.key.code == sf::Keyboard::A) {
+            if (indice_actual > 0) {
+                gm._personaje.getInventario().setIndiceSeleccionado(indice_actual - 1);
+            }
+        }
+        if (evento.key.code == sf::Keyboard::E) {
+            gm._personaje.getInventario().usarItem(indice_actual, gm._personaje);
+        }
+        if (evento.key.code == sf::Keyboard::Escape) {
+            gm._hudInventario.toggle(); // Cerrar inventario con Escape
+        }
+        return; // Mientras el inventario está abierto no procesamos otras teclas
+    }
+
+    ///============================================================///
+    ///     TIENDA - Si está abierta, WASD y flechas navegan el menú
     ///============================================================///
     if (gm._tienda != nullptr && evento.type == sf::Event::KeyPressed) {
 
         if (gm._tienda->getLaTiendaEstaAbierta() == true) {
-
-            // Flecha derecha o D → siguiente item
             if (evento.key.code == sf::Keyboard::Right || evento.key.code == sf::Keyboard::D)
                 gm._tienda->seleccionar_item_siguiente();
-
-            // Flecha izquierda o A → item anterior
             if (evento.key.code == sf::Keyboard::Left || evento.key.code == sf::Keyboard::A)
                 gm._tienda->seleccionar_item_anterior();
-
-            // Flecha arriba o W → más cantidad
             if (evento.key.code == sf::Keyboard::Up || evento.key.code == sf::Keyboard::W)
                 gm._tienda->aumentar_cantidad_a_comprar();
-
-            // Flecha abajo o S → menos cantidad
             if (evento.key.code == sf::Keyboard::Down || evento.key.code == sf::Keyboard::S)
                 gm._tienda->disminuir_cantidad_a_comprar();
-
-            // E → comprar el item seleccionado
             if (evento.key.code == sf::Keyboard::E)
                 gm._tienda->intentar_comprar_item_seleccionado(gm._personaje);
-
-            // Escape → cerrar la tienda
             if (evento.key.code == sf::Keyboard::Escape)
                 gm._tienda->cerrar_tienda();
-
-            return; // Mientras la tienda está abierta no procesamos ninguna otra tecla
+            return;
         }
 
-        // Si el jugador está cerca y presiona E, abre la tienda
         if (gm._tienda->getJugadorEstaCercaDeLaTienda() == true && evento.key.code == sf::Keyboard::E) {
             gm._tienda->abrir_tienda();
             return;
@@ -119,22 +131,28 @@ void EstadoJugando::actualizar(float dt, GameManager& gm) {
     }
 
     ///============================================================///
-    ///     PAUSA - Si la tienda está abierta, el juego se congela
-    ///     El personaje no se mueve, los enemigos tampoco
+    ///     PAUSA - Si la tienda o el inventario están abiertos,
+    ///     el juego se congela completamente
     ///============================================================///
     bool la_tienda_esta_abierta = gm._tienda != nullptr && gm._tienda->getLaTiendaEstaAbierta();
+    bool el_inventario_esta_abierto = gm._hudInventario.isOpen();
 
-    if (la_tienda_esta_abierta == true) {
+    if (la_tienda_esta_abierta == true || el_inventario_esta_abierto == true) {
         return; // Salimos sin actualizar nada más
     }
 
-    // --- A PARTIR DE ACÁ SOLO LLEGA SI LA TIENDA ESTÁ CERRADA ---
+    // --- A PARTIR DE ACÁ SOLO LLEGA SI TODO ESTÁ CERRADO ---
 
     gm._input.actualizarEstadoTiempoReal(gm._ventana);
     gm._camara.seguir(gm._personaje.getPosicion(), dt);
     gm._ventana.setView(gm._camara.getVista());
 
-    if (gm._input.quiereAbrirInventario()) gm._hudInventario.toggle();
+    if (gm._input.quiereAbrirInventario()) {
+        gm._hudInventario.toggle();
+        if (gm._hudInventario.isOpen() == true) {
+            gm._personaje.getInventario().setIndiceSeleccionado(0); // Al abrir, seleccionamos el primer slot
+        }
+    }
 
     if (gm._input.quiereAtacar()) {
         gm._hudInventario.detectarClicCasillero(gm._input.getPosicionMouse(), gm._personaje.getInventario(), gm._ventana);
@@ -206,14 +224,32 @@ void EstadoJugando::renderizar(GameManager& gm) {
     gm._ventana.setView(gm._ventana.getDefaultView());
     gm._hudInventario.dibujar(gm._ventana, gm._personaje.getInventario());
 
-    // Oro del jugador arriba a la derecha
+    ///============================================================///
+    ///     HUD - ORO, VIDA Y MANÁ arriba a la derecha
+    ///============================================================///
     sf::Text texto_del_oro;
     texto_del_oro.setFont(gm._fontCreditos);
     texto_del_oro.setCharacterSize(16);
     texto_del_oro.setFillColor(sf::Color::Yellow);
-    texto_del_oro.setString("Oro: " + std::to_string(gm._personaje.getOro()));
+    texto_del_oro.setString("Oro:  " + std::to_string(gm._personaje.getOro()));
     texto_del_oro.setPosition(1100.f, 10.f);
     gm._ventana.draw(texto_del_oro);
+
+    sf::Text texto_de_la_vida;
+    texto_de_la_vida.setFont(gm._fontCreditos);
+    texto_de_la_vida.setCharacterSize(16);
+    texto_de_la_vida.setFillColor(sf::Color::Red);
+    texto_de_la_vida.setString("Vida: " + std::to_string(gm._personaje.getVida()) + "/" + std::to_string(gm._personaje.getVidaMaxima()));
+    texto_de_la_vida.setPosition(1100.f, 30.f);
+    gm._ventana.draw(texto_de_la_vida);
+
+    sf::Text texto_del_mana;
+    texto_del_mana.setFont(gm._fontCreditos);
+    texto_del_mana.setCharacterSize(16);
+    texto_del_mana.setFillColor(sf::Color::Cyan);
+    texto_del_mana.setString("Mana: " + std::to_string(gm._personaje.getMana()) + "/" + std::to_string(gm._personaje.getManaMaXima()));
+    texto_del_mana.setPosition(1100.f, 50.f);
+    gm._ventana.draw(texto_del_mana);
 
     // Interfaz de la tienda
     if (gm._tienda != nullptr) {
