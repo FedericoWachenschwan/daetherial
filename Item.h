@@ -1,21 +1,25 @@
 #pragma once
-#include <string>
 #include <SFML/Graphics.hpp>
-#include "Colisionable.h" 
+#include <string>
+#include "Colisionable.h"
 
-// Le avisamos al compilador que la clase Personaje existe
+// Le avisamos al compilador que Personaje existe sin incluir su archivo
 class Personaje;
 
-#pragma once
-
+///=================================================///
+///   TIPOS DE ITEM - Qué clase de objeto es
+///=================================================///
 enum class TipoItem {
     Desconocido = 0,
-    Consumible = 1,
-    Equipamiento = 2,
-    Recurso = 3,
-    Mueble = 4
+    Consumible = 1, // Pociones - cura al jugador al usarse
+    Equipamiento = 2, // Espadas, escudos - sube stats del jugador
+    Recurso = 3, // Materiales para craftear
+    Mueble = 4  // Objetos del entorno, no se pueden agarrar
 };
 
+///=================================================///
+///   RAREZA DEL ITEM - Qué tan difícil es conseguirlo
+///=================================================///
 enum class RarezaItem {
     Comun = 0,
     Raro = 1,
@@ -23,103 +27,92 @@ enum class RarezaItem {
     Legendario = 3
 };
 
-// 🌟 El registro plano que viajará directo al archivo .dat
+///=================================================///
+///   ITEMREG - El registro que se guarda en el archivo .dat
+///   Esta estructura tiene que mantenerse igual para que el archivo funcione
+///=================================================///
 struct ItemReg {
-	int id;             // ID único para cada tipo de item (1, 2, 3...)
-    int tipoItem;       // Mapea con TipoItem (int)
-    char nombre[30];    // Strings fijos para evitar punteros rotos en el archivo
-    int valorEfecto;    // Cuánto cura, cuánto daño suma, etc.
-	int precio;         // Para la tienda (futura)
-    int rareza;         // Mapea con RarezaItem (int)
-    int idTextura;      // El índice de la grilla del Spritesheet (0, 1, 2, 3...)
-    bool activo;        // Para la baja lógica del ABML
+    int id;           // ID único del item
+    int tipoItem;     // Tipo del item (mapea con TipoItem)
+    char nombre[30];  // Nombre del item (tamaño fijo para el archivo binario)
+    int valorEfecto;  // Cuánto cura si es poción, cuánto ataque si es espada
+    int precio;       // Cuánto oro cuesta en la tienda
+    int rareza;       // Rareza del item (mapea con RarezaItem)
+    int idTextura;    // Posición del sprite en el spritesheet
+    bool activo;      // Si está activo en la base de datos
 };
 
-
-// ========================================================
-// 1. LA CLASE BASE (El molde principal)
-// ========================================================
+///=================================================///
+///   CLASE ITEM - Representa cualquier objeto del juego
+///=================================================///
 class Item : public Colisionable {
-protected:
-    int _id;
-    std::string _nombre;
-    TipoItem _tipo;
-    int _cantidad;
-    int _maxStack;
+private:
 
-    // Datos físicos para cuando vive en el mapa
-    sf::Sprite _sprite;
-    sf::FloatRect _hitbox;
-    bool _estaEnElMundo = false;
-    bool _esAgarrable = false;
+    ///=========================================================///
+    ///   IDENTIDAD - Qué es y cómo se llama el item
+    ///=========================================================///
+    int _id_del_item;                        // Número único que identifica este tipo de item
+    std::string _nombre_del_item;            // Cómo se llama el item
+    TipoItem _tipo_del_item;                 // Si es poción, espada, recurso, etc.
+    int _precio_del_item;                    // Cuánto oro cuesta comprarlo en la tienda
+
+    ///=========================================================///
+    ///   CANTIDAD - Cuántos hay apilados en este slot
+    ///=========================================================///
+    int _cantidad_del_item;                  // Cuántos hay actualmente en este slot
+    int _cantidad_maxima_en_el_stack;        // Cuántos pueden apilarse como máximo
+
+    ///=========================================================///
+    ///   EFECTOS - Qué le hace al jugador cuando se usa
+    ///=========================================================///
+    int _puntos_de_curacion_del_item;        // Cuánta vida recupera (solo si es poción)
+    int _bonus_de_ataque_del_item;           // Cuánto ataque suma (solo si es espada)
+    int _bonus_de_defensa_del_item;          // Cuánta defensa suma (solo si es escudo)
+
+    ///=========================================================///
+    ///   ESTADO EN EL MAPA - Si está tirado en el suelo
+    ///=========================================================///
+    sf::Sprite _sprite_del_item;             // El dibujito del item en el mapa
+    sf::FloatRect _hitbox_del_item;          // El rectángulo de colisión del item
+    bool _el_item_esta_tirado_en_el_mapa;    // true si está en el suelo del mapa
+    bool _el_jugador_puede_agarrar_el_item;  // true si el jugador puede recogerlo
 
 public:
-    Item(int id, const std::string& nombre, TipoItem tipo, int cantidad, int maxStack, bool esAgarrable);
 
+    ///=========================================================///
+    ///   CONSTRUCTOR Y DESTRUCTOR
+    ///=========================================================///
+    Item(int id, const std::string& nombre, TipoItem tipo, int precio, int cantidad, int cantidad_maxima, bool es_agarrable, int puntos_de_curacion = 0, int bonus_de_ataque = 0, int bonus_de_defensa = 0);
     virtual ~Item() = default;
 
-    virtual void usar(Personaje& jugador) = 0;
+    ///=========================================================///
+    ///   ACCIONES - Lo que puede hacer el item
+    ///=========================================================///
+    void usar(Personaje& jugador);                                      // Usa el item según su tipo
+    void colocarEnMundo(float x, float y, sf::FloatRect hitbox_custom = sf::FloatRect()); // Pone el item en el mapa
+    void setPosicion(sf::Vector2f nueva_posicion_del_item);             // Mueve el item a una posición
+    void dibujar(sf::RenderWindow& ventana_del_juego) const;            // Dibuja el item si está en el mapa
 
-    void colocarEnMundo(float x, float y, sf::FloatRect hitboxCustom = sf::FloatRect());
-    void setPosicion(sf::Vector2f nuevaPosicion);
-    void dibujar(sf::RenderWindow& ventana) const;
-    bool estaEnElMundo() const { return _estaEnElMundo; }
-    bool esAgarrable() const { return _esAgarrable; }
+    ///=========================================================///
+    ///   GETTERS - Para leer los datos del item desde afuera
+    ///=========================================================///
+    int getId() const;
+    const std::string& getNombre() const;
+    TipoItem getTipo() const;
+    int getPrecio() const;
+    int getCantidad() const;
+    int getMaxStack() const;
+    int getPuntosDeCluracion() const;
+    int getBonusDeAtaque() const;
+    int getBonusDeDefensa() const;
+    bool estaEnElMundo() const;
+    bool esAgarrable() const;
+    sf::FloatRect getBounds() const override;
+    sf::Sprite& getSprite();
 
-    sf::FloatRect getBounds() const override { return _hitbox; }
-
-    int getId() const { return _id; }
-    const std::string& getNombre() const { return _nombre; }
-    TipoItem getTipo() const { return _tipo; }
-    int getCantidad() const { return _cantidad; }
-    int getMaxStack() const { return _maxStack; }
-    void setCantidad(int cantidad) { _cantidad = cantidad; }
-	sf::Sprite& getSprite() { return _sprite; } // Devuelve el sprite para renderizarlo en el inventario UI
-
-
-};
-
-
-// ========================================================
-// 🌟 Las clases hijas AFUERA de Item
-// ========================================================
-
-// 1. LA CLASE CONSUMIBLE (Pociones, comida)
-class Consumible : public Item {
-private:
-    float _curacion;
-public:
-    // 🌟 Corregido: Ahora se llama Consumible, no Pocion
-    Consumible(int id, const std::string& nombre, float cura, int cantidad = 1);
-    void usar(Personaje& jugador);
-};
-
-// 2. LA CLASE MUEBLE (Horno, Caldero)
-class Mueble : public Item {
-private:
-    int _tipoMueble;
-public:
-    Mueble(int id, const std::string& nombre, int tipoMueble);
-    void usar(Personaje& jugador);
-};
-
-// 3. LA CLASE RECURSO (Oro, madera, piedra)
-class Recurso : public Item {
-private:
-    int _tipoRecurso;
-public:
-    Recurso(int id, const std::string& nombre, int tipoRecurso, int cantidad);
-    void usar(Personaje& jugador);
-};
-
-
-// 4. LA CLASE EQUIPAMIENTO (Espadas, escudos, armaduras)
-class Equipamiento : public Item {
-private:
-    int _tipoEquipamiento;
-    int _bonusAtaque;
-    int _bonusDefensa;
-public:
-    Equipamiento(int id, const std::string& nombre, int tipoEquipamiento, int bonusAtaque, int bonusDefensa);
-    void usar(Personaje& jugador);
+    ///=========================================================///
+    ///   SETTERS - Para cambiar los datos del item desde afuera
+    ///=========================================================///
+    void setCantidad(int nueva_cantidad_del_item);
+    void setPrecio(int nuevo_precio_del_item);
 };

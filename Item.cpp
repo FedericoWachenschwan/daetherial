@@ -1,100 +1,113 @@
 #include "Item.h"
+#include "Personaje.h"
 #include <iostream>
 
-// ========================================================
-// 1. IMPLEMENTACIÓN DE LA CLASE BASE (Item)
-// ========================================================
+///=============================================================///
+///   CONSTRUCTOR - Crea el item con todos sus datos
+///=============================================================///
+Item::Item(int id, const std::string& nombre, TipoItem tipo, int precio, int cantidad, int cantidad_maxima, bool es_agarrable, int puntos_de_curacion, int bonus_de_ataque, int bonus_de_defensa) {
 
-Item::Item(int id, const std::string& nombre, TipoItem tipo, int cantidad, int maxStack, bool esAgarrable)
-    : _id(id), _nombre(nombre), _tipo(tipo), _cantidad(cantidad), _maxStack(maxStack), _esAgarrable(esAgarrable), _estaEnElMundo(false) {
-}
+    _id_del_item = id;              // Guardamos el ID del item
+    _nombre_del_item = nombre;          // Guardamos el nombre del item
+    _tipo_del_item = tipo;            // Guardamos el tipo del item
+    _precio_del_item = precio;          // Guardamos el precio del item
+    _cantidad_del_item = cantidad;        // Guardamos cuántos hay
+    _cantidad_maxima_en_el_stack = cantidad_maxima; // Guardamos cuántos pueden apilarse
+    _el_jugador_puede_agarrar_el_item = es_agarrable;   // Guardamos si se puede agarrar
+    _puntos_de_curacion_del_item = puntos_de_curacion; // Guardamos cuánto cura
+    _bonus_de_ataque_del_item = bonus_de_ataque;    // Guardamos cuánto ataque da
+    _bonus_de_defensa_del_item = bonus_de_defensa;   // Guardamos cuánta defensa da
+    _el_item_esta_tirado_en_el_mapa = false;           // Al crearse no está en el mapa todavía
 
-void Item::colocarEnMundo(float x, float y, sf::FloatRect hitboxCustom) {
-    _sprite.setPosition(x, y);
-    _estaEnElMundo = true;
-
-    // 🌟 SIEMPRE movemos la hitbox a la coordenada donde spawnea
-    _hitbox.left = x;
-    _hitbox.top = y;
-
-    // (Opcional) Si le pasaste una hitboxCustom, pisamos el tamaño
-    if (hitboxCustom.width != 0) {
-        _hitbox.width = hitboxCustom.width;
-        _hitbox.height = hitboxCustom.height;
+    ///=========================================================///
+    ///   TAMAÑO DE LA HITBOX - Según el tipo de item
+    ///=========================================================///
+    if (_tipo_del_item == TipoItem::Consumible) {
+        _hitbox_del_item.width = 16.f; // Las pociones son pequeñas
+        _hitbox_del_item.height = 16.f;
+    }
+    else if (_tipo_del_item == TipoItem::Equipamiento) {
+        _hitbox_del_item.width = 24.f; // Las armas son medianas
+        _hitbox_del_item.height = 24.f;
+    }
+    else {
+        _hitbox_del_item.width = 32.f; // El resto es grande
+        _hitbox_del_item.height = 32.f;
     }
 }
 
-void Item::dibujar(sf::RenderWindow& ventana) const {
-    if (_estaEnElMundo) {
-        ventana.draw(_sprite);
+///=============================================================///
+///   USAR - Aplica el efecto del item al jugador según su tipo
+///=============================================================///
+void Item::usar(Personaje& jugador) {
+
+    if (_tipo_del_item == TipoItem::Consumible) {
+        std::cout << "USASTE " << _nombre_del_item << ". TE CURASTE " << _puntos_de_curacion_del_item << " DE VIDA." << std::endl;
+    }
+    else if (_tipo_del_item == TipoItem::Equipamiento) {
+        std::cout << "EQUIPASTE " << _nombre_del_item << ". +ATAQUE: " << _bonus_de_ataque_del_item << " +DEFENSA: " << _bonus_de_defensa_del_item << std::endl;
+    }
+    else {
+        std::cout << "NO PODES USAR " << _nombre_del_item << " DIRECTAMENTE." << std::endl;
     }
 }
 
-// ========================================================
-// 2. IMPLEMENTACIÓN DE LAS CLASES HIJAS
-// ========================================================
+///=============================================================///
+///   COLOCAR EN EL MUNDO - Pone el item tirado en el mapa
+///=============================================================///
+void Item::colocarEnMundo(float x, float y, sf::FloatRect hitbox_custom) {
 
-// --- CONSUMIBLE ---
-Consumible::Consumible(int id, const std::string& nombre, float cura, int cantidad)
-    : Item(id, nombre, TipoItem::Consumible, cantidad, 64, true), _curacion(cura) {
+    _sprite_del_item.setPosition(x, y);  // Ponemos el sprite en la posición indicada
+    _hitbox_del_item.left = x;           // Actualizamos la hitbox en X
+    _hitbox_del_item.top = y;           // Actualizamos la hitbox en Y
+    _el_item_esta_tirado_en_el_mapa = true; // Marcamos que está en el mapa
 
-    // 🌟 La magia va ADENTRO del constructor
-    _hitbox.width = 16.f;
-    _hitbox.height = 16.f;
+    if (hitbox_custom.width != 0) {            // Si nos pasaron una hitbox personalizada
+        _hitbox_del_item.width = hitbox_custom.width;  // Usamos su ancho
+        _hitbox_del_item.height = hitbox_custom.height; // Usamos su alto
+    }
 }
 
-void Consumible::usar(Personaje& jugador) {
-    std::cout << "🍎 Consumiste " << _nombre << ". Te curaste " << _curacion << " de vida." << std::endl;
+///=============================================================///
+///   SET POSICION - Mueve el item a una nueva posición
+///=============================================================///
+void Item::setPosicion(sf::Vector2f nueva_posicion_del_item) {
+
+    _sprite_del_item.setPosition(nueva_posicion_del_item);  // Movemos el sprite
+    _hitbox_del_item.left = nueva_posicion_del_item.x;      // Actualizamos la hitbox en X
+    _hitbox_del_item.top = nueva_posicion_del_item.y;      // Actualizamos la hitbox en Y
+    _el_item_esta_tirado_en_el_mapa = true;                  // Marcamos que está en el mapa
 }
 
-// --- MUEBLE ---
-Mueble::Mueble(int id, const std::string& nombre, int tipoMueble)
-    : Item(id, nombre, TipoItem::Mueble, 1, 1, false), _tipoMueble(tipoMueble) {
+///=============================================================///
+///   DIBUJAR - Dibuja el item solo si está tirado en el mapa
+///=============================================================///
+void Item::dibujar(sf::RenderWindow& ventana_del_juego) const {
 
-    // Los muebles suelen ser más grandes
-    _hitbox.width = 32.f;
-    _hitbox.height = 32.f;
+    if (_el_item_esta_tirado_en_el_mapa == true) {
+        ventana_del_juego.draw(_sprite_del_item); // Solo dibujamos si está en el mapa
+    }
 }
 
-void Mueble::usar(Personaje& jugador) {
-    if (_tipoMueble == 1) std::cout << "🏺 Abriendo Caldero..." << std::endl;
-    else if (_tipoMueble == 2) std::cout << "🔥 Abriendo Horno..." << std::endl;
-}
+///=============================================================///
+///   GETTERS - Devuelven los datos del item
+///=============================================================///
+int Item::getId()                       const { return _id_del_item; }
+const std::string& Item::getNombre()   const { return _nombre_del_item; }
+TipoItem Item::getTipo()               const { return _tipo_del_item; }
+int Item::getPrecio()                  const { return _precio_del_item; }
+int Item::getCantidad()                const { return _cantidad_del_item; }
+int Item::getMaxStack()                const { return _cantidad_maxima_en_el_stack; }
+int Item::getPuntosDeCluracion()       const { return _puntos_de_curacion_del_item; }
+int Item::getBonusDeAtaque()           const { return _bonus_de_ataque_del_item; }
+int Item::getBonusDeDefensa()          const { return _bonus_de_defensa_del_item; }
+bool Item::estaEnElMundo()             const { return _el_item_esta_tirado_en_el_mapa; }
+bool Item::esAgarrable()               const { return _el_jugador_puede_agarrar_el_item; }
+sf::FloatRect Item::getBounds()        const { return _hitbox_del_item; }
+sf::Sprite& Item::getSprite() { return _sprite_del_item; }
 
-// --- RECURSO ---
-Recurso::Recurso(int id, const std::string& nombre, int tipoRecurso, int cantidad)
-    : Item(id, nombre, TipoItem::Recurso, cantidad, 999, true), _tipoRecurso(tipoRecurso) {
-
-    // Tamaño estándar de un drop en el piso
-    _hitbox.width = 16.f;
-    _hitbox.height = 16.f;
-}
-
-void Recurso::usar(Personaje& jugador) {
-    std::cout << "🪵 Es un recurso material, no se puede 'usar' directo. Sirve para craftear." << std::endl;
-}
-
-// --- EQUIPAMIENTO ---
-Equipamiento::Equipamiento(int id, const std::string& nombre, int tipoEquipamiento, int bonusAtaque, int bonusDefensa)
-    : Item(id, nombre, TipoItem::Equipamiento, 1, 1, true), _tipoEquipamiento(tipoEquipamiento), _bonusAtaque(bonusAtaque), _bonusDefensa(bonusDefensa) {
-
-    // La espada/escudo en el piso
-    _hitbox.width = 24.f;
-    _hitbox.height = 24.f;
-}
-
-void Equipamiento::usar(Personaje& jugador) {
-    std::cout << "⚔️ Equipaste " << _nombre << ". (+Ataque: " << _bonusAtaque << " | +Defensa: " << _bonusDefensa << ")" << std::endl;
-}
-
-void Item::setPosicion(sf::Vector2f nuevaPosicion) {
-    // 1. Movemos el dibujo a los pies del personaje
-    _sprite.setPosition(nuevaPosicion);
-
-    // 2. Movemos la hitbox lógica para que puedas volver a interactuar con él
-    _hitbox.left = nuevaPosicion.x;
-    _hitbox.top = nuevaPosicion.y;
-
-    // 3. Le avisamos a la lógica interna que el ítem volvió al mapa
-    _estaEnElMundo = true;
-}
+///=============================================================///
+///   SETTERS - Cambian los datos del item
+///=============================================================///
+void Item::setCantidad(int nueva_cantidad_del_item) { _cantidad_del_item = nueva_cantidad_del_item; }
+void Item::setPrecio(int nuevo_precio_del_item) { _precio_del_item = nuevo_precio_del_item; }

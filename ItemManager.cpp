@@ -1,17 +1,12 @@
 #include "ItemManager.h"
-#include <fstream> // Para manejo de archivos en los métodos de ABML
-#include <iostream> // Para imprimir errores de carga de texturas
+#include <fstream>
+#include <iostream>
 
 ItemManager::ItemManager() {
-    // Cargamos todas las texturas cuando el juego arranca
     if (!_texturaMaestraItems.loadFromFile("assets/items_spritesheet.png")) {
-        std::cout << "⚠️ Error al cargar el spritesheet de items." << std::endl;
+        std::cout << "ERROR: NO SE PUDO CARGAR EL SPRITESHEET DE ITEMS." << std::endl;
     }
 }
-
-// ============================================================================
-// 📁 MÉTODOS ABML (PERSISTENCIA EN DISCO)
-// ============================================================================
 
 bool ItemManager::guardarRegistro(const ItemReg registro) const {
     std::ofstream archivo(_rutaArchivoItems, std::ios::binary | std::ios::app);
@@ -24,7 +19,6 @@ bool ItemManager::guardarRegistro(const ItemReg registro) const {
 bool ItemManager::modificarRegistro(const ItemReg registro) const {
     int pos = buscarPorId(registro.id);
     if (pos == -1) return false;
-
     std::ofstream archivo(_rutaArchivoItems, std::ios::binary | std::ios::in | std::ios::out);
     if (!archivo.is_open()) return false;
     archivo.seekp(pos * sizeof(ItemReg));
@@ -47,7 +41,6 @@ std::vector<ItemReg> ItemManager::leerTodos() const {
     std::vector<ItemReg> lista;
     std::ifstream archivo(_rutaArchivoItems, std::ios::binary);
     if (!archivo.is_open()) return lista;
-
     ItemReg reg{};
     while (archivo.read(reinterpret_cast<char*>(&reg), sizeof(ItemReg))) {
         if (reg.activo) lista.push_back(reg);
@@ -67,7 +60,6 @@ int ItemManager::contarRegistros() const {
 int ItemManager::buscarPorId(int id) const {
     std::ifstream archivo(_rutaArchivoItems, std::ios::binary);
     if (!archivo.is_open()) return -1;
-
     ItemReg reg{};
     int posicion = 0;
     while (archivo.read(reinterpret_cast<char*>(&reg), sizeof(ItemReg))) {
@@ -81,55 +73,53 @@ int ItemManager::buscarPorId(int id) const {
     return -1;
 }
 
-// ============================================================================
-// 🏭 LA FÁBRICA MAESTRA: Del .dat al objeto del juego
-// ============================================================================
+///=============================================================///
+///   CREAR ITEM POR ID - Lee el archivo y crea el item correspondiente
+///=============================================================///
 Item* ItemManager::crearItemPorId(int id) const {
-    int pos = buscarPorId(id);
-    if (pos == -1) {
-        std::cout << "❌ Error: El item con ID " << id << " no existe en la BD." << std::endl;
-        return nullptr;
+
+    int posicion_en_el_archivo = buscarPorId(id); // Buscamos el item en el archivo
+
+    if (posicion_en_el_archivo == -1) {
+        std::cout << "ERROR: EL ITEM CON ID " << id << " NO EXISTE EN LA BASE DE DATOS." << std::endl;
+        return nullptr; // Si no existe devolvemos nulo
     }
 
-    ItemReg datos = leerRegistro(pos);
-    Item* nuevoItem = nullptr;
-    TipoItem tipo = static_cast<TipoItem>(datos.tipoItem);
+    ItemReg datos_del_item = leerRegistro(posicion_en_el_archivo); // Leemos los datos del archivo
+    TipoItem tipo_del_item = static_cast<TipoItem>(datos_del_item.tipoItem); // Convertimos el int al enum
 
-    // 1. Instanciamos el hijo correcto usando los constructores que definiste en Item.cpp
-    switch (tipo) {
-    case TipoItem::Consumible:
-        nuevoItem = new Consumible(datos.id, datos.nombre, static_cast<float>(datos.valorEfecto), 1);
-        break;
+    ///=========================================================///
+    ///   CREAMOS EL ITEM - Con todos sus datos leídos del archivo
+    ///=========================================================///
+    Item* nuevo_item = new Item(
+        datos_del_item.id,           // ID del item
+        datos_del_item.nombre,       // Nombre del item
+        tipo_del_item,               // Tipo del item
+        datos_del_item.precio,       // Precio en la tienda
+        1,                           // Cantidad inicial
+        64,                          // Cantidad máxima en el stack
+        true,                        // El jugador puede agarrarlo
+        datos_del_item.valorEfecto,  // Puntos de curación (si es poción)
+        0,                           // Bonus de ataque (se puede expandir después)
+        0                            // Bonus de defensa (se puede expandir después)
+    );
 
-    case TipoItem::Equipamiento:
-        // Usamos valorEfecto para Ataque y precio para Defensa (podés ajustarlo después)
-        nuevoItem = new Equipamiento(datos.id, datos.nombre, 0, datos.valorEfecto, datos.precio);
-        break;
+    ///=========================================================///
+    ///   CONFIGURAMOS EL SPRITE - Cortamos el icono del spritesheet
+    ///=========================================================///
+    int tamanio_del_tile = 32; // Cada icono mide 32x32 píxeles en el spritesheet
+    int columnas_del_spritesheet = _texturaMaestraItems.getSize().x / tamanio_del_tile; // Cuántas columnas hay
+    int columna_del_sprite = datos_del_item.idTextura % columnas_del_spritesheet; // En qué columna está
+    int fila_del_sprite = datos_del_item.idTextura / columnas_del_spritesheet; // En qué fila está
 
-    case TipoItem::Recurso:
-        nuevoItem = new Recurso(datos.id, datos.nombre, datos.valorEfecto, 1);
-        break;
+    sf::Sprite& sprite_del_item = nuevo_item->getSprite(); // Obtenemos el sprite del item
+    sprite_del_item.setTexture(_texturaMaestraItems); // Le asignamos el spritesheet
+    sprite_del_item.setTextureRect(sf::IntRect( // Cortamos el icono del spritesheet
+        columna_del_sprite * tamanio_del_tile,
+        fila_del_sprite * tamanio_del_tile,
+        tamanio_del_tile,
+        tamanio_del_tile
+    ));
 
-    case TipoItem::Mueble:
-        nuevoItem = new Mueble(datos.id, datos.nombre, datos.valorEfecto);
-        break;
-
-    default:
-        return nullptr;
-    }
-
-    // 2. Configuración gráfica automática (Cortamos el icono del spritesheet)
-    if (nuevoItem != nullptr) {
-        const int TILE_SIZE = 32; // Ajustá esto si tus íconos son de 16x16 o 64x64
-        int columnasGrilla = _texturaMaestraItems.getSize().x / TILE_SIZE;
-
-        int col = datos.idTextura % columnasGrilla;
-        int fila = datos.idTextura / columnasGrilla;
-
-        sf::Sprite& spriteItem = nuevoItem->getSprite();
-        spriteItem.setTexture(_texturaMaestraItems);
-        spriteItem.setTextureRect(sf::IntRect(col * TILE_SIZE, fila * TILE_SIZE, TILE_SIZE, TILE_SIZE));
-    }
-
-    return nuevoItem;
+    return nuevo_item; // Devolvemos el item creado
 }
