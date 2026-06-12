@@ -164,6 +164,10 @@
     <ClCompile Include="Entidades\Mascota.cpp" />
     <ClCompile Include="Entidades\PathFinder.cpp" />
     <ClCompile Include="Entidades\Personaje.cpp" />
+    <ClCompile Include="Nucleo\EstadoCreditos.cpp" />
+    <ClCompile Include="Nucleo\EstadoCreadorItems.cpp" />
+    <ClCompile Include="Nucleo\EstadoMenu.cpp" />
+    <ClCompile Include="Nucleo\EstadoJugando.cpp" />
     <ClCompile Include="Habilidades\BolaDeFuego.cpp" />
     <ClCompile Include="Habilidades\habilidades.cpp" />
     <ClCompile Include="Habilidades\habilidad_2.cpp" />
@@ -294,6 +298,10 @@
     <ClInclude Include="Entidades\Mascota.h" />
     <ClInclude Include="Entidades\PathFinder.h" />
     <ClInclude Include="Entidades\Personaje.h" />
+    <ClInclude Include="Nucleo\EstadoCreditos.h" />
+    <ClInclude Include="Nucleo\EstadoCreadorItems.h" />
+    <ClInclude Include="Nucleo\EstadoMenu.h" />
+    <ClInclude Include="Nucleo\EstadoJugando.h" />
     <ClInclude Include="Habilidades\BolaDeFuego.h" />
     <ClInclude Include="Habilidades\habilidades.h" />
     <ClInclude Include="Habilidades\habilidad_2.h" />

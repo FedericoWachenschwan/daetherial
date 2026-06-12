@@ -1,4 +1,6 @@
 #include "GameManager.h"
+#include "EstadoJugando.h"
+#include "EstadoMenu.h"
 #include "Estado.h"
 #include <cmath>
 #include <cstdlib>
@@ -108,9 +110,14 @@ void GameManager::run() {
 // ============================================================================
 void GameManager::cambiarEstado(Estado* nuevoEstado) {
     if (_estadoActual != nullptr) {
+        _estadoActual->salir(*this); // Por si algún estado quiere limpiar algo al salir
         delete _estadoActual;
     }
     _estadoActual = nuevoEstado;
+
+    if (_estadoActual != nullptr) {
+        _estadoActual->entrar(*this); // Llama al entrar del estado nuevo
+    }
 }
 
 // ============================================================================
