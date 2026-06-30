@@ -87,7 +87,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)SFML\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Control_Del_Juego;$(ProjectDir)Entidades;$(ProjectDir)Objetos_Inventario_Y_Tienda;$(ProjectDir)Menus_Y_Paneles_En_Pantalla;$(ProjectDir)Mundo;$(ProjectDir)Efectos;$(ProjectDir)SFML\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,7 +108,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)dependencias\SFML\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Control_Del_Juego;$(ProjectDir)Entidades;$(ProjectDir)Objetos_Inventario_Y_Tienda;$(ProjectDir)Menus_Y_Paneles_En_Pantalla;$(ProjectDir)Mundo;$(ProjectDir)Efectos;$(ProjectDir)SFML\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,7 +127,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>.\SFML\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Control_Del_Juego;$(ProjectDir)Entidades;$(ProjectDir)Objetos_Inventario_Y_Tienda;$(ProjectDir)Menus_Y_Paneles_En_Pantalla;$(ProjectDir)Mundo;$(ProjectDir)Efectos;$(ProjectDir)SFML\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,6 +148,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)Control_Del_Juego;$(ProjectDir)Entidades;$(ProjectDir)Objetos_Inventario_Y_Tienda;$(ProjectDir)Menus_Y_Paneles_En_Pantalla;$(ProjectDir)Mundo;$(ProjectDir)Efectos;$(ProjectDir)SFML\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -158,43 +159,36 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camara.cpp" />
-    <ClCompile Include="Colisionable.cpp" />
-    <ClCompile Include="Cursor_Visual.cpp" />
-    <ClCompile Include="DebugManager.cpp" />
-    <ClCompile Include="Enemy.cpp" />
-    <ClCompile Include="Boss.cpp" />
-    <ClCompile Include="EntidadViva.cpp" />
-    <ClCompile Include="Estado.cpp" />
-    <ClCompile Include="GameManager.cpp" />
-    <ClCompile Include="InputManager.cpp" />
-    <ClCompile Include="Inventario.cpp" />
-    <ClCompile Include="Item.cpp" />
-    <ClCompile Include="ItemManager.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="map.cpp" />
-    <ClCompile Include="Mascota.cpp" />
-    <ClCompile Include="menu.cpp" />
-    <ClCompile Include="Niebla.cpp" />
-    <ClCompile Include="ObjectsManager.cpp" />
-    <ClCompile Include="PathFinder.cpp" />
-    <ClCompile Include="Personaje.cpp" />
-    <ClCompile Include="habilidades.cpp" />
-    <ClCompile Include="BolaDeFuego.cpp" />
-    <ClCompile Include="habilidad_2.cpp" />
-    <ClCompile Include="habilidad_3.cpp" />
-    <ClCompile Include="habilidad_4.cpp" />
-    <ClCompile Include="habilidad_5.cpp" />
-    <ClCompile Include="Tienda.cpp" />
-    <ClCompile Include="UI_CreadorItems.cpp" />
-    <ClCompile Include="UI_Inventario.cpp" />
-    <ClCompile Include="VisualFX.cpp" />
+    <ClCompile Include="Control_Del_Juego\GameManager.cpp" />
+    <ClCompile Include="Control_Del_Juego\InputManager.cpp" />
+    <ClCompile Include="Control_Del_Juego\main.cpp" />
+    <ClCompile Include="Control_Del_Juego\MaquinaDeEstados.cpp" />
+    <ClCompile Include="Efectos\BolaDeFuego.cpp" />
+    <ClCompile Include="Efectos\DebugManager.cpp" />
+    <ClCompile Include="Efectos\VisualFX.cpp" />
+    <ClCompile Include="Entidades\Enemigo.cpp" />
+    <ClCompile Include="Entidades\EntidadViva.cpp" />
+    <ClCompile Include="Entidades\Golem.cpp" />
+    <ClCompile Include="Entidades\Mascota.cpp" />
+    <ClCompile Include="Entidades\PathFinder.cpp" />
+    <ClCompile Include="Entidades\Personaje.cpp" />
+    <ClCompile Include="Menus_Y_Paneles_En_Pantalla\Cursor_Visual.cpp" />
+    <ClCompile Include="Menus_Y_Paneles_En_Pantalla\menu.cpp" />
+    <ClCompile Include="Menus_Y_Paneles_En_Pantalla\UI_CreadorItems.cpp" />
+    <ClCompile Include="Menus_Y_Paneles_En_Pantalla\UI_Inventario.cpp" />
+    <ClCompile Include="Mundo\Camara.cpp" />
+    <ClCompile Include="Mundo\map.cpp" />
+    <ClCompile Include="Mundo\Niebla.cpp" />
+    <ClCompile Include="Objetos_Inventario_Y_Tienda\AdministradorDeObjetos.cpp" />
+    <ClCompile Include="Objetos_Inventario_Y_Tienda\FabricaDeItems.cpp" />
+    <ClCompile Include="Objetos_Inventario_Y_Tienda\Inventario.cpp" />
+    <ClCompile Include="Objetos_Inventario_Y_Tienda\Item.cpp" />
+    <ClCompile Include="Objetos_Inventario_Y_Tienda\Tienda.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camara.h" />
-    <ClInclude Include="Colisionable.h" />
-    <ClInclude Include="Cursor_Visual.h" />
-    <ClInclude Include="DebugManager.h" />
+    <ClInclude Include="Control_Del_Juego\GameManager.h" />
+    <ClInclude Include="Control_Del_Juego\InputManager.h" />
+    <ClInclude Include="Control_Del_Juego\MaquinaDeEstados.h" />
     <ClInclude Include="dependencias\SFML\include\SFML\Audio.hpp" />
     <ClInclude Include="dependencias\SFML\include\SFML\Audio\AlResource.hpp" />
     <ClInclude Include="dependencias\SFML\include\SFML\Audio\Export.hpp" />
@@ -293,28 +287,27 @@
     <ClInclude Include="dependencias\SFML\include\SFML\Window\Window.hpp" />
     <ClInclude Include="dependencias\SFML\include\SFML\Window\WindowHandle.hpp" />
     <ClInclude Include="dependencias\SFML\include\SFML\Window\WindowStyle.hpp" />
-    <ClInclude Include="Enemy.h" />
-    <ClInclude Include="Boss.h" />
-    <ClInclude Include="EntidadViva.h" />
-    <ClInclude Include="Estado.h" />
-    <ClInclude Include="GameManager.h" />
-    <ClInclude Include="InputManager.h" />
-    <ClInclude Include="Inventario.h" />
-    <ClInclude Include="Item.h" />
-    <ClInclude Include="ItemManager.h" />
-    <ClInclude Include="map.h" />
-    <ClInclude Include="Mascota.h" />
-    <ClInclude Include="menu.h" />
-    <ClInclude Include="Niebla.h" />
-    <ClInclude Include="ObjectsManager.h" />
-    <ClInclude Include="PathFinder.h" />
-    <ClInclude Include="Personaje.h" />
-    <ClInclude Include="habilidades.h" />
-    <ClInclude Include="BolaDeFuego.h" />
-    <ClInclude Include="habilidad_2.h" />
-    <ClInclude Include="habilidad_3.h" />
-    <ClInclude Include="habilidad_4.h" />
-    <ClInclude Include="habilidad_5.h" />
+    <ClInclude Include="Efectos\BolaDeFuego.h" />
+    <ClInclude Include="Efectos\DebugManager.h" />
+    <ClInclude Include="Efectos\VisualFX.h" />
+    <ClInclude Include="Entidades\Enemigo.h" />
+    <ClInclude Include="Entidades\EntidadViva.h" />
+    <ClInclude Include="Entidades\Golem.h" />
+    <ClInclude Include="Entidades\Mascota.h" />
+    <ClInclude Include="Entidades\PathFinder.h" />
+    <ClInclude Include="Entidades\Personaje.h" />
+    <ClInclude Include="Menus_Y_Paneles_En_Pantalla\Cursor_Visual.h" />
+    <ClInclude Include="Menus_Y_Paneles_En_Pantalla\menu.h" />
+    <ClInclude Include="Menus_Y_Paneles_En_Pantalla\UI_CreadorItems.h" />
+    <ClInclude Include="Menus_Y_Paneles_En_Pantalla\UI_Inventario.h" />
+    <ClInclude Include="Mundo\Camara.h" />
+    <ClInclude Include="Mundo\map.h" />
+    <ClInclude Include="Mundo\Niebla.h" />
+    <ClInclude Include="Objetos_Inventario_Y_Tienda\AdministradorDeObjetos.h" />
+    <ClInclude Include="Objetos_Inventario_Y_Tienda\FabricaDeItems.h" />
+    <ClInclude Include="Objetos_Inventario_Y_Tienda\Inventario.h" />
+    <ClInclude Include="Objetos_Inventario_Y_Tienda\Item.h" />
+    <ClInclude Include="Objetos_Inventario_Y_Tienda\Tienda.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SFML\examples\shader\Effect.hpp" />
     <ClInclude Include="SFML\include\SFML\Audio.hpp" />
@@ -415,10 +408,6 @@
     <ClInclude Include="SFML\include\SFML\Window\Window.hpp" />
     <ClInclude Include="SFML\include\SFML\Window\WindowHandle.hpp" />
     <ClInclude Include="SFML\include\SFML\Window\WindowStyle.hpp" />
-    <ClInclude Include="Tienda.h" />
-    <ClInclude Include="UI_CreadorItems.h" />
-    <ClInclude Include="UI_Inventario.h" />
-    <ClInclude Include="VisualFX.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\cat_abajo.png" />
@@ -446,7 +435,6 @@
     <None Include="assets\mapa_v1.tmx" />
     <None Include="assets\mapa_v1_background.csv" />
     <None Include="assets\menu.ogg" />
-    <None Include="Daetherial.slnx" />
     <None Include="dependencias\SFML\include\SFML\Audio\SoundFileFactory.inl" />
     <None Include="dependencias\SFML\include\SFML\Graphics\Glsl.inl" />
     <None Include="dependencias\SFML\include\SFML\Graphics\Rect.inl" />
