@@ -1,4 +1,4 @@
-#include "Niebla.h"
+﻿#include "Niebla.h"
 
 ///=============================================================///
 ///   CONSTRUCTOR
@@ -6,15 +6,15 @@
 Niebla::Niebla() {
     if (_textura_de_la_niebla.loadFromFile("assets/fog.png") == true) {
         _textura_de_la_niebla.setRepeated(true); // SFML: hace que la imagen se repita sola como un azulejo
-        _sprite_de_la_niebla.setTexture(_textura_de_la_niebla);
-        _sprite_de_la_niebla.setColor(sf::Color(255, 255, 255, 80));
+        _sprite_de_la_niebla.setTexture(_textura_de_la_niebla); // Asigna la imagen al sprite
+        _sprite_de_la_niebla.setColor(sf::Color(255, 255, 255, 80)); // Empieza con 80 de opacidad (semitransparente)
     }
 
-    _velocidad_del_viento_en_x = 15.f;
-    _velocidad_del_viento_en_y = 5.f;
-    _desplazamiento_acumulado_en_x = 0.f;
-    _desplazamiento_acumulado_en_y = 0.f;
-    _tiempo_acumulado_para_la_onda = 0.f;
+    _velocidad_del_viento_en_x = 15.f; // La niebla se mueve 15 pixeles por segundo hacia la derecha
+    _velocidad_del_viento_en_y = 5.f; // Y 5 pixeles por segundo hacia abajo
+    _desplazamiento_acumulado_en_x = 0.f; // Sin desplazamiento inicial
+    _desplazamiento_acumulado_en_y = 0.f; // Sin desplazamiento inicial
+    _tiempo_acumulado_para_la_onda = 0.f; // Temporizador en cero
 }
 
 ///=============================================================///
@@ -23,36 +23,36 @@ Niebla::Niebla() {
 ///=============================================================///
 void Niebla::actualizar(float tiempo_transcurrido) {
 
-    _desplazamiento_acumulado_en_x += _velocidad_del_viento_en_x * tiempo_transcurrido;
-    _desplazamiento_acumulado_en_y += _velocidad_del_viento_en_y * tiempo_transcurrido;
-    _tiempo_acumulado_para_la_onda += tiempo_transcurrido;
+    _desplazamiento_acumulado_en_x += _velocidad_del_viento_en_x * tiempo_transcurrido; // Suma el desplazamiento de este frame en X
+    _desplazamiento_acumulado_en_y += _velocidad_del_viento_en_y * tiempo_transcurrido; // Suma el desplazamiento de este frame en Y
+    _tiempo_acumulado_para_la_onda += tiempo_transcurrido; // Acumula el tiempo para el efecto de onda
 
-    ///=========================================================///
-    ///   OPACIDAD QUE SUBE Y BAJA COMO UNA RESPIRACION
-    ///   En vez de una onda matematica, usamos un contador que
-    ///   rebota entre 5 y 55
-    ///=========================================================///
-    int opacidad_minima = 5;
-    int opacidad_maxima = 55;
+ ///=========================================================///
+ ///   OPACIDAD QUE SUBE Y BAJA COMO UNA RESPIRACION
+ ///   En vez de una onda matematica, usamos un contador que
+ ///   rebota entre 5 y 55
+ ///=========================================================///
+    int opacidad_minima = 5; // El valor mas bajo de opacidad
+    int opacidad_maxima = 55; // El valor mas alto de opacidad
     float velocidad_de_la_onda = 25.f; // Cuanto cambia la opacidad por segundo
 
     if (_la_opacidad_esta_subiendo == true) {
-        _opacidad_actual += velocidad_de_la_onda * tiempo_transcurrido;
+        _opacidad_actual += velocidad_de_la_onda * tiempo_transcurrido; // Aumenta la opacidad
         if (_opacidad_actual >= opacidad_maxima) {
-            _opacidad_actual = opacidad_maxima;
+            _opacidad_actual = opacidad_maxima; // Limita al maximo
             _la_opacidad_esta_subiendo = false; // Llego al maximo, ahora baja
         }
     }
     else {
-        _opacidad_actual -= velocidad_de_la_onda * tiempo_transcurrido;
+        _opacidad_actual -= velocidad_de_la_onda * tiempo_transcurrido; // Reduce la opacidad
         if (_opacidad_actual <= opacidad_minima) {
-            _opacidad_actual = opacidad_minima;
+            _opacidad_actual = opacidad_minima; // Limita al minimo
             _la_opacidad_esta_subiendo = true; // Llego al minimo, ahora sube
         }
     }
 
     int opacidad_entera = _opacidad_actual; // Convertimos el float a int simplemente guardandolo en un int
-    _sprite_de_la_niebla.setColor(sf::Color(255, 255, 255, opacidad_entera));
+    _sprite_de_la_niebla.setColor(sf::Color(255, 255, 255, opacidad_entera)); // Aplica la nueva opacidad al sprite
 }
 
 ///=============================================================///
@@ -61,20 +61,20 @@ void Niebla::actualizar(float tiempo_transcurrido) {
 ///=============================================================///
 void Niebla::dibujar(sf::RenderWindow& ventana_del_juego, const sf::View& vista_de_la_camara) {
 
-    sf::Vector2f tamano_de_la_camara = vista_de_la_camara.getSize();
-    sf::Vector2f centro_de_la_camara = vista_de_la_camara.getCenter();
+    sf::Vector2f tamano_de_la_camara = vista_de_la_camara.getSize(); // Cuantos pixeles ve la camara de ancho y alto
+    sf::Vector2f centro_de_la_camara = vista_de_la_camara.getCenter(); // Donde esta el centro de la camara en el mundo
 
     int recorte_x = _desplazamiento_acumulado_en_x; // Guardamos el float en un int directamente
-    int recorte_y = _desplazamiento_acumulado_en_y;
-    int recorte_ancho = tamano_de_la_camara.x;
-    int recorte_alto = tamano_de_la_camara.y;
+    int recorte_y = _desplazamiento_acumulado_en_y; // Para saber que parte de la textura mostrar
+    int recorte_ancho = tamano_de_la_camara.x; // El recorte cubre todo el ancho visible
+    int recorte_alto = tamano_de_la_camara.y; // El recorte cubre todo el alto visible
 
-    _sprite_de_la_niebla.setTextureRect(sf::IntRect(recorte_x, recorte_y, recorte_ancho, recorte_alto));
+    _sprite_de_la_niebla.setTextureRect(sf::IntRect(recorte_x, recorte_y, recorte_ancho, recorte_alto)); // Selecciona la parte de la textura a mostrar
 
     _sprite_de_la_niebla.setPosition(
-        centro_de_la_camara.x - (tamano_de_la_camara.x / 2.f),
-        centro_de_la_camara.y - (tamano_de_la_camara.y / 2.f)
+        centro_de_la_camara.x - (tamano_de_la_camara.x / 2.f), // Esquina izquierda de la camara
+        centro_de_la_camara.y - (tamano_de_la_camara.y / 2.f) // Esquina superior de la camara
     );
 
-    ventana_del_juego.draw(_sprite_de_la_niebla);
+    ventana_del_juego.draw(_sprite_de_la_niebla); // Dibuja la niebla sobre todo lo que hay en pantalla
 }

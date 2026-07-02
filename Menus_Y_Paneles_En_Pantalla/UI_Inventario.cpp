@@ -1,4 +1,4 @@
-#include "UI_Inventario.h"
+﻿#include "UI_Inventario.h"
 #include <iostream>
 #include <string>
 
@@ -6,40 +6,40 @@
 ///   CONSTRUCTOR
 ///=============================================================///
 UI_Inventario::UI_Inventario() {
-    _el_inventario_esta_abierto = false;
-    _tamano_de_cada_casillero = 50.f;
-    _margen_entre_casilleros = 10.f;
-    _desplazamiento_x = 0.f;
-    _desplazamiento_y = 0.f;
+    _el_inventario_esta_abierto = false; // Empieza oculto
+    _tamano_de_cada_casillero = 50.f; // Cada casillero mide 50x50 pixeles
+    _margen_entre_casilleros = 10.f; // 10 pixeles de espacio entre casilleros
+    _desplazamiento_x = 0.f; // Sin desplazamiento inicial
+    _desplazamiento_y = 0.f; // Sin desplazamiento inicial
 
-    _fondo_del_casillero.setSize(sf::Vector2f(_tamano_de_cada_casillero, _tamano_de_cada_casillero));
-    _fondo_del_casillero.setFillColor(sf::Color(40, 40, 40, 200));
-    _fondo_del_casillero.setOutlineColor(sf::Color::White);
-    _fondo_del_casillero.setOutlineThickness(2.f);
+    _fondo_del_casillero.setSize(sf::Vector2f(_tamano_de_cada_casillero, _tamano_de_cada_casillero)); // Tamanio del rectangulo del casillero
+    _fondo_del_casillero.setFillColor(sf::Color(40, 40, 40, 200)); // Fondo gris oscuro semitransparente
+    _fondo_del_casillero.setOutlineColor(sf::Color::White); // Borde blanco
+    _fondo_del_casillero.setOutlineThickness(2.f); // Grosor del borde
 
     if (_fuente_del_inventario.loadFromFile("assets/NorthEternal.otf") == false) {
         std::cout << "ERROR: NO SE ENCONTRO LA FUENTE PARA EL INVENTARIO." << std::endl;
     }
 
-    _texto_de_la_cantidad.setFont(_fuente_del_inventario);
-    _texto_de_la_cantidad.setCharacterSize(14);
-    _texto_de_la_cantidad.setFillColor(sf::Color::White);
-    _texto_de_la_cantidad.setOutlineColor(sf::Color::Black);
-    _texto_de_la_cantidad.setOutlineThickness(1.f);
+    _texto_de_la_cantidad.setFont(_fuente_del_inventario); // Asigna la fuente al texto de cantidad
+    _texto_de_la_cantidad.setCharacterSize(14); // Tamanio de letra
+    _texto_de_la_cantidad.setFillColor(sf::Color::White); // Color del texto
+    _texto_de_la_cantidad.setOutlineColor(sf::Color::Black); // Contorno negro para legibilidad
+    _texto_de_la_cantidad.setOutlineThickness(1.f); // Grosor del contorno
 }
 
 ///=============================================================///
 ///   AJUSTAR POSICION Y ORIGEN
 ///=============================================================///
 void UI_Inventario::ajustar_posicion(float desplazamiento_x, float desplazamiento_y) {
-    _desplazamiento_x += desplazamiento_x;
-    _desplazamiento_y += desplazamiento_y;
+    _desplazamiento_x += desplazamiento_x; // Suma el nuevo desplazamiento
+    _desplazamiento_y += desplazamiento_y; // Suma el nuevo desplazamiento
     std::cout << "HUD POS -> X: " << _desplazamiento_x << " | Y: " << _desplazamiento_y << std::endl;
 }
 
 void UI_Inventario::ajustar_origen(float origen_x, float origen_y) {
-    _origen_x += origen_x;
-    _origen_y += origen_y;
+    _origen_x += origen_x; // Mueve el origen en X
+    _origen_y += origen_y; // Mueve el origen en Y
     std::cout << "HUD ORIGEN -> X: " << _origen_x << " | Y: " << _origen_y << std::endl;
 }
 
@@ -47,56 +47,56 @@ void UI_Inventario::ajustar_origen(float origen_x, float origen_y) {
 ///   DIBUJAR
 ///=============================================================///
 void UI_Inventario::dibujar(sf::RenderWindow& ventana_del_juego, const Inventario& mochila) {
-    if (_el_inventario_esta_abierto == false) return;
+    if (_el_inventario_esta_abierto == false) return; // Si esta cerrado no dibuja nada
 
-    sf::View vista_original = ventana_del_juego.getView();
-    ventana_del_juego.setView(ventana_del_juego.getDefaultView());
+    sf::View vista_original = ventana_del_juego.getView(); // Guarda la vista del mundo
+    ventana_del_juego.setView(ventana_del_juego.getDefaultView()); // Cambia a vista de pantalla (UI no se mueve con la camara)
 
-    _fondo_del_casillero.setOrigin(_origen_x, _origen_y);
+    _fondo_del_casillero.setOrigin(_origen_x, _origen_y); // Aplica el offset de origen configurado
 
-    int indice_del_slot_seleccionado = mochila.getIndice_del_slot_seleccionado();
-    int cantidad_de_items_guardados = mochila.getCantidad_de_items_guardados();
+    int indice_del_slot_seleccionado = mochila.getIndice_del_slot_seleccionado(); // Cual casillero tiene el foco
+    int cantidad_de_items_guardados = mochila.getCantidad_de_items_guardados(); // Cuantos items tiene la mochila
 
-    float ancho_total_de_la_grilla = (CANTIDAD_DE_CASILLEROS_VISIBLES * _tamano_de_cada_casillero) + ((CANTIDAD_DE_CASILLEROS_VISIBLES - 1) * _margen_entre_casilleros);
-    float posicion_x_inicial = ((ventana_del_juego.getSize().x - ancho_total_de_la_grilla) / 2.f) + _desplazamiento_x;
-    float posicion_y_inicial = (ventana_del_juego.getSize().y - _tamano_de_cada_casillero - 20.f) + _desplazamiento_y;
+    float ancho_total_de_la_grilla = (CANTIDAD_DE_CASILLEROS_VISIBLES * _tamano_de_cada_casillero) + ((CANTIDAD_DE_CASILLEROS_VISIBLES - 1) * _margen_entre_casilleros); // Ancho total del panel
+    float posicion_x_inicial = ((ventana_del_juego.getSize().x - ancho_total_de_la_grilla) / 2.f) + _desplazamiento_x; // Centra el panel horizontalmente
+    float posicion_y_inicial = (ventana_del_juego.getSize().y - _tamano_de_cada_casillero - 20.f) + _desplazamiento_y; // Lo coloca cerca del borde inferior
 
-    _area_total_del_panel = sf::FloatRect(posicion_x_inicial, posicion_y_inicial, ancho_total_de_la_grilla, _tamano_de_cada_casillero);
+    _area_total_del_panel = sf::FloatRect(posicion_x_inicial, posicion_y_inicial, ancho_total_de_la_grilla, _tamano_de_cada_casillero); // Guarda el area para detectar clics
 
     for (int i = 0; i < CANTIDAD_DE_CASILLEROS_VISIBLES; i++) {
 
-        float posicion_x_del_casillero = posicion_x_inicial + i * (_tamano_de_cada_casillero + _margen_entre_casilleros);
+        float posicion_x_del_casillero = posicion_x_inicial + i * (_tamano_de_cada_casillero + _margen_entre_casilleros); // Posicion X de este casillero
 
-        _fondo_del_casillero.setPosition(posicion_x_del_casillero, posicion_y_inicial);
+        _fondo_del_casillero.setPosition(posicion_x_del_casillero, posicion_y_inicial); // Coloca el casillero en su lugar
 
         if (i == indice_del_slot_seleccionado) {
-            _fondo_del_casillero.setOutlineThickness(3.f);
-            _fondo_del_casillero.setOutlineColor(sf::Color::Green);
+            _fondo_del_casillero.setOutlineThickness(3.f); // Borde mas grueso para el seleccionado
+            _fondo_del_casillero.setOutlineColor(sf::Color::Green); // Borde verde para indicar seleccion
         }
         else {
-            _fondo_del_casillero.setOutlineThickness(2.f);
-            _fondo_del_casillero.setOutlineColor(sf::Color::White);
+            _fondo_del_casillero.setOutlineThickness(2.f); // Borde normal para el resto
+            _fondo_del_casillero.setOutlineColor(sf::Color::White); // Borde blanco normal
         }
-        ventana_del_juego.draw(_fondo_del_casillero);
+        ventana_del_juego.draw(_fondo_del_casillero); // Dibuja el fondo del casillero
 
         if (i < cantidad_de_items_guardados) {
 
-            const Item& item_de_este_casillero = mochila.getItem_en_el_slot(i);
+            const Item& item_de_este_casillero = mochila.getItem_en_el_slot(i); // Referencia al item en este slot
 
-            sf::Sprite sprite_del_item = item_de_este_casillero.getSprite();
-            sprite_del_item.setPosition(posicion_x_del_casillero + 9.f, posicion_y_inicial + 9.f);
-            ventana_del_juego.draw(sprite_del_item);
+            sf::Sprite sprite_del_item = item_de_este_casillero.getSprite(); // Copia del sprite para posicionarlo
+            sprite_del_item.setPosition(posicion_x_del_casillero + 9.f, posicion_y_inicial + 9.f); // Lo centra dentro del casillero
+            ventana_del_juego.draw(sprite_del_item); // Dibuja el icono del item
 
-            int cantidad_de_este_item = item_de_este_casillero.getCantidad();
+            int cantidad_de_este_item = item_de_este_casillero.getCantidad(); // Cuantos hay apilados
             if (cantidad_de_este_item > 1) {
-                _texto_de_la_cantidad.setString(std::to_string(cantidad_de_este_item));
-                _texto_de_la_cantidad.setPosition(posicion_x_del_casillero + _tamano_de_cada_casillero - 20.f, posicion_y_inicial + _tamano_de_cada_casillero - 20.f);
-                ventana_del_juego.draw(_texto_de_la_cantidad);
+                _texto_de_la_cantidad.setString(std::to_string(cantidad_de_este_item)); // Convierte el numero a texto
+                _texto_de_la_cantidad.setPosition(posicion_x_del_casillero + _tamano_de_cada_casillero - 20.f, posicion_y_inicial + _tamano_de_cada_casillero - 20.f); // En la esquina inferior derecha
+                ventana_del_juego.draw(_texto_de_la_cantidad); // Dibuja el numero de cantidad
             }
         }
     }
 
-    ventana_del_juego.setView(vista_original);
+    ventana_del_juego.setView(vista_original); // Restaura la vista del mundo
 }
 
 ///=============================================================///
@@ -104,28 +104,28 @@ void UI_Inventario::dibujar(sf::RenderWindow& ventana_del_juego, const Inventari
 ///=============================================================///
 void UI_Inventario::detectar_clic_en_un_casillero(sf::Vector2i posicion_del_mouse, Inventario& mochila, const sf::RenderWindow& ventana_del_juego) {
 
-    sf::Vector2f posicion_del_mouse_en_la_ui = ventana_del_juego.mapPixelToCoords(posicion_del_mouse, ventana_del_juego.getDefaultView());
+    sf::Vector2f posicion_del_mouse_en_la_ui = ventana_del_juego.mapPixelToCoords(posicion_del_mouse, ventana_del_juego.getDefaultView()); // Convierte el clic a coordenadas de UI
 
-    float ancho_total_de_la_grilla = (CANTIDAD_DE_CASILLEROS_VISIBLES * _tamano_de_cada_casillero) + ((CANTIDAD_DE_CASILLEROS_VISIBLES - 1) * _margen_entre_casilleros);
-    float posicion_x_inicial = ((ventana_del_juego.getSize().x - ancho_total_de_la_grilla) / 2.f) + _desplazamiento_x;
-    float posicion_y_inicial = (ventana_del_juego.getSize().y - _tamano_de_cada_casillero - 20.f) + _desplazamiento_y;
+    float ancho_total_de_la_grilla = (CANTIDAD_DE_CASILLEROS_VISIBLES * _tamano_de_cada_casillero) + ((CANTIDAD_DE_CASILLEROS_VISIBLES - 1) * _margen_entre_casilleros); // Ancho total del panel
+    float posicion_x_inicial = ((ventana_del_juego.getSize().x - ancho_total_de_la_grilla) / 2.f) + _desplazamiento_x; // Posicion X inicial del panel
+    float posicion_y_inicial = (ventana_del_juego.getSize().y - _tamano_de_cada_casillero - 20.f) + _desplazamiento_y; // Posicion Y inicial del panel
 
     for (int i = 0; i < CANTIDAD_DE_CASILLEROS_VISIBLES; i++) {
 
-        float posicion_x_del_casillero = posicion_x_inicial + i * (_tamano_de_cada_casillero + _margen_entre_casilleros);
-        sf::FloatRect limites_del_casillero(posicion_x_del_casillero, posicion_y_inicial, _tamano_de_cada_casillero, _tamano_de_cada_casillero);
+        float posicion_x_del_casillero = posicion_x_inicial + i * (_tamano_de_cada_casillero + _margen_entre_casilleros); // Posicion X de este casillero
+        sf::FloatRect limites_del_casillero(posicion_x_del_casillero, posicion_y_inicial, _tamano_de_cada_casillero, _tamano_de_cada_casillero); // Rectangulo que ocupa el casillero
 
         if (limites_del_casillero.contains(posicion_del_mouse_en_la_ui) == true) {
 
             if (i < mochila.getCantidad_de_items_guardados()) {
-                mochila.setIndice_del_slot_seleccionado(i);
+                mochila.setIndice_del_slot_seleccionado(i); // Selecciona este slot
                 std::cout << "ITEM SELECCIONADO EN EL CASILLERO " << i << "." << std::endl;
             }
             else {
-                mochila.setIndice_del_slot_seleccionado(-1);
+                mochila.setIndice_del_slot_seleccionado(-1); // Deselecciona si el casillero esta vacio
                 std::cout << "CASILLERO VACIO." << std::endl;
             }
-            return;
+            return; // Ya encontro el casillero, no sigue buscando
         }
     }
 }
@@ -134,6 +134,6 @@ void UI_Inventario::detectar_clic_en_un_casillero(sf::Vector2i posicion_del_mous
 ///   CALCULAR SI EL MOUSE ESTA SOBRE EL PANEL
 ///=============================================================///
 bool UI_Inventario::getEl_mouse_esta_sobre_el_panel(sf::Vector2i posicion_del_mouse) const {
-    if (_el_inventario_esta_abierto == false) return false;
-    return _area_total_del_panel.contains((float)posicion_del_mouse.x, (float)posicion_del_mouse.y);
+    if (_el_inventario_esta_abierto == false) return false; // Si esta cerrado, el mouse nunca esta sobre el
+    return _area_total_del_panel.contains((float)posicion_del_mouse.x, (float)posicion_del_mouse.y); // Verdadero si el mouse esta dentro del rectangulo
 }

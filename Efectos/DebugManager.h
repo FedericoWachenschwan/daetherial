@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <SFML/Graphics.hpp>
 #include "UI_Inventario.h"
 #include "Personaje.h"
@@ -9,11 +9,10 @@
 ///   con las flechas cuando el debug esta activo
 ///=================================================================///
 enum class ObjetivoDebug {
-    NINGUNO,
-    HUD,
-    PERSONAJE,
-    ENEMIGO,
-    EXTRACTOR
+    NINGUNO, // Las flechas no hacen nada
+    HUD, // Las flechas mueven el inventario en pantalla
+    PERSONAJE, // Las flechas ajustan el origen del sprite del jugador
+    ENEMIGO // Las flechas ajustan el origen del sprite del enemigo
 };
 
 ///=================================================================///
@@ -24,37 +23,35 @@ enum class ObjetivoDebug {
 class DebugManager {
 private:
 
-    bool _modo_debug_activo;
-    ObjetivoDebug _objetivo_actual;
-    sf::Vector2f _offset_del_extractor;
-    sf::Vector2f _posicion_del_tile_marcado;
-    bool _hay_tile_marcado = false;
+    bool _modo_debug_activo; // Si es verdadero el modo debug esta encendido
+    ObjetivoDebug _objetivo_actual; // A que elemento apuntan las teclas de debug
+    sf::Vector2f _posicion_del_tile_marcado; // Donde se hizo clic en el mapa
+    bool _hay_tile_marcado = false; // Si hay un tile marcado para mostrar
 
 public:
 
-    ///=============================================================///
-    ///   CONSTRUCTOR
-    ///=============================================================///
+ ///=============================================================///
+ ///   CONSTRUCTOR
+ ///=============================================================///
     DebugManager();
 
-    ///=============================================================///
-    ///   GETTERS
-    ///=============================================================///
-    bool getEsta_activo() const { return _modo_debug_activo; }
-    ObjetivoDebug getObjetivo_actual() const { return _objetivo_actual; }
+ ///=============================================================///
+ ///   GETTERS
+ ///=============================================================///
+    bool getEsta_activo() const { return _modo_debug_activo; } // Devuelve si el debug esta encendido
+    ObjetivoDebug getObjetivo_actual() const { return _objetivo_actual; } // Devuelve a que elemento apuntamos
 
-    ///=============================================================///
-    ///   OTROS METODOS - Reciben al Golem por referencia (Golem&)
-    ///   en vez de puntero: en la practica siempre se llama con un
-    ///   Golem real, nunca con "ninguno", asi que no hace falta un
-    ///   puntero que pueda ser nullptr
-    ///=============================================================///
+ ///=============================================================///
+ ///   OTROS METODOS - Reciben al Golem por referencia (Golem&)
+ ///   en vez de puntero: en la practica siempre se llama con un
+ ///   Golem real, nunca con "ninguno", asi que no hace falta un
+ ///   puntero que pueda ser nullptr
+ ///=============================================================///
     void activar_o_desactivar_debug();
     void procesar_eventos(sf::Event& evento, sf::RenderWindow& ventana, UI_Inventario& hud, Personaje& personaje, Golem& enemigo_en_foco);
     void actualizar(UI_Inventario& hud, Personaje& personaje, Golem& enemigo_en_foco);
 
     void dibujar_caja_de_colision(sf::RenderWindow& ventana, sf::FloatRect limites_de_la_caja, sf::Color color) const;
-    void dibujar_extractor(sf::RenderWindow& ventana, const sf::Texture& textura_maestra);
     void procesar_clic_en_el_mapa(sf::Vector2i posicion_del_clic, const sf::View& vista_activa, const sf::RenderWindow& ventana);
     void dibujar_grilla_del_mapa(sf::RenderWindow& ventana) const;
 };

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <SFML/Graphics.hpp>
 
 ///=================================================================///
@@ -8,32 +8,32 @@
 class Camara {
 private:
 
-    sf::View _vista_de_la_camara;
-    float _zoom_minimo;
-    float _zoom_maximo;
-    sf::FloatRect _limites_del_mundo;
-    bool _tiene_limites_establecidos;
+    sf::View _vista_de_la_camara; // La ventana recortada que ve el jugador
+    float _zoom_minimo; // Hasta que tamanio se puede acercar
+    float _zoom_maximo; // Hasta que tamanio se puede alejar
+    sf::FloatRect _limites_del_mundo; // Los bordes del mapa, para no salirse
+    bool _tiene_limites_establecidos; // Si es falso, la camara puede ir a cualquier lado
 
 public:
 
-    ///=============================================================///
-    ///   CONSTRUCTOR
-    ///=============================================================///
+ ///=============================================================///
+ ///   CONSTRUCTOR
+ ///=============================================================///
     Camara(float ancho_de_la_ventana, float alto_de_la_ventana);
 
-    ///=============================================================///
-    ///   GETTERS
-    ///=============================================================///
-    const sf::View& getVista() const { return _vista_de_la_camara; }
+ ///=============================================================///
+ ///   GETTERS
+ ///=============================================================///
+    const sf::View& getVista() const { return _vista_de_la_camara; } // Devuelve la vista para aplicarla a la ventana
 
-    ///=============================================================///
-    ///   SETTERS
-    ///=============================================================///
-    void setLimites_del_mundo(const sf::FloatRect& limites);
+ ///=============================================================///
+ ///   SETTERS
+ ///=============================================================///
+    void setLimites_del_mundo(const sf::FloatRect& limites); // Define hasta donde puede ir la camara
 
-    ///=============================================================///
-    ///   OTROS METODOS
-    ///=============================================================///
-    void seguir_al_objetivo(sf::Vector2f posicion_del_objetivo, float tiempo_transcurrido);
-    void procesar_zoom(const sf::Event& evento);
+ ///=============================================================///
+ ///   OTROS METODOS
+ ///=============================================================///
+    void seguir_al_objetivo(sf::Vector2f posicion_del_objetivo, float tiempo_transcurrido); // Mueve la camara suavemente hacia el jugador
+    void procesar_zoom(const sf::Event& evento); // Acerca o aleja la vista con la rueda del mouse
 };

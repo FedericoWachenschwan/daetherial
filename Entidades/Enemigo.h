@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "EntidadViva.h"
 #include <string>
 #include "map.h"
@@ -8,18 +8,18 @@
 ///   solo tiene "quieto" y "caminando"
 ///=================================================================///
 enum class EstadoDeAnimacionDelEnemigo {
-    QUIETO,
-    CAMINANDO
+    QUIETO, // El enemigo no se mueve
+    CAMINANDO // El enemigo persigue al jugador
 };
 
 ///=================================================================///
 ///   DIRECCION HACIA DONDE MIRA EL ENEMIGO EN EL SPRITESHEET
 ///=================================================================///
 enum class DireccionHaciaDondeMiraElEnemigo {
-    ARRIBA = 0,
-    IZQUIERDA = 1,
-    ABAJO = 2,
-    DERECHA = 3
+    ARRIBA = 0, // Mira hacia arriba
+    IZQUIERDA = 1, // Mira hacia la izquierda
+    ABAJO = 2, // Mira hacia abajo
+    DERECHA = 3 // Mira hacia la derecha
 };
 
 ///=================================================================///
@@ -29,55 +29,55 @@ enum class DireccionHaciaDondeMiraElEnemigo {
 class Enemigo : public EntidadViva {
 private:
 
-    ///=============================================================///
-    ///   ANIMACION Y DESTINO
-    ///=============================================================///
-    EstadoDeAnimacionDelEnemigo _estado_de_animacion_actual = EstadoDeAnimacionDelEnemigo::QUIETO;
-    DireccionHaciaDondeMiraElEnemigo _direccion_hacia_donde_mira = DireccionHaciaDondeMiraElEnemigo::ABAJO;
-    sf::Vector2f _posicion_a_donde_quiere_llegar;
+ ///=============================================================///
+ ///   ANIMACION Y DESTINO
+ ///=============================================================///
+    EstadoDeAnimacionDelEnemigo _estado_de_animacion_actual = EstadoDeAnimacionDelEnemigo::QUIETO; // Animacion actual del enemigo
+    DireccionHaciaDondeMiraElEnemigo _direccion_hacia_donde_mira = DireccionHaciaDondeMiraElEnemigo::ABAJO; // Hacia donde apunta el sprite
+    sf::Vector2f _posicion_a_donde_quiere_llegar; // Posicion del jugador como objetivo
 
-    ///=============================================================///
-    ///   METODOS INTERNOS
-    ///=============================================================///
+ ///=============================================================///
+ ///   METODOS INTERNOS
+ ///=============================================================///
     void decidir_animacion_y_direccion_segun_el_movimiento(sf::Vector2f direccion_en_la_que_se_mueve);
     void avanzar_de_frame_si_corresponde();
     void actualizar_el_recorte_del_sprite_segun_la_animacion();
 
 public:
 
-    ///=============================================================///
-    ///   CONSTRUCTORES
-    ///=============================================================///
+ ///=============================================================///
+ ///   CONSTRUCTORES
+ ///=============================================================///
 
-    // Constructor por defecto: arranca "sin vida", listo para ocupar
-    // un lugar libre del pool mas adelante
+ // Constructor por defecto: arranca "sin vida", listo para ocupar
+ // un lugar libre del pool mas adelante
     Enemigo();
 
-    // Recibe la ruta de la imagen para poder crear distintos tipos
-    // de monstruos con la misma clase
+ // Recibe la ruta de la imagen para poder crear distintos tipos
+ // de monstruos con la misma clase
     Enemigo(sf::Vector2f posicion_inicial, const std::string& ruta_de_la_imagen);
 
-    ///=============================================================///
-    ///   SETTERS
-    ///=============================================================///
+ ///=============================================================///
+ ///   SETTERS
+ ///=============================================================///
 
-    // Lo actualiza el GameManager cada frame con la posicion del jugador
-    void setPosicion_objetivo(sf::Vector2f posicion_del_jugador) { _posicion_a_donde_quiere_llegar = posicion_del_jugador; }
+ // Lo actualiza el GameManager cada frame con la posicion del jugador
+    void setPosicion_objetivo(sf::Vector2f posicion_del_jugador) { _posicion_a_donde_quiere_llegar = posicion_del_jugador; } // Guarda hacia donde ir
 
-    ///=============================================================///
-    ///   OTROS METODOS
-    ///=============================================================///
+ ///=============================================================///
+ ///   OTROS METODOS
+ ///=============================================================///
 
-    // "Enciende" este casillero del pool: carga la textura, lo
-    // posiciona y le devuelve la vida
+ // "Enciende" este casillero del pool: carga la textura, lo
+ // posiciona y le devuelve la vida
     void activar_en_la_posicion(sf::Vector2f posicion_inicial, const std::string& ruta_de_la_imagen);
 
-    // POLIMORFISMO: reemplazamos la version general de EntidadViva
-    // para que ademas imprima un mensaje en consola
+ // POLIMORFISMO: reemplazamos la version general de EntidadViva
+ // para que ademas imprima un mensaje en consola
     void recibir_dano(int cantidad_de_dano_recibido) override;
 
-    // Calcula la caja de colision cada vez que se llama (no es un
-    // atributo guardado), por eso no lleva "get" adelante
+ // Calcula la caja de colision cada vez que se llama (no es un
+ // atributo guardado), por eso no lleva "get" adelante
     sf::FloatRect calcular_caja_de_colision() const;
 
     void actualizar(float tiempo_transcurrido, Map& mapa_del_juego);

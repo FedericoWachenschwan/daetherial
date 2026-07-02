@@ -1,4 +1,4 @@
-#include "InputManager.h"
+﻿#include "InputManager.h"
 #include <cmath> // Para la raiz cuadrada que usamos al normalizar el movimiento
 
 ///=============================================================///
@@ -23,7 +23,7 @@ InputManager::InputManager() {
 ///   eventos puntuales (como la ruedita del mouse)
 ///=============================================================///
 void InputManager::procesar_un_evento_del_teclado_o_mouse(const sf::Event& evento_ocurrido) {
-    // No necesitamos hacer nada especial aca por ahora.
+ // No necesitamos hacer nada especial aca por ahora.
 }
 
 ///=============================================================///

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include "map.h"
@@ -11,13 +11,13 @@
 ///   soy el primer casillero del camino"
 ///=================================================================///
 struct Nodo {
-    sf::Vector2i posicion_en_la_grilla;
-    int costo_de_caminos_recorridos = 0;       // Cuanto "esfuerzo" costo llegar hasta aca (G)
-    int costo_estimado_hasta_el_destino = 0;   // Adivinanza de cuanto falta para el destino (H)
-    int costo_total = 0;                        // La suma de los dos anteriores (F). El A* siempre elige el mas bajo
-    int indice_del_padre = -1;                   // De que casillero vinimos para llegar a este. -1 = no tiene padre
-    bool esta_en_la_lista_abierta = false;       // true si todavia falta explorarlo
-    bool esta_en_la_lista_cerrada = false;       // true si ya lo exploramos y descartamos
+    sf::Vector2i posicion_en_la_grilla; // Posicion del casillero en la grilla del mapa
+    int costo_de_caminos_recorridos = 0; // Cuanto "esfuerzo" costo llegar hasta aca (G)
+    int costo_estimado_hasta_el_destino = 0; // Adivinanza de cuanto falta para el destino (H)
+    int costo_total = 0; // La suma de los dos anteriores (F). El A* siempre elige el mas bajo
+    int indice_del_padre = -1; // De que casillero vinimos para llegar a este. -1 = no tiene padre
+    bool esta_en_la_lista_abierta = false; // true si todavia falta explorarlo
+    bool esta_en_la_lista_cerrada = false; // true si ya lo exploramos y descartamos
 };
 
 ///=================================================================///
@@ -37,7 +37,7 @@ struct Nodo {
 class PathFinder {
 public:
 
-    static const int CANTIDAD_MAXIMA_DE_PASOS_EN_UN_CAMINO = 64;
+    static const int CANTIDAD_MAXIMA_DE_PASOS_EN_UN_CAMINO = 64; // Maximo de puntos en un camino calculado
 
     static int calcular_camino(Map& mapa_del_juego, sf::Vector2f posicion_de_inicio, sf::Vector2f posicion_de_destino, sf::Vector2f camino_resultado[CANTIDAD_MAXIMA_DE_PASOS_EN_UN_CAMINO]);
 

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <SFML/Graphics.hpp>
 #include <string>
 #include "VisualFX.h"
@@ -10,39 +10,39 @@
 class Map {
 private:
 
-    ///=============================================================///
-    ///   GRILLA DE COLISIONES
-    ///=============================================================///
-    static const int CANTIDAD_MAXIMA_DE_FILAS = 200;
-    static const int CANTIDAD_MAXIMA_DE_COLUMNAS = 200;
-    int _grilla_de_colisiones[CANTIDAD_MAXIMA_DE_FILAS][CANTIDAD_MAXIMA_DE_COLUMNAS];
+ ///=============================================================///
+ ///   GRILLA DE COLISIONES
+ ///=============================================================///
+    static const int CANTIDAD_MAXIMA_DE_FILAS = 200; // Limite de filas del mapa
+    static const int CANTIDAD_MAXIMA_DE_COLUMNAS = 200; // Limite de columnas del mapa
+    int _grilla_de_colisiones[CANTIDAD_MAXIMA_DE_FILAS][CANTIDAD_MAXIMA_DE_COLUMNAS]; // Tabla de paredes: -1 es libre, otro numero es solido
 
-    int _cantidad_de_filas_reales;
-    int _cantidad_de_columnas_reales;
-    int _tamano_de_cada_tile_en_pixeles;
-    float _escala_del_mapa;
+    int _cantidad_de_filas_reales; // Filas que realmente tiene el mapa cargado
+    int _cantidad_de_columnas_reales; // Columnas que realmente tiene el mapa cargado
+    int _tamano_de_cada_tile_en_pixeles; // Cuantos pixeles mide cada celda de la grilla
+    float _escala_del_mapa; // Factor de escala del mapa (1.0 = tamanio original)
 
-    sf::Texture _textura_del_fondo;
-    sf::Sprite _sprite_del_fondo;
+    sf::Texture _textura_del_fondo; // Imagen del mapa cargada desde disco
+    sf::Sprite _sprite_del_fondo; // Lo que se dibuja como fondo del nivel
 
-    int convertir_texto_a_numero(const std::string& texto) const;
+    int convertir_texto_a_numero(const std::string& texto) const; // Convierte "42" al numero 42
 
 public:
 
-    ///=============================================================///
-    ///   CONSTRUCTOR
-    ///=============================================================///
+ ///=============================================================///
+ ///   CONSTRUCTOR
+ ///=============================================================///
     Map(int tamano_de_cada_tile = 32, float escala = 1.0f);
 
-    ///=============================================================///
-    ///   GETTERS
-    ///=============================================================///
-    bool getEs_solido(int fila, int columna) const;
-    bool getHay_colision(const sf::FloatRect& rectangulo) const;
+ ///=============================================================///
+ ///   GETTERS
+ ///=============================================================///
+    bool getEs_solido(int fila, int columna) const; // Devuelve si esa celda es una pared
+    bool getHay_colision(const sf::FloatRect& rectangulo) const; // Devuelve si un rectangulo choca con el mapa
 
-    ///=============================================================///
-    ///   OTROS METODOS
-    ///=============================================================///
+ ///=============================================================///
+ ///   OTROS METODOS
+ ///=============================================================///
     bool cargar_mapa(const std::string& ruta_del_csv, const std::string& ruta_de_la_textura);
     void dibujar_mapa(sf::RenderWindow& ventana_del_juego) const;
     void dibujar_debug(sf::RenderWindow& ventana_del_juego) const;

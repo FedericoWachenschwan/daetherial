@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <SFML/Graphics.hpp>
 
 ///=================================================================///
@@ -6,11 +6,11 @@
 ///   desaparece (rastro del dash, chispa de la bola de fuego)
 ///=================================================================///
 struct Particula {
-    sf::Sprite sprite_de_la_particula;
-    sf::Vector2f velocidad_de_la_particula;
-    float opacidad_actual = 0.f;
+    sf::Sprite sprite_de_la_particula; // Lo que se dibuja en pantalla
+    sf::Vector2f velocidad_de_la_particula; // Hacia donde y a que velocidad se mueve
+    float opacidad_actual = 0.f; // De 0 (invisible) a 255 (opaco)
     float velocidad_de_desvanecimiento = 0.f; // 0 = nunca desaparece (para particulas de ambiente)
-    bool usar_modo_glow = false;
+    bool usar_modo_glow = false; // Si es verdadero, se dibuja con BlendAdd (brilla)
     float tiempo_hasta_cambio_de_direccion = 0.f; // Solo lo usan las particulas de ambiente
 };
 
@@ -19,11 +19,11 @@ struct Particula {
 ///   desaparece en un punto del mapa
 ///=================================================================///
 struct PortalSpawn {
-    sf::Sprite sprite_del_portal;
-    float tiempo_de_vida_actual = 0.f;
-    float tiempo_de_vida_maximo = 1.f;
-    int cantidad_de_frames = 1;
-    bool usar_modo_glow = true;
+    sf::Sprite sprite_del_portal; // Imagen del portal en el mundo
+    float tiempo_de_vida_actual = 0.f; // Cuanto tiempo le queda antes de desaparecer
+    float tiempo_de_vida_maximo = 1.f; // Duracion total de la animacion
+    int cantidad_de_frames = 1; // Cuantos fotogramas tiene la animacion
+    bool usar_modo_glow = true; // Los portales brillan por defecto
 };
 
 ///=================================================================///
@@ -34,35 +34,35 @@ struct PortalSpawn {
 class VisualFX {
 private:
 
-    sf::Texture _textura_de_particulas;
-    sf::Texture _textura_de_portal;
+    sf::Texture _textura_de_particulas; // Imagen compartida por todas las particulas
+    sf::Texture _textura_de_portal; // Imagen del spritesheet del portal
 
-    ///=============================================================///
-    ///   PARTICULAS DE ACCION - Rastros y chispas que nacen y
-    ///   desaparecen solos (del dash, la bola de fuego, etc)
-    ///=============================================================///
-    static const int CANTIDAD_MAXIMA_DE_PARTICULAS_DE_ACCION = 500;
-    Particula _particulas_de_accion[CANTIDAD_MAXIMA_DE_PARTICULAS_DE_ACCION];
-    int _cantidad_de_particulas_de_accion_en_uso = 0;
+ ///=============================================================///
+ ///   PARTICULAS DE ACCION - Rastros y chispas que nacen y
+ ///   desaparecen solos (del dash, la bola de fuego, etc)
+ ///=============================================================///
+    static const int CANTIDAD_MAXIMA_DE_PARTICULAS_DE_ACCION = 500; // Limite del array
+    Particula _particulas_de_accion[CANTIDAD_MAXIMA_DE_PARTICULAS_DE_ACCION]; // Array de particulas activas
+    int _cantidad_de_particulas_de_accion_en_uso = 0; // Cuantas estan vivas ahora
 
-    ///=============================================================///
-    ///   PARTICULAS DE AMBIENTE - Lucierngas, polvo. Se crean al
-    ///   cargar el mapa y bailan para siempre
-    ///=============================================================///
-    static const int CANTIDAD_MAXIMA_DE_PARTICULAS_DE_AMBIENTE = 100;
-    Particula _particulas_de_ambiente[CANTIDAD_MAXIMA_DE_PARTICULAS_DE_AMBIENTE];
-    int _cantidad_de_particulas_de_ambiente_en_uso = 0;
+ ///=============================================================///
+ ///   PARTICULAS DE AMBIENTE - Lucierngas, polvo. Se crean al
+ ///   cargar el mapa y bailan para siempre
+ ///=============================================================///
+    static const int CANTIDAD_MAXIMA_DE_PARTICULAS_DE_AMBIENTE = 100; // Limite del array
+    Particula _particulas_de_ambiente[CANTIDAD_MAXIMA_DE_PARTICULAS_DE_AMBIENTE]; // Array de particulas del ambiente
+    int _cantidad_de_particulas_de_ambiente_en_uso = 0; // Cuantas hay activas
 
-    ///=============================================================///
-    ///   PORTALES
-    ///=============================================================///
-    static const int CANTIDAD_MAXIMA_DE_PORTALES = 32;
-    PortalSpawn _portales[CANTIDAD_MAXIMA_DE_PORTALES];
-    int _cantidad_de_portales_en_uso = 0;
+ ///=============================================================///
+ ///   PORTALES
+ ///=============================================================///
+    static const int CANTIDAD_MAXIMA_DE_PORTALES = 32; // Maximo de portales al mismo tiempo
+    PortalSpawn _portales[CANTIDAD_MAXIMA_DE_PORTALES]; // Array de portales activos
+    int _cantidad_de_portales_en_uso = 0; // Cuantos portales hay ahora
 
-    void actualizar_particulas_de_accion(float tiempo_transcurrido);
-    void actualizar_particulas_de_ambiente(float tiempo_transcurrido);
-    void actualizar_portales(float tiempo_transcurrido);
+    void actualizar_particulas_de_accion(float tiempo_transcurrido); // Mueve y desvanece las chispas
+    void actualizar_particulas_de_ambiente(float tiempo_transcurrido); // Mueve las luciernagras
+    void actualizar_portales(float tiempo_transcurrido); // Avanza la animacion de portales
 
 public:
 
@@ -73,6 +73,6 @@ public:
     void agregarParticulasAmbiente(sf::Vector2f area_de_aparicion, int cantidad, sf::Color color);
     void agregarPortal(sf::Vector2f posicion, float duracion = 1.f, int frames = 6, bool glow = true);
 
-    void actualizar(float tiempo_transcurrido);
-    void dibujar(sf::RenderWindow& ventana_del_juego);
+    void actualizar(float tiempo_transcurrido); // Actualiza todos los efectos de una vez
+    void dibujar(sf::RenderWindow& ventana_del_juego); // Dibuja todos los efectos en pantalla
 };

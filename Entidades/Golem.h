@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "EntidadViva.h"
 #include "PathFinder.h"
 #include "map.h"
@@ -9,9 +9,9 @@
 ///   ESTADO DE COMPORTAMIENTO DEL GOLEM
 ///=================================================================///
 enum class EstadoDelGolem {
-    QUIETO,
-    PERSIGUIENDO,
-    ATACANDO
+    QUIETO, // El golem no persigue a nadie
+    PERSIGUIENDO, // El golem sigue al jugador
+    ATACANDO // El golem esta golpeando al jugador
 };
 
 ///=================================================================///
@@ -21,21 +21,21 @@ enum class EstadoDelGolem {
 class Golem : public EntidadViva {
 private:
 
-    ///=============================================================///
-    ///   NAVEGACION
-    ///=============================================================///
-    sf::Vector2f _camino_actual[PathFinder::CANTIDAD_MAXIMA_DE_PASOS_EN_UN_CAMINO];
-    int _cantidad_de_pasos_en_el_camino_actual = 0;
-    int _paso_actual_del_camino = 0;
-    sf::Clock _reloj_para_no_recalcular_el_camino_todo_el_tiempo;
-    sf::Vector2f _posicion_objetivo_actual;
-    sf::Vector2f _ultima_posicion_objetivo_calculada;
+ ///=============================================================///
+ ///   NAVEGACION
+ ///=============================================================///
+    sf::Vector2f _camino_actual[PathFinder::CANTIDAD_MAXIMA_DE_PASOS_EN_UN_CAMINO]; // Lista de puntos del camino calculado
+    int _cantidad_de_pasos_en_el_camino_actual = 0; // Cuantos puntos tiene el camino actual
+    int _paso_actual_del_camino = 0; // En que punto del camino esta ahora
+    sf::Clock _reloj_para_no_recalcular_el_camino_todo_el_tiempo; // Evita calcular el camino cada frame
+    sf::Vector2f _posicion_objetivo_actual; // Donde esta el jugador ahora
+    sf::Vector2f _ultima_posicion_objetivo_calculada; // Donde estaba el jugador cuando se calculo el camino
 
-    ///=============================================================///
-    ///   ESTADO Y COMBATE
-    ///=============================================================///
-    EstadoDelGolem _estado_actual_del_golem = EstadoDelGolem::QUIETO;
-    float _rango_de_ataque = 40.f;
+ ///=============================================================///
+ ///   ESTADO Y COMBATE
+ ///=============================================================///
+    EstadoDelGolem _estado_actual_del_golem = EstadoDelGolem::QUIETO; // Comportamiento actual del golem
+    float _rango_de_ataque = 40.f; // Distancia para golpear al jugador
 
     void recalcular_el_camino_si_corresponde(Map& mapa_del_juego);
     void mover_siguiendo_el_camino_calculado(float tiempo_transcurrido, Map& mapa_del_juego);
@@ -43,22 +43,22 @@ private:
 
 public:
 
-    ///=============================================================///
-    ///   CONSTRUCTOR
-    ///=============================================================///
+ ///=============================================================///
+ ///   CONSTRUCTOR
+ ///=============================================================///
     Golem(sf::Vector2f posicion_inicial);
 
-    ///=============================================================///
-    ///   SETTERS
-    ///=============================================================///
-    void setPosicion_objetivo(sf::Vector2f posicion_del_jugador) { _posicion_objetivo_actual = posicion_del_jugador; }
+ ///=============================================================///
+ ///   SETTERS
+ ///=============================================================///
+    void setPosicion_objetivo(sf::Vector2f posicion_del_jugador) { _posicion_objetivo_actual = posicion_del_jugador; } // Actualiza donde perseguir
 
-    ///=============================================================///
-    ///   OTROS METODOS
-    ///=============================================================///
+ ///=============================================================///
+ ///   OTROS METODOS
+ ///=============================================================///
 
-    // Calcula la caja de colision cada vez que se llama (no es un
-    // atributo guardado), por eso no lleva "get" adelante
+ // Calcula la caja de colision cada vez que se llama (no es un
+ // atributo guardado), por eso no lleva "get" adelante
     sf::FloatRect calcular_caja_de_colision() const;
 
     void actualizar(float tiempo_transcurrido, Map& mapa_del_juego, Personaje& jugador);
