@@ -3,16 +3,18 @@
 #include <cmath>
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 DebugManager::DebugManager() {
     _modo_debug_activo = false; // Empieza desactivado
     _objetivo_actual = ObjetivoDebug::NINGUNO; // Sin objetivo seleccionado
 }
 
 ///=============================================================///
-///   ACTIVAR O DESACTIVAR DEBUG
+///   #2 - ACTIVAR O DESACTIVAR DEBUG
 ///=============================================================///
+// #2
 void DebugManager::activar_o_desactivar_debug() {
     _modo_debug_activo = !_modo_debug_activo; // Cambia entre activado y desactivado
 
@@ -27,8 +29,9 @@ void DebugManager::activar_o_desactivar_debug() {
 }
 
 ///=============================================================///
-///   PROCESAR EVENTOS
+///   #3 - PROCESAR EVENTOS
 ///=============================================================///
+// #3
 void DebugManager::procesar_eventos(sf::Event& evento, sf::RenderWindow& ventana, UI_Inventario& hud, Personaje& personaje, Golem& enemigo_en_foco) {
     if (_modo_debug_activo == false) return; // Si el debug no esta activo, ignora todo
 
@@ -65,8 +68,9 @@ void DebugManager::procesar_eventos(sf::Event& evento, sf::RenderWindow& ventana
 }
 
 ///=============================================================///
-///   ACTUALIZAR - Movimiento continuo con flechas mantenidas
+///   #4 - ACTUALIZAR - Movimiento continuo con flechas mantenidas
 ///=============================================================///
+// #4
 void DebugManager::actualizar(UI_Inventario& hud, Personaje& personaje, Golem& enemigo_en_foco) {
     if (_modo_debug_activo == false || _objetivo_actual == ObjetivoDebug::NINGUNO) return; // Si no hay objetivo activo, no hace nada
 
@@ -107,8 +111,9 @@ void DebugManager::actualizar(UI_Inventario& hud, Personaje& personaje, Golem& e
 }
 
 ///=============================================================///
-///   DIBUJAR CAJA DE COLISION
+///   #5 - DIBUJAR CAJA DE COLISION
 ///=============================================================///
+// #5
 void DebugManager::dibujar_caja_de_colision(sf::RenderWindow& ventana, sf::FloatRect limites_de_la_caja, sf::Color color) const {
     if (_modo_debug_activo == false) return; // Solo dibuja si el debug esta activo
 
@@ -123,8 +128,9 @@ void DebugManager::dibujar_caja_de_colision(sf::RenderWindow& ventana, sf::Float
 }
 
 ///=============================================================///
-///   PROCESAR CLIC EN EL MAPA
+///   #6 - PROCESAR CLIC EN EL MAPA
 ///=============================================================///
+// #6
 void DebugManager::procesar_clic_en_el_mapa(sf::Vector2i posicion_del_clic, const sf::View& vista_activa, const sf::RenderWindow& ventana) {
     if (_modo_debug_activo == false) return; // Solo funciona con debug activo
 
@@ -140,8 +146,9 @@ void DebugManager::procesar_clic_en_el_mapa(sf::Vector2i posicion_del_clic, cons
 }
 
 ///=============================================================///
-///   DIBUJAR GRILLA DEL MAPA
+///   #7 - DIBUJAR GRILLA DEL MAPA
 ///=============================================================///
+// #7
 void DebugManager::dibujar_grilla_del_mapa(sf::RenderWindow& ventana) const {
     if (_modo_debug_activo == false || _hay_tile_marcado == false) return; // Solo si hay algo marcado
 

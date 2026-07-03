@@ -4,8 +4,9 @@
 #include <cmath>
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 Personaje::Personaje() {
     if (_textura_de_la_entidad.loadFromFile("assets/maguito_main.png") == false) { // Intenta cargar la imagen
         std::cout << "ERROR: NO SE PUDO CARGAR LA HOJA DE SPRITES DEL PERSONAJE." << std::endl; // Avisa si falla
@@ -17,7 +18,7 @@ Personaje::Personaje() {
     _velocidad_de_movimiento = 170.f; // Velocidad del personaje en px/seg
     _vida_maxima_de_la_entidad = 100; // Vida maxima del jugador
     _vida_actual_de_la_entidad = _vida_maxima_de_la_entidad; // Arranca con vida completa
-    _dano_que_hace_esta_entidad = 50; // Daño del ataque principal
+    _dano_que_hace_esta_entidad = 15; // Daño del ataque principal
     _segundos_de_cooldown_entre_ataques = 0.5f; // Medio segundo entre ataques
 
     _circulo_que_muestra_el_alcance.setRadius(_radio_de_alcance_del_hechizo); // Radio del circulo visual
@@ -29,8 +30,24 @@ Personaje::Personaje() {
 }
 
 ///=============================================================///
-///   RESTAURAR MANA
+///   #2 - REINICIAR - Devuelve al personaje a su estado inicial.
+///   Se llama cuando el jugador muere y quiere volver a jugar.
 ///=============================================================///
+// #2
+void Personaje::reiniciar() {
+    _vida_actual_de_la_entidad  = _vida_maxima_de_la_entidad; // Vida al maximo
+    _mana_actual_del_jugador    = _mana_maxima_del_jugador;   // Mana al maximo
+    _cantidad_de_oro_del_jugador = 100;                        // Oro inicial
+    _velocidad_actual_del_movimiento = sf::Vector2f(0.f, 0.f); // Sin inercia
+    _estado_de_animacion_actual = EstadoDeAnimacionDelPersonaje::QUIETO; // Animacion neutral
+    _sprite_de_la_entidad.setPosition(100.f, 100.f); // Posicion de inicio del mapa
+    _mochila_del_personaje.limpiar(); // Vacia el inventario
+}
+
+///=============================================================///
+///   #3 - RESTAURAR MANA
+///=============================================================///
+// #3
 void Personaje::restaurar_mana(int puntos_de_mana_a_restaurar) {
     int mana_despues_de_restaurar = _mana_actual_del_jugador + puntos_de_mana_a_restaurar; // Suma el mana
 
@@ -46,8 +63,9 @@ void Personaje::restaurar_mana(int puntos_de_mana_a_restaurar) {
 }
 
 ///=============================================================///
-///   CALCULAR CAJA DE COLISION
+///   #4 - CALCULAR CAJA DE COLISION
 ///=============================================================///
+// #4
 sf::FloatRect Personaje::calcular_caja_de_colision() const {
     sf::Vector2f posicion_actual = _sprite_de_la_entidad.getPosition(); // Posicion del centro del sprite
     float posicion_x_de_la_caja = posicion_actual.x - 8.f; // Desplaza 8px a la izquierda
@@ -56,8 +74,9 @@ sf::FloatRect Personaje::calcular_caja_de_colision() const {
 }
 
 ///=============================================================///
-///   PROCESAR MOVIMIENTO Y ENTRADA
+///   #5 - PROCESAR MOVIMIENTO Y ENTRADA
 ///=============================================================///
+// #5
 void Personaje::procesar_movimiento_y_entrada_del_jugador(const InputManager& entrada_del_jugador, Map& mapa_del_juego, sf::RenderWindow& ventana_del_juego, bool la_interfaz_le_esta_tapando_el_mouse, float tiempo_transcurrido) {
 
     if (_estado_de_animacion_actual == EstadoDeAnimacionDelPersonaje::ESQUIVANDO) { // Si esta en dash
@@ -118,8 +137,9 @@ void Personaje::procesar_movimiento_y_entrada_del_jugador(const InputManager& en
 }
 
 ///=============================================================///
-///   DECIDIR ANIMACION Y DIRECCION
+///   #6 - DECIDIR ANIMACION Y DIRECCION
 ///=============================================================///
+// #6
 void Personaje::decidir_animacion_y_direccion_segun_el_movimiento(sf::Vector2f direccion_en_la_que_se_mueve) {
     if (direccion_en_la_que_se_mueve.x == 0.f && direccion_en_la_que_se_mueve.y == 0.f) { // Si no se mueve
         if (_estado_de_animacion_actual == EstadoDeAnimacionDelPersonaje::APUNTANDO) { // Si estaba apuntando
@@ -157,8 +177,9 @@ void Personaje::decidir_animacion_y_direccion_segun_el_movimiento(sf::Vector2f d
 }
 
 ///=============================================================///
-///   PROCESAR LANZAMIENTO DE HECHIZOS
+///   #7 - PROCESAR LANZAMIENTO DE HECHIZOS
 ///=============================================================///
+// #7
 void Personaje::procesar_el_lanzamiento_de_hechizos(const InputManager& entrada_del_jugador, sf::RenderWindow& ventana_del_juego, bool la_interfaz_le_esta_tapando_el_mouse) {
     if (la_interfaz_le_esta_tapando_el_mouse == true) { // Si el menu cubre la pantalla
         return; // No procesa el hechizo
@@ -209,14 +230,20 @@ void Personaje::procesar_el_lanzamiento_de_hechizos(const InputManager& entrada_
             }
         }
 
-        _mana_actual_del_jugador = _mana_actual_del_jugador - costo_de_mana_de_este_hechizo; // Descuenta el mana
-        _hechizo_de_bola_de_fuego.activar(posicion_actual_del_personaje, posicion_del_mouse_en_el_mapa, _radio_de_alcance_del_hechizo); // Dispara la bola de fuego
+        for (int b = 0; b < CANTIDAD_MAXIMA_DE_BOLAS; b++) { // Busca la primera bola libre del pool
+            if (_bolas_de_fuego[b].getEsta_activa() == false) { // Si esta bola no esta en vuelo
+                _mana_actual_del_jugador = _mana_actual_del_jugador - costo_de_mana_de_este_hechizo; // Descuenta el mana
+                _bolas_de_fuego[b].activar(posicion_actual_del_personaje, posicion_del_mouse_en_el_mapa, _radio_de_alcance_del_hechizo); // Dispara esta bola
+                break; // Solo activa una por clic
+            }
+        }
     }
 }
 
 ///=============================================================///
-///   ACTUALIZAR ANIMACION Y HECHIZO
+///   #8 - ACTUALIZAR ANIMACION Y HECHIZO
 ///=============================================================///
+// #8
 void Personaje::actualizar_animacion_y_hechizo(float tiempo_transcurrido, VisualFX& efectos_visuales) {
 
     if (_estado_de_animacion_actual == EstadoDeAnimacionDelPersonaje::ESQUIVANDO) { // Si esta en dash
@@ -233,12 +260,14 @@ void Personaje::actualizar_animacion_y_hechizo(float tiempo_transcurrido, Visual
         }
     }
 
-    if (getEsta_muerta() == true) { // Si el personaje no tiene vida
+    if (getEsta_muerto() == true) { // Si el personaje no tiene vida
         _estado_de_animacion_actual = EstadoDeAnimacionDelPersonaje::MUERTO; // Fuerza animacion de muerte
         if (_numero_de_frame_actual >= 5) { // Si llego al ultimo frame de muerte
             _numero_de_frame_actual = 5; // Congela en el ultimo frame
             actualizar_el_recorte_del_sprite_segun_la_animacion(); // Actualiza el sprite
-            _hechizo_de_bola_de_fuego.actualizar(tiempo_transcurrido, efectos_visuales); // Sigue actualizando hechizos activos
+            for (int b = 0; b < CANTIDAD_MAXIMA_DE_BOLAS; b++) {
+                _bolas_de_fuego[b].actualizar(tiempo_transcurrido, efectos_visuales); // Sigue actualizando bolas activas
+            }
             return; // No procesa mas
         }
     }
@@ -265,12 +294,15 @@ void Personaje::actualizar_animacion_y_hechizo(float tiempo_transcurrido, Visual
     }
 
     actualizar_el_recorte_del_sprite_segun_la_animacion(); // Aplica el frame actual al sprite
-    _hechizo_de_bola_de_fuego.actualizar(tiempo_transcurrido, efectos_visuales); // Mueve el hechizo si esta activo
+    for (int b = 0; b < CANTIDAD_MAXIMA_DE_BOLAS; b++) {
+        _bolas_de_fuego[b].actualizar(tiempo_transcurrido, efectos_visuales); // Mueve cada bola activa
+    }
 }
 
 ///=============================================================///
-///   AVANZAR DE FRAME
+///   #9 - AVANZAR DE FRAME
 ///=============================================================///
+// #9
 void Personaje::avanzar_de_frame_y_decidir_si_cambia_de_animacion() {
     switch (_estado_de_animacion_actual) {
     case EstadoDeAnimacionDelPersonaje::QUIETO:
@@ -310,8 +342,9 @@ void Personaje::avanzar_de_frame_y_decidir_si_cambia_de_animacion() {
 }
 
 ///=============================================================///
-///   ACTUALIZAR RECORTE DEL SPRITE
+///   #10 - ACTUALIZAR RECORTE DEL SPRITE
 ///=============================================================///
+// #10
 void Personaje::actualizar_el_recorte_del_sprite_segun_la_animacion() {
     int fila_del_spritesheet = 0; // Numero de fila en la imagen grande
     EstadoDeAnimacionDelPersonaje animacion_a_usar_para_calcular_la_fila = _estado_de_animacion_actual; // Estado que define la fila
@@ -336,10 +369,13 @@ void Personaje::actualizar_el_recorte_del_sprite_segun_la_animacion() {
 }
 
 ///=============================================================///
-///   DIBUJAR
+///   #11 - DIBUJAR
 ///=============================================================///
+// #11
 void Personaje::dibujar(sf::RenderWindow& ventana_del_juego) {
-    _hechizo_de_bola_de_fuego.dibujar(ventana_del_juego); // Dibuja la bola de fuego si esta activa
+    for (int b = 0; b < CANTIDAD_MAXIMA_DE_BOLAS; b++) {
+        _bolas_de_fuego[b].dibujar(ventana_del_juego); // Dibuja cada bola activa del pool
+    }
 
     if (_estado_de_animacion_actual == EstadoDeAnimacionDelPersonaje::APUNTANDO) { // Si esta apuntando
         ventana_del_juego.draw(_circulo_que_muestra_el_alcance); // Muestra el circulo de rango

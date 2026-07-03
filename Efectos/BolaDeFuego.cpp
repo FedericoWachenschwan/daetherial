@@ -5,8 +5,9 @@
 #include <cstdlib>
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 BolaDeFuego::BolaDeFuego() {
     _la_bola_esta_activa = false; // Empieza apagada
     _velocidad_de_vuelo = 400.f; // Pixeles por segundo
@@ -35,8 +36,9 @@ BolaDeFuego::BolaDeFuego() {
 }
 
 ///=============================================================///
-///   ACTIVAR - Apunta la bola hacia el objetivo y la lanza
+///   #2 - ACTIVAR - Apunta la bola hacia el objetivo y la lanza
 ///=============================================================///
+// #2
 void BolaDeFuego::activar(sf::Vector2f posicion_de_inicio, sf::Vector2f posicion_del_objetivo, float rango_en_pixeles) {
     if (_el_cooldown_ya_paso == false || _la_bola_esta_activa == true) {
         return; // No se puede lanzar si ya hay una activa o el cooldown no paso
@@ -69,8 +71,9 @@ void BolaDeFuego::activar(sf::Vector2f posicion_de_inicio, sf::Vector2f posicion
 }
 
 ///=============================================================///
-///   ACTUALIZAR - Mueve la bola y genera su rastro de chispas
+///   #3 - ACTUALIZAR - Mueve la bola y genera su rastro de chispas
 ///=============================================================///
+// #3
 void BolaDeFuego::actualizar(float tiempo_transcurrido, VisualFX& efectos_visuales) {
 
     if (_el_cooldown_ya_paso == false) {
@@ -106,8 +109,9 @@ void BolaDeFuego::actualizar(float tiempo_transcurrido, VisualFX& efectos_visual
 }
 
 ///=============================================================///
-///   DIBUJAR
+///   #4 - DIBUJAR
 ///=============================================================///
+// #4
 void BolaDeFuego::dibujar(sf::RenderWindow& ventana_del_juego) {
     if (_la_bola_esta_activa == true) {
         ventana_del_juego.draw(_sprite_de_la_bola, sf::BlendAdd); // BlendAdd hace que brille sobre lo que hay debajo

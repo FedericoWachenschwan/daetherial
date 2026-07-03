@@ -66,13 +66,18 @@ private:
 
 public:
 
+ // #1
     VisualFX();
-
+ // #2
     void agregarRastro(sf::Sprite sprite_base, sf::Color color, float velocidad_de_desvanecimiento = 500.f, bool glow = true);
+ // #3
     void agregarParticulaDinamica(const sf::Texture& textura, sf::Vector2f posicion, sf::Vector2f velocidad, sf::Color color, float velocidad_de_desvanecimiento, bool glow);
+ // #4
     void agregarParticulasAmbiente(sf::Vector2f area_de_aparicion, int cantidad, sf::Color color);
+ // #5
     void agregarPortal(sf::Vector2f posicion, float duracion = 1.f, int frames = 6, bool glow = true);
-
+ // #6
     void actualizar(float tiempo_transcurrido); // Actualiza todos los efectos de una vez
+ // #7
     void dibujar(sf::RenderWindow& ventana_del_juego); // Dibuja todos los efectos en pantalla
 };

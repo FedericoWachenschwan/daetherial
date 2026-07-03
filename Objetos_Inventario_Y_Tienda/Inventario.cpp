@@ -3,8 +3,9 @@
 #include <iostream>
 
 ///=============================================================///
-///   QUITAR SLOT Y CORRER LOS SIGUIENTES
+///   #1 - QUITAR SLOT Y CORRER LOS SIGUIENTES
 ///=============================================================///
+// #1
 void Inventario::quitar_slot_y_correr_los_siguientes(int indice_a_quitar) {
     for (int i = indice_a_quitar; i < _cantidad_de_items_guardados - 1; i++) {
         _items_guardados[i] = _items_guardados[i + 1]; // Mueve cada item un lugar hacia adelante
@@ -13,8 +14,9 @@ void Inventario::quitar_slot_y_correr_los_siguientes(int indice_a_quitar) {
 }
 
 ///=============================================================///
-///   AGARRAR ITEM
+///   #2 - AGARRAR ITEM
 ///=============================================================///
+// #2
 bool Inventario::agarrar_item(Item nuevo_item) {
 
     for (int i = 0; i < _cantidad_de_items_guardados; i++) {
@@ -49,8 +51,9 @@ bool Inventario::agarrar_item(Item nuevo_item) {
 
 
 ///=============================================================///
-///   CALCULAR CANTIDAD TOTAL DE UN ITEM
+///   #3 - CALCULAR CANTIDAD TOTAL DE UN ITEM
 ///=============================================================///
+// #3
 int Inventario::calcular_cantidad_total_de_un_item(int id_del_item) const {
     int total = 0; // Acumula la suma total
     for (int i = 0; i < _cantidad_de_items_guardados; i++) {
@@ -63,8 +66,29 @@ int Inventario::calcular_cantidad_total_de_un_item(int id_del_item) const {
 
 
 ///=============================================================///
-///   USAR ITEM
+///   #4 - CONSUMIR UN ITEM DE TIPO
 ///=============================================================///
+// #4
+bool Inventario::consumir_un_item_de_tipo(TipoDeItem tipo) {
+    for (int i = 0; i < _cantidad_de_items_guardados; i++) {
+        if (_items_guardados[i].getTipo() == tipo) {
+            int nueva_cantidad = _items_guardados[i].getCantidad() - 1; // Resta una unidad
+            if (nueva_cantidad <= 0) {
+                quitar_slot_y_correr_los_siguientes(i); // Elimina el slot si se agoto
+            }
+            else {
+                _items_guardados[i].setCantidad(nueva_cantidad); // Actualiza la cantidad
+            }
+            return true; // Se consumio con exito
+        }
+    }
+    return false; // No habia items de ese tipo
+}
+
+///=============================================================///
+///   #5 - USAR ITEM
+///=============================================================///
+// #5
 void Inventario::usar_item(int indice_del_slot, Personaje& jugador) {
 
     if (indice_del_slot < 0 || indice_del_slot >= _cantidad_de_items_guardados) {
@@ -87,12 +111,18 @@ void Inventario::usar_item(int indice_del_slot, Personaje& jugador) {
             std::cout << "POCION AGOTADA." << std::endl;
         }
     }
+
+    bool es_baculo_arcano = tipo_del_item_usado == TipoDeItem::BACULO_ARCANO; // Verdadero si se equipo el baculo
+    if (es_baculo_arcano == true) {
+        quitar_slot_y_correr_los_siguientes(indice_del_slot); // El baculo desaparece al equiparse
+    }
 }
 
 
 ///=============================================================///
-///   EXTRAER ITEM SELECCIONADO
+///   #6 - EXTRAER ITEM SELECCIONADO
 ///=============================================================///
+// #6
 Item Inventario::extraer_item_seleccionado() {
     if (_indice_del_slot_seleccionado >= 0 && _indice_del_slot_seleccionado < _cantidad_de_items_guardados) {
         Item copia_del_item_extraido = _items_guardados[_indice_del_slot_seleccionado]; // Guarda una copia del item

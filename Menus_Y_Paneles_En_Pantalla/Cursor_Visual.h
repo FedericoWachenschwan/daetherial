@@ -12,12 +12,15 @@ private:
 
 public:
 
+ // #1
     Cursor_Visual();
 
  // sf::RenderWindow es la ventana del juego que maneja todo lo visual.
  // Se pasa con & (referencia) porque no queremos copiarla, queremos trabajar
  // sobre la misma ventana que ya existe en GameManager. Por eso no llega
  // con un tipo nuevo, ya tiene el suyo: sf::RenderWindow
+ // #2
     void actualizar(sf::RenderWindow& ventana_del_juego); // Mueve el sprite a donde está el mouse
+ // #3
     void dibujar(sf::RenderWindow& ventana_del_juego); // Dibuja el cursor en pantalla
 };

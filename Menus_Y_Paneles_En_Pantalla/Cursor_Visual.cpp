@@ -2,8 +2,9 @@
 #include <iostream> // Para avisar en consola si algo falla
 
 ///=======================================================///
-///     CONSTRUCTOR - Carga la imagen y oculta el cursor de Windows
+///     #1 - CONSTRUCTOR - Carga la imagen y oculta el cursor de Windows
 ///=======================================================///
+// #1
 Cursor_Visual::Cursor_Visual() {
 
  // Intentamos cargar la imagen del cursor desde la carpeta assets
@@ -12,12 +13,13 @@ Cursor_Visual::Cursor_Visual() {
     }
 
     _sprite_cursor.setTexture(_textura_cursor); // Le asignamos la imagen al sprite
-    _sprite_cursor.setScale(1.5f, 1.5f);// Duplicamos el tamaño del cursor (1.f sería el tamaño original)
+    _sprite_cursor.setScale(0.15f, 0.15f); // Escala para el cursor de gauntlet (405x376 -> ~60x56 px)
 }
 
 ///====================================================================///
-///     ACTUALIZAR - Mueve el sprite a la posición actual del mouse
+///     #2 - ACTUALIZAR - Mueve el sprite a la posición actual del mouse
 ///====================================================================///
+// #2
 void Cursor_Visual::actualizar(sf::RenderWindow& ventana_del_juego) {
  // sf::RenderWindow es la clase de SFML que representa la ventana del juego.
  // Maneja todo: dibujar, leer el mouse, cambiar vistas, etc.
@@ -37,8 +39,9 @@ void Cursor_Visual::actualizar(sf::RenderWindow& ventana_del_juego) {
 }
 
 ///=======================================================///
-///     DIBUJAR - Renderiza el cursor encima de todo lo demás
+///     #3 - DIBUJAR - Renderiza el cursor encima de todo lo demás
 ///=======================================================///
+// #3
 void Cursor_Visual::dibujar(sf::RenderWindow& ventana_del_juego) {
 
  // getDefaultView() devuelve la vista original de la ventana, que muestra

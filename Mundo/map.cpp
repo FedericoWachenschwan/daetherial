@@ -4,8 +4,9 @@
 #include <sstream>
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 Map::Map(int tamano_de_cada_tile, float escala) {
     _tamano_de_cada_tile_en_pixeles = tamano_de_cada_tile; // Guarda el tamanio de cada celda
     _escala_del_mapa = escala; // Guarda el factor de escala
@@ -16,8 +17,9 @@ Map::Map(int tamano_de_cada_tile, float escala) {
 }
 
 ///=============================================================///
-///   CONVERTIR TEXTO A NUMERO
+///   #2 - CONVERTIR TEXTO A NUMERO
 ///=============================================================///
+// #2
 int Map::convertir_texto_a_numero(const std::string& texto) const {
 
     int numero_resultado = 0; // Acumula el resultado aqui
@@ -44,8 +46,9 @@ int Map::convertir_texto_a_numero(const std::string& texto) const {
 }
 
 ///=============================================================///
-///   CARGAR MAPA
+///   #3 - CARGAR MAPA
 ///=============================================================///
+// #3
 bool Map::cargar_mapa(const std::string& ruta_del_csv, const std::string& ruta_de_la_textura) {
 
     _cantidad_de_filas_reales = 0; // Reinicia por si se carga un nuevo mapa
@@ -97,23 +100,26 @@ bool Map::cargar_mapa(const std::string& ruta_del_csv, const std::string& ruta_d
 }
 
 ///=============================================================///
-///   DIBUJAR MAPA
+///   #4 - DIBUJAR MAPA
 ///=============================================================///
+// #4
 void Map::dibujar_mapa(sf::RenderWindow& ventana_del_juego) const {
     ventana_del_juego.draw(_sprite_del_fondo); // Dibuja la imagen de fondo del nivel
 }
 
 ///=============================================================///
-///   GENERAR CLIMA
+///   #5 - GENERAR CLIMA
 ///=============================================================///
+// #5
 void Map::generar_clima(VisualFX& efectos_visuales) {
     sf::Vector2f tamano_del_area_del_clima(2000.f, 2000.f); // El clima cubre toda la zona del mapa
     efectos_visuales.agregarParticulasAmbiente(tamano_del_area_del_clima, 50, sf::Color(130, 200, 36)); // Agrega 50 luciernagras verdes
 }
 
 ///=============================================================///
-///   GETTERS
+///   #6 - GETTERS
 ///=============================================================///
+// #6
 bool Map::getEs_solido(int fila, int columna) const {
     if (fila < 0 || fila >= _cantidad_de_filas_reales || columna < 0 || columna >= _cantidad_de_columnas_reales) {
         return true; // Fuera del mapa se considera pared
@@ -121,6 +127,7 @@ bool Map::getEs_solido(int fila, int columna) const {
     return _grilla_de_colisiones[fila][columna] != -1; // -1 es libre, cualquier otro valor es solido
 }
 
+// #7
 bool Map::getHay_colision(const sf::FloatRect& rectangulo) const {
 
     float tamano_real_de_cada_tile = _tamano_de_cada_tile_en_pixeles * _escala_del_mapa; // Tamanio del tile con escala aplicada
@@ -142,8 +149,9 @@ bool Map::getHay_colision(const sf::FloatRect& rectangulo) const {
 }
 
 ///=============================================================///
-///   DIBUJAR DEBUG
+///   #8 - DIBUJAR DEBUG
 ///=============================================================///
+// #8
 void Map::dibujar_debug(sf::RenderWindow& ventana_del_juego) const {
 
     float tamano_real_de_cada_tile = _tamano_de_cada_tile_en_pixeles * _escala_del_mapa; // Tamanio del tile en pantalla

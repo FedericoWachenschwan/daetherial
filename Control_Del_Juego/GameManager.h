@@ -128,6 +128,7 @@ public:
  ///=============================================================///
     bool partida_ganada; // true si el jugador derroto al Golem
     int enemigos_eliminados; // contador de enemigos muertos en la partida
+    bool la_gema_fue_entregada; // true si la Gema Arcana ya aparecio en el suelo esta partida
     float tiempo_final_de_la_partida; // duracion total de la partida en segundos
     sf::Clock reloj_de_partida; // reloj que mide cuanto tiempo lleva la partida
     std::unique_ptr<Logro[]> logros; // arreglo dinamico con todos los logros del juego
@@ -142,16 +143,24 @@ public:
  ///=============================================================///
  ///   CONSTRUCTOR
  ///=============================================================///
+ // #1
     GameManager(); // inicializa todos los sistemas del juego
 
  ///=============================================================///
  ///   OTROS METODOS
  ///=============================================================///
+ // #2
     void cambiar_musica(int id_de_la_musica); // detiene la musica actual y reproduce la nueva
+ // #3
     void spawnear_drop_seguro(Item item_a_soltar, float posicion_x, float posicion_y); // coloca un item en el mundo evitando paredes
+ // #4
     void resolver_colision_entre_personaje_y_golem(); // empuja al personaje si choca con el Golem
+ // #5
     void guardar_logros(); // escribe los logros en un archivo binario
+ // #6
     void cargar_logros(); // lee los logros desde el archivo binario
+ // #7
+    void reiniciar_partida(); // resetea todo el estado de juego y vuelve al menu
 };
 
 ///=================================================================///

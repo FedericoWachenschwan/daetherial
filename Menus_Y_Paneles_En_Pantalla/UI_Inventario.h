@@ -29,8 +29,6 @@ private:
  ///=============================================================///
  ///   AREA REAL DE LA GRILLA
  ///=============================================================///
-    sf::FloatRect _area_total_del_panel; // Rectangulo que ocupa toda la barra de items
-
     bool _el_inventario_esta_abierto = false; // Si es falso, no se dibuja ni responde a clics
 
 public:
@@ -38,29 +36,30 @@ public:
  ///=============================================================///
  ///   CONSTRUCTOR
  ///=============================================================///
+ // #1
     UI_Inventario();
 
  ///=============================================================///
  ///   GETTERS
  ///=============================================================///
+ // #2
     bool getEsta_abierto() const { return _el_inventario_esta_abierto; } // Devuelve si el inventario esta visible
 
  ///=============================================================///
  ///   SETTERS
  ///=============================================================///
-    void setAbierto(bool abierto) { _el_inventario_esta_abierto = abierto; } // Muestra u oculta el inventario
 
  ///=============================================================///
  ///   OTROS METODOS
  ///=============================================================///
+ // #4
     void dibujar(sf::RenderWindow& ventana_del_juego, const Inventario& mochila);
+ // #5
     void ajustar_posicion(float desplazamiento_x, float desplazamiento_y); // Mueve el panel de posicion
+ // #6
     void ajustar_origen(float origen_x, float origen_y); // Ajusta el origen de los casilleros
+ // #7
     void detectar_clic_en_un_casillero(sf::Vector2i posicion_del_mouse, Inventario& mochila, const sf::RenderWindow& ventana_del_juego);
+ // #8
     void alternar_abierto_y_cerrado() { _el_inventario_esta_abierto = !_el_inventario_esta_abierto; } // Cambia entre abierto y cerrado
-
- // Combina un chequeo de "esta abierto" con un calculo de
- // posicion: no es un simple devolver-un-atributo, por eso no
- // lleva "get" adelante
-    bool getEl_mouse_esta_sobre_el_panel(sf::Vector2i posicion_del_mouse) const; // Verdadero si el mouse esta sobre la barra
 };

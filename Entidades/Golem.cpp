@@ -8,8 +8,9 @@ const int ANCHO_DE_CADA_FRAME_DEL_GOLEM = 152; // Ancho en pixeles de cada image
 const int ALTO_DE_CADA_FRAME_DEL_GOLEM = 147; // Alto en pixeles de cada imagen del golem
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 Golem::Golem(sf::Vector2f posicion_inicial) {
     if (_textura_de_la_entidad.loadFromFile("assets/golemhielo.png") == false) { // Intenta cargar la imagen
         std::cout << "ERROR: NO SE PUDO CARGAR LA TEXTURA DEL GOLEM." << std::endl; // Avisa si falla
@@ -26,23 +27,25 @@ Golem::Golem(sf::Vector2f posicion_inicial) {
     _sprite_de_la_entidad.setTextureRect(sf::IntRect(0, 0, ANCHO_DE_CADA_FRAME_DEL_GOLEM, ALTO_DE_CADA_FRAME_DEL_GOLEM)); // Recorta el primer frame
 
     _velocidad_de_movimiento = 55.f; // Velocidad del golem en px/seg
-    _vida_maxima_de_la_entidad = 250; // Vida maxima del jefe
-    _vida_actual_de_la_entidad = 250; // Arranca con vida completa
+    _vida_maxima_de_la_entidad = 2500; // Vida maxima del jefe
+    _vida_actual_de_la_entidad = 2500; // Arranca con vida completa
     _dano_que_hace_esta_entidad = 25; // Daño que hace al jugador
     _segundos_de_cooldown_entre_ataques = 1.5f; // 1.5 segundos entre golpes
 }
 
 ///=============================================================///
-///   CALCULAR CAJA DE COLISION
+///   #2 - CALCULAR CAJA DE COLISION
 ///=============================================================///
+// #2
 sf::FloatRect Golem::calcular_caja_de_colision() const {
     sf::Vector2f posicion_actual = _sprite_de_la_entidad.getPosition(); // Posicion actual del golem
     return sf::FloatRect(posicion_actual.x - 16.f, posicion_actual.y - 16.f, 32.f, 32.f); // Caja de 32x32 centrada
 }
 
 ///=============================================================///
-///   ACTUALIZAR
+///   #3 - ACTUALIZAR
 ///=============================================================///
+// #3
 void Golem::actualizar(float tiempo_transcurrido, Map& mapa_del_juego, Personaje& jugador) {
 
     sf::Vector2f posicion_antes_de_actualizar = _sprite_de_la_entidad.getPosition(); // Posicion al inicio del frame
@@ -80,8 +83,9 @@ void Golem::actualizar(float tiempo_transcurrido, Map& mapa_del_juego, Personaje
 }
 
 ///=============================================================///
-///   RECALCULAR CAMINO
+///   #4 - RECALCULAR CAMINO
 ///=============================================================///
+// #4
 void Golem::recalcular_el_camino_si_corresponde(Map& mapa_del_juego) {
     sf::Vector2f centro_actual_del_golem = calcular_centro_fisico(); // Posicion del centro del golem
 
@@ -105,8 +109,9 @@ void Golem::recalcular_el_camino_si_corresponde(Map& mapa_del_juego) {
 }
 
 ///=============================================================///
-///   MOVER SIGUIENDO EL CAMINO
+///   #5 - MOVER SIGUIENDO EL CAMINO
 ///=============================================================///
+// #5
 void Golem::mover_siguiendo_el_camino_calculado(float tiempo_transcurrido, Map& mapa_del_juego) {
     if (_paso_actual_del_camino >= _cantidad_de_pasos_en_el_camino_actual) { // Si ya recorrio todo el camino
         return; // No hay mas puntos donde ir
@@ -129,8 +134,9 @@ void Golem::mover_siguiendo_el_camino_calculado(float tiempo_transcurrido, Map& 
 }
 
 ///=============================================================///
-///   ANIMACION
+///   #6 - ANIMACION
 ///=============================================================///
+// #6
 void Golem::actualizar_animacion_segun_el_movimiento(float tiempo_transcurrido, sf::Vector2f direccion_hacia_donde_se_mueve) {
 
     static int fila_segun_la_direccion = 0; // Guarda la fila entre llamadas (static = persiste)
@@ -179,8 +185,9 @@ void Golem::actualizar_animacion_segun_el_movimiento(float tiempo_transcurrido, 
 }
 
 ///=============================================================///
-///   DIBUJAR EL CAMINO CALCULADO
+///   #7 - DIBUJAR EL CAMINO CALCULADO
 ///=============================================================///
+// #7
 void Golem::dibujar_camino_calculado(sf::RenderWindow& ventana_del_juego) const {
     for (int i = _paso_actual_del_camino; i < _cantidad_de_pasos_en_el_camino_actual; i++) { // Para cada punto restante del camino
         sf::CircleShape puntito(3.f); // Circulo pequeño de 3px de radio
@@ -191,6 +198,7 @@ void Golem::dibujar_camino_calculado(sf::RenderWindow& ventana_del_juego) const 
     }
 }
 
+// #8
 void Golem::dibujar(sf::RenderWindow& ventana_del_juego) {
     dibujar_sprite_y_barra_de_vida(ventana_del_juego); // Dibuja el golem y su barra de vida
 }

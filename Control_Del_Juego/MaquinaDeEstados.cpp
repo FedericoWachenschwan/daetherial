@@ -69,6 +69,16 @@ void actualizar_pantalla_creditos(GameManager& gm, float dt);
 void renderizar_pantalla_creditos(GameManager& gm);
 
 ///=================================================================///
+///   DECLARACIONES ANTICIPADAS - PANTALLA 7: MUERTE
+///=================================================================///
+// #21
+void procesar_eventos_pantalla_muerte(GameManager& gm, sf::Event& evento);
+// #22
+void actualizar_pantalla_muerte(GameManager& gm, float dt);
+// #23
+void renderizar_pantalla_muerte(GameManager& gm);
+
+///=================================================================///
 ///=================================================================///
 ///   LAS 3 FUNCIONES PRINCIPALES - El "semaforo": reparten el
 ///   trabajo segun la pantalla actual
@@ -81,6 +91,7 @@ void procesar_eventos_segun_la_pantalla(GameManager& gm, sf::Event& evento) {
     else if (gm.pantalla_actual == PantallaDelJuego::JUGANDO) procesar_eventos_pantalla_jugando(gm, evento); // Si estamos JUGANDO, procesa sus eventos
     else if (gm.pantalla_actual == PantallaDelJuego::CREDITOS) procesar_eventos_pantalla_creditos(gm, evento);// Si estamos en CREDITOS, procesa sus eventos
     else if (gm.pantalla_actual == PantallaDelJuego::LOGROS) procesar_eventos_pantalla_logros(gm, evento); // Si estamos en LOGROS, procesa sus eventos
+    else if (gm.pantalla_actual == PantallaDelJuego::MUERTE) procesar_eventos_pantalla_muerte(gm, evento); // Si estamos en MUERTE, procesa sus eventos
 }
 
 void actualizar_segun_la_pantalla(GameManager& gm, float tiempo_transcurrido) {
@@ -90,6 +101,7 @@ void actualizar_segun_la_pantalla(GameManager& gm, float tiempo_transcurrido) {
     else if (gm.pantalla_actual == PantallaDelJuego::JUGANDO) actualizar_pantalla_jugando(gm, tiempo_transcurrido); // Actualiza la lógica del JUEGO
     else if (gm.pantalla_actual == PantallaDelJuego::CREDITOS) actualizar_pantalla_creditos(gm, tiempo_transcurrido); // Actualiza la lógica de CREDITOS
     else if (gm.pantalla_actual == PantallaDelJuego::LOGROS) actualizar_pantalla_logros(gm, tiempo_transcurrido); // Actualiza la lógica de LOGROS
+    else if (gm.pantalla_actual == PantallaDelJuego::MUERTE) actualizar_pantalla_muerte(gm, tiempo_transcurrido); // Actualiza la lógica de MUERTE
 }
 
 void renderizar_segun_la_pantalla(GameManager& gm) {
@@ -99,6 +111,7 @@ void renderizar_segun_la_pantalla(GameManager& gm) {
     else if (gm.pantalla_actual == PantallaDelJuego::JUGANDO) renderizar_pantalla_jugando(gm); // Dibuja el JUEGO
     else if (gm.pantalla_actual == PantallaDelJuego::CREDITOS) renderizar_pantalla_creditos(gm); // Dibuja los CREDITOS
     else if (gm.pantalla_actual == PantallaDelJuego::LOGROS) renderizar_pantalla_logros(gm); // Dibuja los LOGROS
+    else if (gm.pantalla_actual == PantallaDelJuego::MUERTE) renderizar_pantalla_muerte(gm); // Dibuja la pantalla de MUERTE
 }
 
 ///=================================================================///
@@ -377,7 +390,7 @@ void renderizar_pantalla_historia(GameManager& gm) {
         texto_continuar.setCharacterSize(18); // Tamaño de letra 18
         texto_continuar.setFillColor(sf::Color::White); // Color blanco
         texto_continuar.setString("Presione Enter para continuar..."); // Texto que se muestra
-        texto_continuar.setPosition(430.f, 680.f); // Posición en la parte inferior
+        texto_continuar.setPosition(490.f, 650.f); // Posición en la parte inferior
         gm.ventana.draw(texto_continuar); // Dibuja el texto
     }
 }
@@ -432,7 +445,6 @@ void procesar_eventos_pantalla_jugando(GameManager& gm, sf::Event& evento) {
         }
     }
 
-    gm.input.procesar_un_evento_del_teclado_o_mouse(evento); // Procesa teclado y mouse para el juego
     gm.camara.procesar_zoom(evento); // Procesa el zoom de la cámara
 
     if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::F3) { // Si se presionó F3
@@ -529,6 +541,10 @@ void actualizar_pantalla_jugando(GameManager& gm, float dt) {
             gm.pantalla_actual = PantallaDelJuego::LOGROS; // Cambia a la pantalla de logros
         }
     }
+
+    if (gm.personaje.getEsta_muerto() == true) { // Si el jugador se quedó sin vida
+        gm.pantalla_actual = PantallaDelJuego::MUERTE; // Cambia a la pantalla de muerte
+    }
 }
 
 // #12
@@ -601,6 +617,14 @@ void renderizar_pantalla_jugando(GameManager& gm) {
     texto_del_mana.setPosition(1100.f, 50.f); // Posición debajo de la vida
     gm.ventana.draw(texto_del_mana); // Dibuja el texto de maná
 
+    sf::Text texto_del_dano; // Crea el texto de daño
+    texto_del_dano.setFont(gm.fuente_de_textos); // Asigna la fuente del juego
+    texto_del_dano.setCharacterSize(16); // Tamaño de letra 16
+    texto_del_dano.setFillColor(sf::Color(255, 140, 0)); // Color naranja
+    texto_del_dano.setString("Dano: " + std::to_string(gm.personaje.getDano_que_hace())); // Texto con el daño del personaje
+    texto_del_dano.setPosition(1100.f, 70.f); // Posición debajo del maná
+    gm.ventana.draw(texto_del_dano); // Dibuja el texto de daño
+
     gm.tienda.dibujar_interfaz_de_compra(gm.ventana, gm.fuente_de_textos); // Dibuja el panel de compra si está abierto
 
 }
@@ -662,43 +686,52 @@ void actualizar_horda_y_spawns_de_marcianitos(GameManager& gm, float dt) {
 // #14
 void resolver_combate_de_magia_contra_enemigos(GameManager& gm) {
 
-    if (gm.personaje.getHechizo_de_bola_de_fuego().getEsta_activa() == false) return; // Si no hay hechizo activo, no hace nada
+    for (int b = 0; b < Personaje::CANTIDAD_MAXIMA_DE_BOLAS; b++) { // Recorre todas las bolas del pool
 
-    bool hubo_impacto = false; // Bandera: indica si el hechizo golpeó algo
+        BolaDeFuego& bola = gm.personaje.getBola(b); // Referencia a esta bola
+        if (bola.getEsta_activa() == false) continue; // Si no esta volando, la saltea
 
-    for (int i = 0; i < GameManager::CANTIDAD_MAXIMA_DE_MARCIANITOS; i++) { // Recorre todos los enemigos pequeños
-        if (gm.marcianitos[i].getEsta_viva() == false) continue; // Ignora los inactivos
+        bool hubo_impacto = false; // Bandera: indica si esta bola golpeó algo
 
-        if (gm.personaje.getHechizo_de_bola_de_fuego().calcular_caja_de_colision().intersects(gm.marcianitos[i].calcular_caja_de_colision()) == true) { // Si el hechizo toca al enemigo
+        for (int i = 0; i < GameManager::CANTIDAD_MAXIMA_DE_MARCIANITOS; i++) { // Recorre todos los enemigos pequeños
+            if (gm.marcianitos[i].getEsta_viva() == false) continue; // Ignora los inactivos
 
-            gm.marcianitos[i].recibir_dano(gm.personaje.getDano_que_hace()); // El enemigo recibe el daño del personaje
-            hubo_impacto = true; // Marca que hubo impacto
+            if (bola.calcular_caja_de_colision().intersects(gm.marcianitos[i].calcular_caja_de_colision()) == true) { // Si esta bola toca al enemigo
 
-            if (gm.marcianitos[i].getEsta_muerta() == true) { // Si el enemigo murió
-                gm.administrador_de_objetos.soltar_oro_en_el_piso(gm.marcianitos[i].getPosicion(), 15); // Suelta 15 de oro donde murió
-                gm.enemigos_eliminados++; // Incrementa el contador de kills
-            }
-            break; // El hechizo solo golpea a un enemigo
-        }
-    }
+                gm.marcianitos[i].recibir_dano(gm.personaje.getDano_que_hace()); // El enemigo recibe el daño del personaje
+                hubo_impacto = true; // Marca que hubo impacto
 
-    if (hubo_impacto == false && gm.golem.getEsta_viva() == true) { // Si no golpeó a nadie y el golem existe
-        if (gm.personaje.getHechizo_de_bola_de_fuego().calcular_caja_de_colision().intersects(gm.golem.calcular_caja_de_colision()) == true) { // Si el hechizo toca al golem
+                if (gm.marcianitos[i].getEsta_muerto() == true) { // Si el enemigo murió
+                    gm.administrador_de_objetos.soltar_oro_en_el_piso(gm.marcianitos[i].getPosicion(), 15); // Suelta 15 de oro donde murió
+                    gm.enemigos_eliminados++; // Incrementa el contador de kills
 
-            gm.golem.recibir_dano(gm.personaje.getDano_que_hace()); // El golem recibe el daño del personaje
-            hubo_impacto = true; // Marca que hubo impacto
-
-            if (gm.golem.getEsta_muerta() == true) { // Si el golem murió
-                gm.portal_de_victoria_activo = true; // Activa el portal de victoria
-                gm.posicion_del_portal_de_victoria = gm.golem.getPosicion(); // El portal aparece donde estaba el golem
-                gm.timer_respawn_del_portal_de_victoria = 0.f; // Reinicia el timer del portal
-                gm.efectos_visuales.agregarPortal(gm.posicion_del_portal_de_victoria, 1.0f, 6, true); // Muestra el efecto visual del portal
+                    if (gm.enemigos_eliminados >= 15 && gm.la_gema_fue_entregada == false) { // Al llegar a 15 kills, dropea la Gema Arcana una sola vez por partida
+                        gm.spawnear_drop_seguro(Item(3, "Gema Arcana", TipoDeItem::GEMA_ARCANA, 0, 1, 1, true, 0, 0), gm.marcianitos[i].getPosicion().x, gm.marcianitos[i].getPosicion().y);
+                        gm.la_gema_fue_entregada = true; // Marca para que no vuelva a dropearse en esta partida
+                    }
+                }
+                break; // Cada bola solo golpea a un enemigo
             }
         }
-    }
 
-    if (hubo_impacto == true) { // Si el hechizo golpeó algo
-        gm.personaje.getHechizo_de_bola_de_fuego().desactivar(); // Desactiva el hechizo tras el impacto
+        if (hubo_impacto == false && gm.golem.getEsta_viva() == true) { // Si no golpeó a nadie y el golem existe
+            if (bola.calcular_caja_de_colision().intersects(gm.golem.calcular_caja_de_colision()) == true) { // Si esta bola toca al golem
+
+                gm.golem.recibir_dano(gm.personaje.getDano_que_hace()); // El golem recibe el daño del personaje
+                hubo_impacto = true; // Marca que hubo impacto
+
+                if (gm.golem.getEsta_muerto() == true) { // Si el golem murió
+                    gm.portal_de_victoria_activo = true; // Activa el portal de victoria
+                    gm.posicion_del_portal_de_victoria = gm.golem.getPosicion(); // El portal aparece donde estaba el golem
+                    gm.timer_respawn_del_portal_de_victoria = 0.f; // Reinicia el timer del portal
+                    gm.efectos_visuales.agregarPortal(gm.posicion_del_portal_de_victoria, 1.0f, 6, true); // Muestra el efecto visual del portal
+                }
+            }
+        }
+
+        if (hubo_impacto == true) { // Si esta bola golpeó algo
+            bola.desactivar(); // Desactiva solo esta bola, las demas siguen volando
+        }
     }
 }
 
@@ -821,4 +854,51 @@ void actualizar_pantalla_creditos(GameManager& gm, float dt) {
 void renderizar_pantalla_creditos(GameManager& gm) {
     gm.ventana.setView(gm.ventana.getDefaultView()); // Usa la vista por defecto
     gm.ventana.draw(gm.texto_de_creditos); // Dibuja el texto de créditos
+}
+
+///=================================================================///
+///=================================================================///
+///   PANTALLA 7: MUERTE - Se muestra cuando el jugador pierde toda
+///   su vida. ENTER reinicia todo y vuelve al menu.
+///=================================================================///
+///=================================================================///
+// #21
+void procesar_eventos_pantalla_muerte(GameManager& gm, sf::Event& evento) {
+    if (evento.type == sf::Event::KeyPressed && evento.key.code == sf::Keyboard::Enter) { // Si se presionó Enter
+        gm.reiniciar_partida(); // Borra todo el progreso y vuelve al menu
+    }
+}
+
+// #22
+void actualizar_pantalla_muerte(GameManager& gm, float dt) {
+ // No necesita actualizar nada: el juego está pausado en esta pantalla
+}
+
+// #23
+void renderizar_pantalla_muerte(GameManager& gm) {
+    gm.ventana.setView(gm.ventana.getDefaultView()); // Vista fija de pantalla, sin camara del mundo
+
+    sf::RectangleShape fondo_negro(sf::Vector2f(1280.f, 720.f)); // Rectangulo que cubre toda la ventana
+    fondo_negro.setFillColor(sf::Color(10, 0, 0)); // Casi negro con tinte rojo muy oscuro
+    gm.ventana.draw(fondo_negro); // Dibuja el fondo
+
+    sf::Text texto_moriste; // Titulo principal de la pantalla de muerte
+    texto_moriste.setFont(gm.fuente_de_textos); // Asigna la fuente del juego
+    texto_moriste.setCharacterSize(96); // Letra muy grande
+    texto_moriste.setFillColor(sf::Color(180, 0, 0)); // Rojo oscuro
+    texto_moriste.setString("MORISTE"); // Texto de muerte
+    sf::FloatRect bounds_moriste = texto_moriste.getLocalBounds(); // Mide el texto para centrarlo
+    texto_moriste.setOrigin(bounds_moriste.left + bounds_moriste.width / 2.f, bounds_moriste.top + bounds_moriste.height / 2.f); // Centra el origen
+    texto_moriste.setPosition(640.f, 300.f); // Centro de la pantalla
+    gm.ventana.draw(texto_moriste); // Dibuja el titulo
+
+    sf::Text texto_continuar; // Instruccion para el jugador
+    texto_continuar.setFont(gm.fuente_de_textos); // Asigna la fuente del juego
+    texto_continuar.setCharacterSize(22); // Letra mediana
+    texto_continuar.setFillColor(sf::Color(200, 200, 200)); // Gris claro
+    texto_continuar.setString("Presiona ENTER para volver al menu"); // Texto de instruccion
+    sf::FloatRect bounds_continuar = texto_continuar.getLocalBounds(); // Mide el texto para centrarlo
+    texto_continuar.setOrigin(bounds_continuar.left + bounds_continuar.width / 2.f, 0.f); // Centra horizontalmente
+    texto_continuar.setPosition(640.f, 430.f); // Debajo del titulo
+    gm.ventana.draw(texto_continuar); // Dibuja la instruccion
 }

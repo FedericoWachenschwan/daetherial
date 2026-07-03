@@ -51,10 +51,12 @@ public:
 
  // Constructor por defecto: arranca "sin vida", listo para ocupar
  // un lugar libre del pool mas adelante
+ // #1
     Enemigo();
 
  // Recibe la ruta de la imagen para poder crear distintos tipos
  // de monstruos con la misma clase
+ // #2
     Enemigo(sf::Vector2f posicion_inicial, const std::string& ruta_de_la_imagen);
 
  ///=============================================================///
@@ -62,6 +64,7 @@ public:
  ///=============================================================///
 
  // Lo actualiza el GameManager cada frame con la posicion del jugador
+ // #3
     void setPosicion_objetivo(sf::Vector2f posicion_del_jugador) { _posicion_a_donde_quiere_llegar = posicion_del_jugador; } // Guarda hacia donde ir
 
  ///=============================================================///
@@ -70,16 +73,22 @@ public:
 
  // "Enciende" este casillero del pool: carga la textura, lo
  // posiciona y le devuelve la vida
+ // #4
     void activar_en_la_posicion(sf::Vector2f posicion_inicial, const std::string& ruta_de_la_imagen);
 
  // POLIMORFISMO: reemplazamos la version general de EntidadViva
  // para que ademas imprima un mensaje en consola
+ // #5
     void recibir_dano(int cantidad_de_dano_recibido) override;
 
  // Calcula la caja de colision cada vez que se llama (no es un
  // atributo guardado), por eso no lleva "get" adelante
+ // #6
     sf::FloatRect calcular_caja_de_colision() const;
-
+ // #7
     void actualizar(float tiempo_transcurrido, Map& mapa_del_juego);
+ // #8
     void dibujar(sf::RenderWindow& ventana_del_juego);
+ // #9
+    void desactivar() { _vida_actual_de_la_entidad = 0; } // Marca el casillero del pool como libre
 };

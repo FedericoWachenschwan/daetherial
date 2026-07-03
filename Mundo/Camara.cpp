@@ -1,8 +1,9 @@
 ﻿#include "Camara.h"
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 Camara::Camara(float ancho_de_la_ventana, float alto_de_la_ventana) {
     _vista_de_la_camara.reset(sf::FloatRect(0.f, 0.f, ancho_de_la_ventana, alto_de_la_ventana)); // La camara empieza en la esquina superior izquierda
     _zoom_minimo = 400.f; // Limite de acercamiento en pixeles de ancho visible
@@ -11,16 +12,18 @@ Camara::Camara(float ancho_de_la_ventana, float alto_de_la_ventana) {
 }
 
 ///=============================================================///
-///   SETTERS
+///   #2 - SETTERS
 ///=============================================================///
+// #2
 void Camara::setLimites_del_mundo(const sf::FloatRect& limites) {
     _limites_del_mundo = limites; // Guarda los bordes del mapa
     _tiene_limites_establecidos = true; // Ahora la camara respetara los bordes
 }
 
 ///=============================================================///
-///   SEGUIR AL OBJETIVO
+///   #3 - SEGUIR AL OBJETIVO
 ///=============================================================///
+// #3
 void Camara::seguir_al_objetivo(sf::Vector2f posicion_del_objetivo, float tiempo_transcurrido) {
 
     sf::Vector2f posicion_actual_de_la_camara = _vista_de_la_camara.getCenter(); // Donde esta el centro de la camara ahora
@@ -50,8 +53,9 @@ void Camara::seguir_al_objetivo(sf::Vector2f posicion_del_objetivo, float tiempo
 }
 
 ///=============================================================///
-///   PROCESAR ZOOM
+///   #4 - PROCESAR ZOOM
 ///=============================================================///
+// #4
 void Camara::procesar_zoom(const sf::Event& evento) {
     if (evento.type == sf::Event::MouseWheelScrolled && evento.mouseWheelScroll.wheel == sf::Mouse::VerticalWheel) {
 

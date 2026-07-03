@@ -39,7 +39,8 @@ private:
  ///=============================================================///
  ///   FUENTE Y CARTEL
  ///=============================================================///
-    sf::Font _fuente_del_cartel_de_la_tienda; // Tipografia del cartel de aproximacion
+    sf::Font _fuente_del_cartel_de_la_tienda; // Tipografia decorativa del cartel de aproximacion
+    sf::Font _fuente_del_panel_de_la_tienda;  // Tipografia legible para el panel de compra
     sf::Text _cartel_de_la_tienda; // Texto que aparece cuando el jugador se acerca
 
 public:
@@ -47,29 +48,42 @@ public:
  ///=============================================================///
  ///   CONSTRUCTOR
  ///=============================================================///
+ // #1
     Tienda(sf::Vector2f posicion_de_la_tienda_en_el_mapa);
 
  ///=============================================================///
  ///   GETTERS
  ///=============================================================///
+ // #2
     bool getEl_jugador_esta_cerca_de_la_tienda() const { return _el_jugador_esta_cerca_de_la_tienda; } // Verdadero si se puede abrir
+ // #3
     bool getLa_tienda_esta_abierta() const { return _la_tienda_esta_abierta; } // Verdadero si el panel esta visible
 
  ///=============================================================///
  ///   OTROS METODOS
  ///=============================================================///
+ // #4
     void cargar_fuente_y_cartel(); // Carga la tipografia y configura el cartel
+ // #5
     void agregar_item_en_venta(const Item& item_para_agregar); // Agrega un item al catalogo de la tienda
-
+ // #6
     void actualizar_tienda(sf::Vector2f posicion_actual_del_jugador); // Chequea si el jugador esta en la zona
+ // #7
     void dibujar_sprite_en_el_mapa(sf::RenderWindow& ventana_del_juego, bool mostrar_zona_de_deteccion); // Dibuja el edificio
+ // #8
     void dibujar_interfaz_de_compra(sf::RenderWindow& ventana_del_juego, sf::Font& fuente_del_hud); // Dibuja el panel de compra
-
+ // #9
     void abrir_tienda(); // Muestra el panel de compra
+ // #10
     void cerrar_tienda(); // Oculta el panel de compra
+ // #11
     void seleccionar_item_siguiente(); // Mueve el cursor al item de la derecha
+ // #12
     void seleccionar_item_anterior(); // Mueve el cursor al item de la izquierda
+ // #13
     void aumentar_cantidad_a_comprar(); // Suma una unidad a la cantidad
+ // #14
     void disminuir_cantidad_a_comprar(); // Resta una unidad a la cantidad
+ // #15
     void intentar_comprar_item_seleccionado(Personaje& jugador); // Cobra el oro y da el item
 };

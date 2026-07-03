@@ -46,11 +46,13 @@ public:
  ///=============================================================///
  ///   CONSTRUCTOR
  ///=============================================================///
+ // #1
     Golem(sf::Vector2f posicion_inicial);
 
  ///=============================================================///
  ///   SETTERS
  ///=============================================================///
+ // #2
     void setPosicion_objetivo(sf::Vector2f posicion_del_jugador) { _posicion_objetivo_actual = posicion_del_jugador; } // Actualiza donde perseguir
 
  ///=============================================================///
@@ -59,9 +61,12 @@ public:
 
  // Calcula la caja de colision cada vez que se llama (no es un
  // atributo guardado), por eso no lleva "get" adelante
+ // #3
     sf::FloatRect calcular_caja_de_colision() const;
-
+ // #4
     void actualizar(float tiempo_transcurrido, Map& mapa_del_juego, Personaje& jugador);
+ // #5
     void dibujar_camino_calculado(sf::RenderWindow& ventana_del_juego) const;
+ // #6
     void dibujar(sf::RenderWindow& ventana_del_juego);
 };

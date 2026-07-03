@@ -1,8 +1,9 @@
 ﻿#include "Niebla.h"
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 Niebla::Niebla() {
     if (_textura_de_la_niebla.loadFromFile("assets/fog.png") == true) {
         _textura_de_la_niebla.setRepeated(true); // SFML: hace que la imagen se repita sola como un azulejo
@@ -18,9 +19,10 @@ Niebla::Niebla() {
 }
 
 ///=============================================================///
-///   ACTUALIZAR - Mueve la niebla y hace que la opacidad suba y
+///   #2 - ACTUALIZAR - Mueve la niebla y hace que la opacidad suba y
 ///   baje despacio, como un rebote entre 5 y 55 de transparencia
 ///=============================================================///
+// #2
 void Niebla::actualizar(float tiempo_transcurrido) {
 
     _desplazamiento_acumulado_en_x += _velocidad_del_viento_en_x * tiempo_transcurrido; // Suma el desplazamiento de este frame en X
@@ -56,9 +58,10 @@ void Niebla::actualizar(float tiempo_transcurrido) {
 }
 
 ///=============================================================///
-///   DIBUJAR - Recorta la niebla para que cubra exactamente lo
+///   #3 - DIBUJAR - Recorta la niebla para que cubra exactamente lo
 ///   que ve la camara en este momento
 ///=============================================================///
+// #3
 void Niebla::dibujar(sf::RenderWindow& ventana_del_juego, const sf::View& vista_de_la_camara) {
 
     sf::Vector2f tamano_de_la_camara = vista_de_la_camara.getSize(); // Cuantos pixeles ve la camara de ancho y alto

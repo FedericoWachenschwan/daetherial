@@ -15,7 +15,8 @@ enum class PantallaDelJuego {
     HISTORIA, // secuencia de imagenes con audio al empezar primera partida
     JUGANDO, // pantalla principal del juego en accion
     CREDITOS, // pantalla con los integrantes del grupo
-    LOGROS // pantalla que muestra los logros desbloqueados
+    LOGROS, // pantalla que muestra los logros desbloqueados
+    MUERTE // pantalla que aparece cuando el jugador muere
 };
 
 void procesar_eventos_segun_la_pantalla(GameManager& gm, sf::Event& evento); // enruta eventos segun pantalla activa

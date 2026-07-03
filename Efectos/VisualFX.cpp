@@ -3,8 +3,9 @@
 #include <cstdlib>
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 VisualFX::VisualFX() {
     _cantidad_de_particulas_de_accion_en_uso = 0; // Empieza sin particulas de accion
     _cantidad_de_particulas_de_ambiente_en_uso = 0; // Empieza sin particulas de ambiente
@@ -22,9 +23,10 @@ VisualFX::VisualFX() {
 }
 
 ///=============================================================///
-///   AGREGAR RASTRO - Un destello que queda donde estaba el sprite
+///   #2 - AGREGAR RASTRO - Un destello que queda donde estaba el sprite
 ///   y se desvanece rapido (lo usa el dash y la bola de fuego)
 ///=============================================================///
+// #2
 void VisualFX::agregarRastro(sf::Sprite sprite_base, sf::Color color, float velocidad_de_desvanecimiento, bool glow) {
     if (_cantidad_de_particulas_de_accion_en_uso >= CANTIDAD_MAXIMA_DE_PARTICULAS_DE_ACCION) return; // Array lleno, no hace nada
 
@@ -41,8 +43,9 @@ void VisualFX::agregarRastro(sf::Sprite sprite_base, sf::Color color, float velo
 }
 
 ///=============================================================///
-///   AGREGAR PARTICULA DINAMICA - Una chispa con movimiento propio
+///   #3 - AGREGAR PARTICULA DINAMICA - Una chispa con movimiento propio
 ///=============================================================///
+// #3
 void VisualFX::agregarParticulaDinamica(const sf::Texture& textura, sf::Vector2f posicion, sf::Vector2f velocidad, sf::Color color, float velocidad_de_desvanecimiento, bool glow) {
     if (_cantidad_de_particulas_de_accion_en_uso >= CANTIDAD_MAXIMA_DE_PARTICULAS_DE_ACCION) return; // Array lleno
 
@@ -62,10 +65,11 @@ void VisualFX::agregarParticulaDinamica(const sf::Texture& textura, sf::Vector2f
 }
 
 ///=============================================================///
-///   AGREGAR PARTICULAS DE AMBIENTE - Lucierngas o polvo que
+///   #4 - AGREGAR PARTICULAS DE AMBIENTE - Lucierngas o polvo que
 ///   bailan por el mapa para siempre, cambiando de direccion
 ///   cada cierto tiempo
 ///=============================================================///
+// #4
 void VisualFX::agregarParticulasAmbiente(sf::Vector2f area_de_aparicion, int cantidad, sf::Color color) {
     for (int i = 0; i < cantidad; i++) {
         if (_cantidad_de_particulas_de_ambiente_en_uso >= CANTIDAD_MAXIMA_DE_PARTICULAS_DE_AMBIENTE) break; // No agrega mas si el array esta lleno
@@ -95,8 +99,9 @@ void VisualFX::agregarParticulasAmbiente(sf::Vector2f area_de_aparicion, int can
 }
 
 ///=============================================================///
-///   AGREGAR PORTAL
+///   #5 - AGREGAR PORTAL
 ///=============================================================///
+// #5
 void VisualFX::agregarPortal(sf::Vector2f posicion, float duracion, int frames, bool glow) {
     if (_cantidad_de_portales_en_uso >= CANTIDAD_MAXIMA_DE_PORTALES) return; // No entra mas
     if (_textura_de_portal.getSize().x == 0) return; // La textura no cargo, no hace nada
@@ -126,10 +131,11 @@ void VisualFX::agregarPortal(sf::Vector2f posicion, float duracion, int frames, 
 }
 
 ///=============================================================///
-///   ACTUALIZAR PARTICULAS DE ACCION - Las que nacen y mueren.
+///   #6 - ACTUALIZAR PARTICULAS DE ACCION - Las que nacen y mueren.
 ///   Cuando una muere, ponemos la ultima en su lugar para no
 ///   dejar huecos en el array
 ///=============================================================///
+// #6
 void VisualFX::actualizar_particulas_de_accion(float tiempo_transcurrido) {
     int i = 0;
     while (i < _cantidad_de_particulas_de_accion_en_uso) {
@@ -158,8 +164,9 @@ void VisualFX::actualizar_particulas_de_accion(float tiempo_transcurrido) {
 }
 
 ///=============================================================///
-///   ACTUALIZAR PARTICULAS DE AMBIENTE
+///   #7 - ACTUALIZAR PARTICULAS DE AMBIENTE
 ///=============================================================///
+// #7
 void VisualFX::actualizar_particulas_de_ambiente(float tiempo_transcurrido) {
     for (int i = 0; i < _cantidad_de_particulas_de_ambiente_en_uso; i++) {
 
@@ -177,8 +184,9 @@ void VisualFX::actualizar_particulas_de_ambiente(float tiempo_transcurrido) {
 }
 
 ///=============================================================///
-///   ACTUALIZAR PORTALES
+///   #8 - ACTUALIZAR PORTALES
 ///=============================================================///
+// #8
 void VisualFX::actualizar_portales(float tiempo_transcurrido) {
     int i = 0;
     while (i < _cantidad_de_portales_en_uso) {
@@ -209,14 +217,16 @@ void VisualFX::actualizar_portales(float tiempo_transcurrido) {
 }
 
 ///=============================================================///
-///   ACTUALIZAR Y DIBUJAR
+///   #9 - ACTUALIZAR Y DIBUJAR
 ///=============================================================///
+// #9
 void VisualFX::actualizar(float tiempo_transcurrido) {
     actualizar_particulas_de_accion(tiempo_transcurrido); // Actualiza rastros y chispas
     actualizar_particulas_de_ambiente(tiempo_transcurrido); // Actualiza luciernagras
     actualizar_portales(tiempo_transcurrido); // Actualiza animaciones de portales
 }
 
+// #10
 void VisualFX::dibujar(sf::RenderWindow& ventana_del_juego) {
     for (int i = 0; i < _cantidad_de_particulas_de_ambiente_en_uso; i++) {
         if (_particulas_de_ambiente[i].usar_modo_glow == true) {

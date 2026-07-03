@@ -3,8 +3,9 @@
 #include <cmath>
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 AdministradorDeObjetos::AdministradorDeObjetos() {
     _circulo_de_la_moneda.setRadius(8.f); // Radio de la moneda en pixeles
     _circulo_de_la_moneda.setFillColor(sf::Color(255, 215, 0)); // Color dorado
@@ -14,8 +15,9 @@ AdministradorDeObjetos::AdministradorDeObjetos() {
 }
 
 ///=============================================================///
-///   QUITAR ITEM Y CORRER LOS SIGUIENTES
+///   #2 - QUITAR ITEM Y CORRER LOS SIGUIENTES
 ///=============================================================///
+// #2
 void AdministradorDeObjetos::quitar_item_y_correr_los_siguientes(int indice_a_quitar) {
     for (int i = indice_a_quitar; i < _cantidad_de_items_en_el_mundo - 1; i++) {
         _items_en_el_mundo[i] = _items_en_el_mundo[i + 1]; // Corre cada item un lugar hacia adelante
@@ -24,8 +26,9 @@ void AdministradorDeObjetos::quitar_item_y_correr_los_siguientes(int indice_a_qu
 }
 
 ///=============================================================///
-///   QUITAR MONEDA Y CORRER LAS SIGUIENTES
+///   #3 - QUITAR MONEDA Y CORRER LAS SIGUIENTES
 ///=============================================================///
+// #3
 void AdministradorDeObjetos::quitar_moneda_y_correr_las_siguientes(int indice_a_quitar) {
     for (int i = indice_a_quitar; i < _cantidad_de_monedas_en_el_piso - 1; i++) {
         _oro_en_el_piso[i] = _oro_en_el_piso[i + 1]; // Corre cada moneda un lugar hacia adelante
@@ -34,8 +37,9 @@ void AdministradorDeObjetos::quitar_moneda_y_correr_las_siguientes(int indice_a_
 }
 
 ///=============================================================///
-///   AGREGAR ITEM AL MUNDO
+///   #4 - AGREGAR ITEM AL MUNDO
 ///=============================================================///
+// #4
 void AdministradorDeObjetos::agregar_item_al_mundo(const Item& nuevo_item, float posicion_x, float posicion_y, sf::FloatRect hitbox_personalizada) {
 
     if (_cantidad_de_items_en_el_mundo >= CANTIDAD_MAXIMA_DE_ITEMS_EN_EL_MUNDO) {
@@ -49,8 +53,9 @@ void AdministradorDeObjetos::agregar_item_al_mundo(const Item& nuevo_item, float
 }
 
 ///=============================================================///
-///   DIBUJAR ITEMS
+///   #5 - DIBUJAR ITEMS
 ///=============================================================///
+// #5
 void AdministradorDeObjetos::dibujar_items(sf::RenderWindow& ventana_del_juego) const {
     for (int i = 0; i < _cantidad_de_items_en_el_mundo; i++) {
         _items_en_el_mundo[i].dibujar(ventana_del_juego); // Dibuja cada item tirado en el suelo
@@ -58,8 +63,9 @@ void AdministradorDeObjetos::dibujar_items(sf::RenderWindow& ventana_del_juego) 
 }
 
 ///=============================================================///
-///   CHEQUEAR INTERACCIONES
+///   #6 - CHEQUEAR INTERACCIONES
 ///=============================================================///
+// #6
 void AdministradorDeObjetos::chequear_interacciones(Personaje& jugador, const InputManager& entrada_del_jugador) {
     if (entrada_del_jugador.getEl_jugador_quiere_interactuar() == false) return; // Solo actua si se presiono la tecla de interaccion
 
@@ -86,8 +92,9 @@ void AdministradorDeObjetos::chequear_interacciones(Personaje& jugador, const In
 }
 
 ///=============================================================///
-///   RECIBIR ITEM SOLTADO
+///   #7 - RECIBIR ITEM SOLTADO
 ///=============================================================///
+// #7
 void AdministradorDeObjetos::recibir_item_soltado(const Item& item_soltado) {
     if (_cantidad_de_items_en_el_mundo >= CANTIDAD_MAXIMA_DE_ITEMS_EN_EL_MUNDO) {
         std::cout << "ERROR: NO HAY MAS LUGAR PARA ITEMS TIRADOS EN EL MUNDO." << std::endl;
@@ -98,8 +105,9 @@ void AdministradorDeObjetos::recibir_item_soltado(const Item& item_soltado) {
 }
 
 ///=============================================================///
-///   SOLTAR ORO EN EL PISO
+///   #8 - SOLTAR ORO EN EL PISO
 ///=============================================================///
+// #8
 void AdministradorDeObjetos::soltar_oro_en_el_piso(sf::Vector2f posicion, int valor) {
     if (_cantidad_de_monedas_en_el_piso >= CANTIDAD_MAXIMA_DE_MONEDAS_EN_EL_PISO) {
         std::cout << "ERROR: NO HAY MAS LUGAR PARA MONEDAS EN EL PISO." << std::endl;
@@ -112,8 +120,9 @@ void AdministradorDeObjetos::soltar_oro_en_el_piso(sf::Vector2f posicion, int va
 }
 
 ///=============================================================///
-///   DIBUJAR ORO
+///   #9 - DIBUJAR ORO
 ///=============================================================///
+// #9
 void AdministradorDeObjetos::dibujar_oro(sf::RenderWindow& ventana_del_juego) {
     for (int i = 0; i < _cantidad_de_monedas_en_el_piso; i++) {
         _circulo_de_la_moneda.setPosition(_oro_en_el_piso[i].posicion_de_la_moneda); // Coloca el circulo en la posicion de la moneda
@@ -122,8 +131,9 @@ void AdministradorDeObjetos::dibujar_oro(sf::RenderWindow& ventana_del_juego) {
 }
 
 ///=============================================================///
-///   CHEQUEAR RECOGER ORO
+///   #10 - CHEQUEAR RECOGER ORO
 ///=============================================================///
+// #10
 void AdministradorDeObjetos::chequear_recoger_oro(Personaje& jugador, const InputManager& entrada_del_jugador) {
 
     if (entrada_del_jugador.getEl_jugador_quiere_agarrar_oro() == false) return; // Solo actua si se presiono la tecla de recoger

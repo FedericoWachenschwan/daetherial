@@ -49,20 +49,31 @@ public:
  ///=============================================================///
  ///   CONSTRUCTOR - Arranca todo en "no quiero hacer nada"
  ///=============================================================///
+ // #1
     InputManager();
 
  ///=============================================================///
  ///   GETTERS - Le dicen a quien pregunte que quiere hacer el jugador
  ///=============================================================///
+ // #2
     sf::Vector2f getDireccion_de_movimiento() const { return _direccion_de_movimiento; }
+ // #3
     bool getEl_jugador_quiere_saltar() const { return _el_jugador_quiere_saltar; }
+ // #4
     bool getEl_jugador_quiere_correr() const { return _el_jugador_quiere_correr; }
+ // #5
     bool getEl_jugador_quiere_interactuar() const { return _el_jugador_quiere_interactuar; }
+ // #6
     bool getEl_jugador_quiere_atacar() const { return _el_jugador_quiere_atacar; }
+ // #7
     bool getEl_jugador_quiere_disparar() const { return _el_jugador_quiere_disparar; }
+ // #8
     bool getEl_jugador_quiere_tirar_item() const { return _el_jugador_quiere_tirar_item; }
+ // #9
     bool getEl_jugador_quiere_abrir_el_inventario() const { return _el_jugador_quiere_abrir_el_inventario; }
+ // #10
     bool getEl_jugador_quiere_agarrar_oro() const { return _el_jugador_quiere_agarrar_oro; }
+ // #11
     sf::Vector2i getPosicion_del_mouse() const { return _posicion_del_mouse_en_la_pantalla; }
 
  ///=============================================================///
@@ -70,6 +81,6 @@ public:
  ///   los atributos de arriba a la vez, por eso no son
  ///   getters/setters simples
  ///=============================================================///
-    void procesar_un_evento_del_teclado_o_mouse(const sf::Event& evento_ocurrido); // SFML: sf::Event es un "aviso" de que algo paso (una tecla, un clic, etc)
+ // #12
     void actualizar_las_teclas_apretadas_en_este_momento(const sf::RenderWindow& ventana_del_juego);
 };

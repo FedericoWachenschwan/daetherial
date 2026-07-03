@@ -2,8 +2,9 @@
 #include <cmath>
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 Mascota::Mascota() {
     if (_textura_mirando_abajo.loadFromFile("assets/cat_abajo.png") == false) return; // Carga imagen mirando abajo
     if (_textura_mirando_arriba.loadFromFile("assets/cat_arriba.png") == false) return; // Carga imagen mirando arriba
@@ -18,8 +19,9 @@ Mascota::Mascota() {
 }
 
 ///=============================================================///
-///   ACTUALIZAR
+///   #2 - ACTUALIZAR
 ///=============================================================///
+// #2
 void Mascota::actualizar(float tiempo_transcurrido) {
     sf::Vector2f posicion_de_la_mascota = _sprite_de_la_entidad.getPosition(); // Posicion actual del gato
 
@@ -54,15 +56,17 @@ void Mascota::actualizar(float tiempo_transcurrido) {
 }
 
 ///=============================================================///
-///   DIBUJAR
+///   #3 - DIBUJAR
 ///=============================================================///
+// #3
 void Mascota::dibujar(sf::RenderWindow& ventana_del_juego) {
     dibujar_sprite_y_barra_de_vida(ventana_del_juego); // Dibuja el gato y su barra de vida
 }
 
 ///=============================================================///
-///   CALCULAR CAJA DE COLISION
+///   #4 - CALCULAR CAJA DE COLISION
 ///=============================================================///
+// #4
 sf::FloatRect Mascota::calcular_caja_de_colision() const {
     sf::Vector2f posicion_actual = _sprite_de_la_entidad.getPosition(); // Posicion actual del gato
     return sf::FloatRect(posicion_actual.x, posicion_actual.y, 32.f, 32.f); // Caja de 32x32 px

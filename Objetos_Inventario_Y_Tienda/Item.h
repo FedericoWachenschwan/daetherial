@@ -14,7 +14,9 @@ class Personaje;
 enum class TipoDeItem {
     DESCONOCIDO = 0, // Item sin tipo definido (slots vacios del inventario)
     CONSUMIBLE_DE_VIDA = 1, // Pociones de vida
-    CONSUMIBLE_DE_MANA = 5 // Pociones de mana
+    CONSUMIBLE_DE_MANA = 5, // Pociones de mana
+    GEMA_ARCANA = 10, // Material que dropea el enemigo 15, necesario para comprar el baculo
+    BACULO_ARCANO = 20 // Arma magica que se compra con 150 oro + 1 Gema Arcana
 };
 
 ///=================================================================///
@@ -47,6 +49,7 @@ private:
  ///=============================================================///
  ///   ESTADO EN EL MAPA
  ///=============================================================///
+    sf::Texture _textura_del_item; // Imagen del item (cargada segun el tipo)
     sf::Sprite _sprite_del_item; // Icono del item en el mundo o en el inventario
     sf::FloatRect _hitbox_del_item; // Zona de colision para agarrarlo del piso
     bool _el_item_esta_tirado_en_el_mapa; // Si es verdadero, se dibuja en el mundo
@@ -59,44 +62,72 @@ public:
  ///=============================================================///
 
  // Representa "ningun item", para los casilleros vacios de los arrays
+ // #1
     Item();
-
+ // #2
     Item(int id, const std::string& nombre, TipoDeItem tipo, int precio, int cantidad, int cantidad_maxima, bool es_agarrable, int puntos_de_curacion = 0, int puntos_de_mana = 0);
+
+ // SFML: sf::Sprite guarda un puntero a su textura. Al copiar un Item,
+ // el sprite nuevo quedaría apuntando a la textura vieja (que se destruye).
+ // Este constructor y operador de asignacion corrigen eso.
+ // #3
+    Item(const Item& otro);
+ // #4
+    Item& operator=(const Item& otro);
 
  ///=============================================================///
  ///   GETTERS
  ///=============================================================///
+ // #5
     int getId() const { return _id_del_item; } // Devuelve el ID del item
+ // #6
     const std::string& getNombre() const { return _nombre_del_item; } // Devuelve el nombre del item
+ // #7
     TipoDeItem getTipo() const { return _tipo_del_item; } // Devuelve el tipo de item
+ // #8
     int getPrecio() const { return _precio_del_item; } // Devuelve cuanto cuesta
+ // #9
     int getCantidad() const { return _cantidad_del_item; } // Devuelve cuantos hay apilados
+ // #10
     int getCantidad_maxima_en_el_stack() const { return _cantidad_maxima_en_el_stack; } // Devuelve el maximo del stack
+ // #11
     int getPuntos_de_curacion() const { return _puntos_de_curacion_del_item; } // Devuelve cuanto cura
+ // #12
     int getPuntos_de_mana() const { return _puntos_de_mana_del_item; } // Devuelve cuanto mana da
+ // #13
     bool getEsta_vacio() const { return _id_del_item == -1; } // Verdadero si es un casillero vacio
+ // #14
     bool getEsta_tirado_en_el_mapa() const { return _el_item_esta_tirado_en_el_mapa; } // Verdadero si esta en el suelo
+ // #15
     bool getEs_agarrable() const { return _el_jugador_puede_agarrar_el_item; } // Verdadero si se puede recoger
+ // #16
     sf::FloatRect getCaja_de_colision() const { return _hitbox_del_item; } // Devuelve la zona de colision
+ // #17
     sf::Sprite& getSprite() { return _sprite_del_item; } // Devuelve el sprite para modificarlo
+ // #18
     const sf::Sprite& getSprite() const { return _sprite_del_item; } // Devuelve el sprite para leerlo
 
  ///=============================================================///
  ///   SETTERS
  ///=============================================================///
+ // #19
     void setCantidad(int nueva_cantidad) { _cantidad_del_item = nueva_cantidad; } // Cambia la cantidad del stack
+ // #20
     void setPrecio(int nuevo_precio) { _precio_del_item = nuevo_precio; } // Cambia el precio del item
 
  ///=============================================================///
  ///   OTROS METODOS
  ///=============================================================///
+ // #21
     void usar(Personaje& jugador);
+ // #22
     void colocar_en_el_mundo(float posicion_x, float posicion_y, sf::FloatRect hitbox_personalizada = sf::FloatRect());
 
  // Mueve el item ya tirado a una posicion nueva. Hace mas de una
  // cosa a la vez (mueve el sprite, la hitbox, y marca que esta
  // tirado), por eso no es un simple "set" de un solo atributo
+ // #23
     void reposicionar_en_el_mundo(sf::Vector2f posicion_nueva);
-
+ // #24
     void dibujar(sf::RenderWindow& ventana_del_juego) const; // Lo dibuja solo si esta en el mundo
 };

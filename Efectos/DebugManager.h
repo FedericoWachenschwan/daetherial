@@ -33,12 +33,15 @@ public:
  ///=============================================================///
  ///   CONSTRUCTOR
  ///=============================================================///
+ // #1
     DebugManager();
 
  ///=============================================================///
  ///   GETTERS
  ///=============================================================///
+ // #2
     bool getEsta_activo() const { return _modo_debug_activo; } // Devuelve si el debug esta encendido
+ // #3
     ObjetivoDebug getObjetivo_actual() const { return _objetivo_actual; } // Devuelve a que elemento apuntamos
 
  ///=============================================================///
@@ -47,11 +50,16 @@ public:
  ///   Golem real, nunca con "ninguno", asi que no hace falta un
  ///   puntero que pueda ser nullptr
  ///=============================================================///
+ // #4
     void activar_o_desactivar_debug();
+ // #5
     void procesar_eventos(sf::Event& evento, sf::RenderWindow& ventana, UI_Inventario& hud, Personaje& personaje, Golem& enemigo_en_foco);
+ // #6
     void actualizar(UI_Inventario& hud, Personaje& personaje, Golem& enemigo_en_foco);
-
+ // #7
     void dibujar_caja_de_colision(sf::RenderWindow& ventana, sf::FloatRect limites_de_la_caja, sf::Color color) const;
+ // #8
     void procesar_clic_en_el_mapa(sf::Vector2i posicion_del_clic, const sf::View& vista_activa, const sf::RenderWindow& ventana);
+ // #9
     void dibujar_grilla_del_mapa(sf::RenderWindow& ventana) const;
 };

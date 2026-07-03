@@ -4,16 +4,18 @@
 #include <iostream>
 
 ///=============================================================///
-///   CONSTRUCTOR POR DEFECTO
+///   #1 - CONSTRUCTOR POR DEFECTO
 ///=============================================================///
+// #1
 Enemigo::Enemigo() {
     _vida_maxima_de_la_entidad = 30; // Vida maxima del enemigo base
     _vida_actual_de_la_entidad = 0; // Sin vida: marca que no esta activo en el pool
 }
 
 ///=============================================================///
-///   CONSTRUCTOR CON DATOS
+///   #2 - CONSTRUCTOR CON DATOS
 ///=============================================================///
+// #2
 Enemigo::Enemigo(sf::Vector2f posicion_inicial, const std::string& ruta_de_la_imagen) {
     if (_textura_de_la_entidad.loadFromFile(ruta_de_la_imagen) == false) { // Intenta cargar la imagen
         std::cout << "ERROR: NO SE PUDO CARGAR LA TEXTURA DEL ENEMIGO: " << ruta_de_la_imagen << std::endl; // Avisa si falla
@@ -32,8 +34,9 @@ Enemigo::Enemigo(sf::Vector2f posicion_inicial, const std::string& ruta_de_la_im
 }
 
 ///=============================================================///
-///   ACTIVAR EN LA POSICION
+///   #3 - ACTIVAR EN LA POSICION
 ///=============================================================///
+// #3
 void Enemigo::activar_en_la_posicion(sf::Vector2f posicion_inicial, const std::string& ruta_de_la_imagen) {
     if (_textura_de_la_entidad.loadFromFile(ruta_de_la_imagen) == false) { // Intenta cargar la imagen
         std::cout << "ERROR: NO SE PUDO CARGAR LA TEXTURA DEL ENEMIGO: " << ruta_de_la_imagen << std::endl; // Avisa si falla
@@ -52,23 +55,26 @@ void Enemigo::activar_en_la_posicion(sf::Vector2f posicion_inicial, const std::s
 }
 
 ///=============================================================///
-///   RECIBIR DAÑO - POLIMORFISMO
+///   #4 - RECIBIR DAÑO - POLIMORFISMO
 ///=============================================================///
+// #4
 void Enemigo::recibir_dano(int cantidad_de_dano_recibido) {
     _vida_actual_de_la_entidad = _vida_actual_de_la_entidad - cantidad_de_dano_recibido; // Resta el daño a la vida
     std::cout << "EL ENEMIGO GRITO DE DOLOR." << std::endl; // Imprime en consola (debug)
 }
 
 ///=============================================================///
-///   CALCULAR CAJA DE COLISION
+///   #5 - CALCULAR CAJA DE COLISION
 ///=============================================================///
+// #5
 sf::FloatRect Enemigo::calcular_caja_de_colision() const {
     return _sprite_de_la_entidad.getGlobalBounds(); // Usa el rectangulo completo del sprite
 }
 
 ///=============================================================///
-///   ACTUALIZAR
+///   #6 - ACTUALIZAR
 ///=============================================================///
+// #6
 void Enemigo::actualizar(float tiempo_transcurrido, Map& mapa_del_juego) {
     sf::Vector2f posicion_antes_de_moverse = _sprite_de_la_entidad.getPosition(); // Guarda la posicion antes de mover
 
@@ -97,8 +103,9 @@ void Enemigo::actualizar(float tiempo_transcurrido, Map& mapa_del_juego) {
 }
 
 ///=============================================================///
-///   DECIDIR ANIMACION Y DIRECCION
+///   #7 - DECIDIR ANIMACION Y DIRECCION
 ///=============================================================///
+// #7
 void Enemigo::decidir_animacion_y_direccion_segun_el_movimiento(sf::Vector2f direccion_en_la_que_se_mueve) {
     if (std::abs(direccion_en_la_que_se_mueve.x) < 0.1f && std::abs(direccion_en_la_que_se_mueve.y) < 0.1f) { // Si casi no se movio
         _estado_de_animacion_actual = EstadoDeAnimacionDelEnemigo::QUIETO; // Pone animacion de quieto
@@ -126,8 +133,9 @@ void Enemigo::decidir_animacion_y_direccion_segun_el_movimiento(sf::Vector2f dir
 }
 
 ///=============================================================///
-///   AVANZAR DE FRAME
+///   #8 - AVANZAR DE FRAME
 ///=============================================================///
+// #8
 void Enemigo::avanzar_de_frame_si_corresponde() {
     if (_estado_de_animacion_actual == EstadoDeAnimacionDelEnemigo::QUIETO) { // Si esta quieto
         _cantidad_maxima_de_frames_de_la_animacion_actual = 1; // Solo 1 frame cuando esta parado
@@ -142,8 +150,9 @@ void Enemigo::avanzar_de_frame_si_corresponde() {
 }
 
 ///=============================================================///
-///   ACTUALIZAR RECORTE DEL SPRITE
+///   #9 - ACTUALIZAR RECORTE DEL SPRITE
 ///=============================================================///
+// #9
 void Enemigo::actualizar_el_recorte_del_sprite_segun_la_animacion() {
     int fila_del_spritesheet = 8 + (int)_direccion_hacia_donde_mira; // Las filas del enemigo empiezan en la 8
 
@@ -156,8 +165,9 @@ void Enemigo::actualizar_el_recorte_del_sprite_segun_la_animacion() {
 }
 
 ///=============================================================///
-///   DIBUJAR
+///   #10 - DIBUJAR
 ///=============================================================///
+// #10
 void Enemigo::dibujar(sf::RenderWindow& ventana_del_juego) {
     dibujar_sprite_y_barra_de_vida(ventana_del_juego); // Dibuja el sprite y la barra de vida
 }

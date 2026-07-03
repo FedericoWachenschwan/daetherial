@@ -2,9 +2,10 @@
 #include <cmath> // Para la raiz cuadrada que usamos al normalizar el movimiento
 
 ///=============================================================///
-///   CONSTRUCTOR - Todo arranca en falso, el jugador no quiere
+///   #1 - CONSTRUCTOR - Todo arranca en falso, el jugador no quiere
 ///   hacer nada todavia
 ///=============================================================///
+// #1
 InputManager::InputManager() {
     _direccion_de_movimiento = sf::Vector2f(0.f, 0.f);
     _el_jugador_quiere_correr = false;
@@ -19,17 +20,10 @@ InputManager::InputManager() {
 }
 
 ///=============================================================///
-///   PROCESAR UN EVENTO - Lo dejamos preparado para futuros
-///   eventos puntuales (como la ruedita del mouse)
-///=============================================================///
-void InputManager::procesar_un_evento_del_teclado_o_mouse(const sf::Event& evento_ocurrido) {
- // No necesitamos hacer nada especial aca por ahora.
-}
-
-///=============================================================///
-///   ACTUALIZAR TECLAS - Se llama una vez por frame y revisa
+///   #2 - ACTUALIZAR TECLAS - Se llama una vez por frame y revisa
 ///   todo el teclado y el mouse de una sola vez
 ///=============================================================///
+// #2
 void InputManager::actualizar_las_teclas_apretadas_en_este_momento(const sf::RenderWindow& ventana_del_juego) {
 
     _posicion_del_mouse_en_la_pantalla = sf::Mouse::getPosition(ventana_del_juego);
@@ -52,9 +46,9 @@ void InputManager::actualizar_las_teclas_apretadas_en_este_momento(const sf::Ren
     bool la_tecla_de_atacar_esta_apretada_ahora = sf::Mouse::isButtonPressed(sf::Mouse::Left);
     bool la_tecla_de_saltar_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
     bool la_tecla_de_tirar_item_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::Q);
-    bool la_tecla_de_interactuar_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::E);
+    bool la_tecla_de_interactuar_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::F); // F agarra items del suelo (gemas, pociones, etc.)
     bool la_tecla_de_correr_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
-    bool la_tecla_de_agarrar_oro_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::F);
+    bool la_tecla_de_agarrar_oro_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::F); // F tambien agarra el oro (misma tecla que items)
 
     _el_jugador_quiere_abrir_el_inventario = (la_tecla_de_inventario_esta_apretada_ahora && !_tecla_de_inventario_estaba_apretada_antes);
     _el_jugador_quiere_atacar = (la_tecla_de_atacar_esta_apretada_ahora && !_tecla_de_atacar_estaba_apretada_antes);

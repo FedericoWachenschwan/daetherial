@@ -2,8 +2,9 @@
 #include <cmath>
 
 ///=============================================================///
-///   CALCULAR CAMINO - El algoritmo A*
+///   #1 - CALCULAR CAMINO - El algoritmo A*
 ///=============================================================///
+// #1
 int PathFinder::calcular_camino(Map& mapa_del_juego, sf::Vector2f posicion_de_inicio, sf::Vector2f posicion_de_destino, sf::Vector2f camino_resultado[CANTIDAD_MAXIMA_DE_PASOS_EN_UN_CAMINO]) {
 
     const int TAMANO_DE_CADA_CASILLERO_EN_PIXELES = 16; // Cada casillero del mapa mide 16x16 px
@@ -126,15 +127,17 @@ int PathFinder::calcular_camino(Map& mapa_del_juego, sf::Vector2f posicion_de_in
 }
 
 ///=============================================================///
-///   DISTANCIA ESTIMADA
+///   #2 - DISTANCIA ESTIMADA
 ///=============================================================///
+// #2
 int PathFinder::calcular_distancia_estimada_entre_dos_casilleros(sf::Vector2i casillero_a, sf::Vector2i casillero_b) {
     return (std::abs(casillero_a.x - casillero_b.x) + std::abs(casillero_a.y - casillero_b.y)) * 10; // Distancia Manhattan multiplicada por 10
 }
 
 ///=============================================================///
-///   SE PUEDE CAMINAR
+///   #3 - SE PUEDE CAMINAR
 ///=============================================================///
+// #3
 bool PathFinder::el_casillero_se_puede_caminar(Map& mapa_del_juego, sf::Vector2i posicion_del_casillero) {
     return mapa_del_juego.getEs_solido(posicion_del_casillero.y, posicion_del_casillero.x) == false; // true si no es pared
 }

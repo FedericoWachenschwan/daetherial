@@ -18,7 +18,10 @@ private:
     bool _la_opacidad_esta_subiendo = true; // Controla si en este momento sube o baja
 
 public:
+ // #1
     Niebla();
+ // #2
     void actualizar(float tiempo_transcurrido); // Mueve la niebla y anima su opacidad
+ // #3
     void dibujar(sf::RenderWindow& ventana_del_juego, const sf::View& vista_de_la_camara); // La dibuja cubriendo lo que ve la camara
 };

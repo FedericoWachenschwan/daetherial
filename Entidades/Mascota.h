@@ -21,11 +21,13 @@ public:
  ///=============================================================///
  ///   CONSTRUCTOR
  ///=============================================================///
+ // #1
     Mascota();
 
  ///=============================================================///
  ///   SETTERS
  ///=============================================================///
+ // #2
     void setPosicion_objetivo(sf::Vector2f posicion_del_personaje) { _posicion_del_dueno = posicion_del_personaje; } // Actualiza donde esta el jugador
 
  ///=============================================================///
@@ -34,8 +36,10 @@ public:
 
  // Calcula la caja de colision cada vez que se llama (no es un
  // atributo guardado), por eso no lleva "get" adelante
+ // #3
     sf::FloatRect calcular_caja_de_colision() const;
-
+ // #4
     void actualizar(float tiempo_transcurrido);
+ // #5
     void dibujar(sf::RenderWindow& ventana_del_juego);
 };

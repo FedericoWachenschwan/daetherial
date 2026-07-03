@@ -2,19 +2,12 @@
 #include "map.h"
 
 ///=============================================================///
-///   CONSTRUCTOR
+///   #1 - CONSTRUCTOR
 ///=============================================================///
+// #1
 EntidadViva::EntidadViva() {
-    _velocidad_de_movimiento = 100.f; // Velocidad inicial: 100 px/seg
-    _vida_maxima_de_la_entidad = 100; // Vida maxima por defecto
-    _vida_actual_de_la_entidad = _vida_maxima_de_la_entidad; // Arranca con vida llena
-    _dano_que_hace_esta_entidad = 10; // Daño inicial por defecto
-    _segundos_de_cooldown_entre_ataques = 1.f; // 1 segundo entre ataques
-
-    _numero_de_frame_actual = 0; // Empieza en la primera imagen
-    _tiempo_acumulado_del_frame_actual = 0.f; // Cronometro de frame en cero
-    _segundos_que_dura_cada_frame = 0.15f; // Cada frame dura 0.15 segundos
-    _cantidad_maxima_de_frames_de_la_animacion_actual = 1; // Una sola imagen al principio
+    // Los valores numericos simples estan inicializados directamente en EntidadViva.h
+    // Solo quedan aca las llamadas a metodos que no se pueden poner en el .h
 
     _rectangulo_de_fondo_de_la_barra_de_vida.setSize(sf::Vector2f(32.f, 4.f)); // Ancho total de la barra
     _rectangulo_de_fondo_de_la_barra_de_vida.setFillColor(sf::Color(60, 0, 0)); // Color rojo oscuro de fondo
@@ -24,8 +17,9 @@ EntidadViva::EntidadViva() {
 }
 
 ///=============================================================///
-///   CURAR
+///   #2 - CURAR
 ///=============================================================///
+// #2
 void EntidadViva::curar(int puntos_de_curacion) {
     int vida_despues_de_curar = _vida_actual_de_la_entidad + puntos_de_curacion; // Suma la curacion
 
@@ -38,15 +32,17 @@ void EntidadViva::curar(int puntos_de_curacion) {
 }
 
 ///=============================================================///
-///   RECIBIR DAÑO - POLIMORFISMO: version general
+///   #3 - RECIBIR DAÑO - POLIMORFISMO: version general
 ///=============================================================///
+// #3
 void EntidadViva::recibir_dano(int cantidad_de_dano_recibido) {
     _vida_actual_de_la_entidad = _vida_actual_de_la_entidad - cantidad_de_dano_recibido; // Resta el daño a la vida
 }
 
 ///=============================================================///
-///   PUEDE ATACAR
+///   #4 - PUEDE ATACAR
 ///=============================================================///
+// #4
 bool EntidadViva::puede_atacar_de_nuevo() {
     float segundos_desde_el_ultimo_ataque = _reloj_para_medir_el_cooldown_de_ataque.getElapsedTime().asSeconds(); // Tiempo transcurrido
 
@@ -58,8 +54,9 @@ bool EntidadViva::puede_atacar_de_nuevo() {
 }
 
 ///=============================================================///
-///   CALCULAR CENTRO FISICO
+///   #5 - CALCULAR CENTRO FISICO
 ///=============================================================///
+// #5
 sf::Vector2f EntidadViva::calcular_centro_fisico() const {
     sf::FloatRect limites_del_sprite = _sprite_de_la_entidad.getGlobalBounds(); // Rectangulo que rodea el sprite
     float centro_x = limites_del_sprite.left + limites_del_sprite.width / 2.f; // Mitad horizontal
@@ -68,8 +65,9 @@ sf::Vector2f EntidadViva::calcular_centro_fisico() const {
 }
 
 ///=============================================================///
-///   MOVER CON COLISIONES
+///   #6 - MOVER CON COLISIONES
 ///=============================================================///
+// #6
 void EntidadViva::mover_con_colisiones(sf::Vector2f movimiento_deseado, sf::FloatRect caja_de_colision_actual, Map& mapa_del_juego) {
 
     sf::FloatRect caja_moviendose_en_x = caja_de_colision_actual; // Copia la caja actual
@@ -86,8 +84,9 @@ void EntidadViva::mover_con_colisiones(sf::Vector2f movimiento_deseado, sf::Floa
 }
 
 ///=============================================================///
-///   DIBUJAR SPRITE Y BARRA DE VIDA
+///   #7 - DIBUJAR SPRITE Y BARRA DE VIDA
 ///=============================================================///
+// #7
 void EntidadViva::dibujar_sprite_y_barra_de_vida(sf::RenderWindow& ventana_del_juego) {
 
     ventana_del_juego.draw(_sprite_de_la_entidad); // Dibuja el personaje/enemigo

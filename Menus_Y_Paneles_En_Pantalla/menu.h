@@ -22,10 +22,14 @@ public:
  ///   CONSTRUCTOR - Recibe el tamaño de la ventana para poder
  ///   centrar las opciones
  ///=============================================================///
+ // #1
     Menu(float ancho_de_la_ventana, float alto_de_la_ventana);
-
+ // #2
     void dibujar(sf::RenderWindow& ventana_del_juego); // Dibuja el menu completo en pantalla
+ // #3
     void mover_seleccion_hacia_arriba(); // Sube el cursor del menu
+ // #4
     void mover_seleccion_hacia_abajo(); // Baja el cursor del menu
+ // #5
     int getIndice_de_la_opcion_seleccionada() const { return _indice_de_la_opcion_seleccionada; } // Devuelve cual opcion esta elegida
 };

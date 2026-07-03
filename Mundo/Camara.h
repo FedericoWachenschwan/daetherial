@@ -19,21 +19,26 @@ public:
  ///=============================================================///
  ///   CONSTRUCTOR
  ///=============================================================///
+ // #1
     Camara(float ancho_de_la_ventana, float alto_de_la_ventana);
 
  ///=============================================================///
  ///   GETTERS
  ///=============================================================///
+ // #2
     const sf::View& getVista() const { return _vista_de_la_camara; } // Devuelve la vista para aplicarla a la ventana
 
  ///=============================================================///
  ///   SETTERS
  ///=============================================================///
+ // #3
     void setLimites_del_mundo(const sf::FloatRect& limites); // Define hasta donde puede ir la camara
 
  ///=============================================================///
  ///   OTROS METODOS
  ///=============================================================///
+ // #4
     void seguir_al_objetivo(sf::Vector2f posicion_del_objetivo, float tiempo_transcurrido); // Mueve la camara suavemente hacia el jugador
+ // #5
     void procesar_zoom(const sf::Event& evento); // Acerca o aleja la vista con la rueda del mouse
 };

@@ -3,9 +3,10 @@
 #include <string>
 
 ///=============================================================///
-///   CONSTRUCTOR - Arma las 4 opciones del menu con su boton y
+///   #1 - CONSTRUCTOR - Arma las 4 opciones del menu con su boton y
 ///   su texto, ya centrados en pantalla
 ///=============================================================///
+// #1
 Menu::Menu(float ancho_de_la_ventana, float alto_de_la_ventana) {
 
     if (_fuente_del_menu.loadFromFile("assets/NorthEternal.otf") == false) {
@@ -65,8 +66,9 @@ Menu::Menu(float ancho_de_la_ventana, float alto_de_la_ventana) {
 }
 
 ///=============================================================///
-///   DIBUJAR
+///   #2 - DIBUJAR
 ///=============================================================///
+// #2
 void Menu::dibujar(sf::RenderWindow& ventana_del_juego) {
     ventana_del_juego.draw(_sprite_de_fondo); // dibuja la imagen de fondo del menu
 
@@ -79,8 +81,9 @@ void Menu::dibujar(sf::RenderWindow& ventana_del_juego) {
 }
 
 ///=============================================================///
-///   MOVER SELECCION HACIA ARRIBA
+///   #3 - MOVER SELECCION HACIA ARRIBA
 ///=============================================================///
+// #3
 void Menu::mover_seleccion_hacia_arriba() {
     if (_indice_de_la_opcion_seleccionada > 0) { // solo mueve si no estamos ya en la primera opcion
         _opciones_del_menu[_indice_de_la_opcion_seleccionada].setFillColor(sf::Color(160, 200, 220)); // desresalta la opcion actual
@@ -90,8 +93,9 @@ void Menu::mover_seleccion_hacia_arriba() {
 }
 
 ///=============================================================///
-///   MOVER SELECCION HACIA ABAJO
+///   #4 - MOVER SELECCION HACIA ABAJO
 ///=============================================================///
+// #4
 void Menu::mover_seleccion_hacia_abajo() {
     if (_indice_de_la_opcion_seleccionada < CANTIDAD_DE_OPCIONES_DEL_MENU - 1) { // solo mueve si no estamos ya en la ultima opcion
         _opciones_del_menu[_indice_de_la_opcion_seleccionada].setFillColor(sf::Color(160, 200, 220)); // desresalta la opcion actual

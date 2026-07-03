@@ -39,9 +39,12 @@ public:
 
     static const int CANTIDAD_MAXIMA_DE_PASOS_EN_UN_CAMINO = 64; // Maximo de puntos en un camino calculado
 
+ // #1
     static int calcular_camino(Map& mapa_del_juego, sf::Vector2f posicion_de_inicio, sf::Vector2f posicion_de_destino, sf::Vector2f camino_resultado[CANTIDAD_MAXIMA_DE_PASOS_EN_UN_CAMINO]);
 
 private:
+ // #2
     static int calcular_distancia_estimada_entre_dos_casilleros(sf::Vector2i casillero_a, sf::Vector2i casillero_b);
+ // #3
     static bool el_casillero_se_puede_caminar(Map& mapa_del_juego, sf::Vector2i posicion_del_casillero);
 };

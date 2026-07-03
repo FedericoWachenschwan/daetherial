@@ -11,10 +11,7 @@
 ///=================================================================///
 enum class EstadoDeAnimacionDelPersonaje {
     LANZANDO_HECHIZO = 0, // Esta lanzando un hechizo
-    EMPUJANDO = 1, // Esta empujando algo
     CAMINANDO = 2, // Esta caminando
-    CORTANDO = 3, // Esta cortando con arma
-    DISPARANDO = 4, // Esta disparando
     LASTIMADO = 5, // Recibio un golpe
     QUIETO, // Sin moverse
     APUNTANDO, // Apuntando para lanzar hechizo
@@ -50,14 +47,14 @@ private:
  ///   propio hechizo, no los hereda, los contiene como atributos
  ///=============================================================///
     Inventario _mochila_del_personaje; // El inventario de items del jugador
-    BolaDeFuego _hechizo_de_bola_de_fuego; // El proyectil magico del personaje
+    BolaDeFuego _bolas_de_fuego[5]; // Pool de proyectiles: hasta 5 bolas activas al mismo tiempo
 
  ///=============================================================///
  ///   ORO Y MANA
  ///=============================================================///
     int _cantidad_de_oro_del_jugador = 100; // Dinero para comprar en la tienda
-    int _mana_actual_del_jugador = 1000000; // Mana disponible para hechizos
-    int _mana_maxima_del_jugador = 1000000; // Tope de mana que puede tener
+    int _mana_actual_del_jugador = 100; // Mana disponible para hechizos
+    int _mana_maxima_del_jugador = 100; // Tope de mana que puede tener
 
  ///=============================================================///
  ///   MOVIMIENTO SUAVE (ACELERACION Y FRENADO GRADUAL)
@@ -93,20 +90,28 @@ public:
  ///=============================================================///
  ///   CONSTRUCTOR
  ///=============================================================///
+ // #1
     Personaje();
 
  ///=============================================================///
  ///   GETTERS
  ///=============================================================///
+ // #2
     int getOro() const { return _cantidad_de_oro_del_jugador; } // Devuelve el oro actual
+ // #3
     int getMana_actual() const { return _mana_actual_del_jugador; } // Devuelve el mana actual
+ // #4
     int getMana_maxima() const { return _mana_maxima_del_jugador; } // Devuelve el mana tope
+ // #5
     Inventario& getMochila() { return _mochila_del_personaje; } // Devuelve la mochila del jugador
-    BolaDeFuego& getHechizo_de_bola_de_fuego() { return _hechizo_de_bola_de_fuego; } // Devuelve el hechizo activo
+ // #6
+    BolaDeFuego& getBola(int indice) { return _bolas_de_fuego[indice]; } // Devuelve la bola en ese slot del pool
+    static const int CANTIDAD_MAXIMA_DE_BOLAS = 5; // Cuantas bolas pueden volar al mismo tiempo
 
  ///=============================================================///
  ///   SETTERS
  ///=============================================================///
+ // #7
     void setOro(int nueva_cantidad_de_oro) { _cantidad_de_oro_del_jugador = nueva_cantidad_de_oro; } // Cambia el oro del jugador
 
  ///=============================================================///
@@ -115,15 +120,21 @@ public:
 
  // Suma mana con limites (no baja de 0 ni pasa el maximo): hace una
  // cuenta, no es un simple guardar de valor, por eso no lleva "set"
+ // #8
     void restaurar_mana(int puntos_de_mana_a_restaurar);
 
  // Calcula una caja chica a la altura de los pies cada vez que se
  // llama (no es un atributo guardado), por eso no lleva "get"
+ // #9
     sf::FloatRect calcular_caja_de_colision() const;
-
+ // #10
     void empujar_por_colision(sf::Vector2f movimiento, Map& mapa_del_juego) { mover_con_colisiones(movimiento, calcular_caja_de_colision(), mapa_del_juego); } // Mueve al personaje empujado por algo
-
+ // #11
     void procesar_movimiento_y_entrada_del_jugador(const InputManager& entrada_del_jugador, Map& mapa_del_juego, sf::RenderWindow& ventana_del_juego, bool la_interfaz_le_esta_tapando_el_mouse, float tiempo_transcurrido);
+ // #12
     void actualizar_animacion_y_hechizo(float tiempo_transcurrido, VisualFX& efectos_visuales);
+ // #13
     void dibujar(sf::RenderWindow& ventana_del_juego);
+ // #14
+    void reiniciar(); // Restaura vida, mana, oro, posicion e inventario al estado inicial
 };
