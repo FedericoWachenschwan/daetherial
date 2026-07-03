@@ -13,7 +13,7 @@ BolaDeFuego::BolaDeFuego() {
     _velocidad_de_vuelo = 400.f; // Pixeles por segundo
     _distancia_recorrida = 0.f; // No ha recorrido nada aun
     _rango_maximo_de_vuelo = 200.f; // Rango por defecto en pixeles
-    _dano_de_la_bola = 50; // Dano que hace al impactar
+    _costo_de_mana = 10; // Mana que consume lanzarla
     _el_cooldown_ya_paso = true; // Al inicio puede lanzarse
     _segundos_de_cooldown_restantes = 0.f; // Sin espera al comenzar
     _duracion_total_del_cooldown = 0.5f; // Medio segundo entre lanzamientos

@@ -198,7 +198,7 @@ void Personaje::procesar_el_lanzamiento_de_hechizos(const InputManager& entrada_
 
     if (_estado_de_animacion_actual == EstadoDeAnimacionDelPersonaje::APUNTANDO && entrada_del_jugador.getEl_jugador_quiere_atacar()) { // Si apunta y hace clic
 
-        int costo_de_mana_de_este_hechizo = 20; // El hechizo cuesta 20 de mana
+        int costo_de_mana_de_este_hechizo = _bolas_de_fuego[0].getCosto_de_mana(); // El costo lo define la propia BolaDeFuego
 
         if (_mana_actual_del_jugador < costo_de_mana_de_este_hechizo) { // Si no hay mana suficiente
             std::cout << "NO TENES MANA SUFICIENTE PARA LANZAR EL HECHIZO. MANA ACTUAL: " << _mana_actual_del_jugador << std::endl; // Avisa en consola
