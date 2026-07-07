@@ -38,6 +38,7 @@ void Personaje::reiniciar() {
     _vida_actual_de_la_entidad  = _vida_maxima_de_la_entidad; // Vida al maximo
     _mana_actual_del_jugador    = _mana_maxima_del_jugador;   // Mana al maximo
     _cantidad_de_oro_del_jugador = 100;                        // Oro inicial
+    _dano_que_hace_esta_entidad = 15;                          // Daño base, por si tenia el baculo equipado
     _velocidad_actual_del_movimiento = sf::Vector2f(0.f, 0.f); // Sin inercia
     _estado_de_animacion_actual = EstadoDeAnimacionDelPersonaje::QUIETO; // Animacion neutral
     _sprite_de_la_entidad.setPosition(100.f, 100.f); // Posicion de inicio del mapa
