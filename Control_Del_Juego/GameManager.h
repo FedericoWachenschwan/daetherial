@@ -90,9 +90,13 @@ public:
     Menu menu; // menu principal del juego
 
  ///=============================================================///
- ///   TEXTOS Y FUENTES
+ ///   FUENTES
  ///=============================================================///
     sf::Font fuente_de_textos; // fuente tipografica cargada desde archivo
+
+ ///=============================================================///
+ ///   CREDITOS
+ ///=============================================================///
     sf::Text texto_de_creditos; // texto con los creditos del juego
 
  ///=============================================================///

@@ -101,7 +101,7 @@ void Personaje::procesar_movimiento_y_entrada_del_jugador(const InputManager& en
 
     sf::Vector2f direccion_que_quiere_el_jugador = entrada_del_jugador.getDireccion_de_movimiento(); // Lee las teclas WASD
 
-    if (entrada_del_jugador.getEl_jugador_quiere_correr() && _segundos_de_espera_para_volver_a_esquivar <= 0.f) { // Si presiono Shift y el cooldown termino
+    if (entrada_del_jugador.getEl_jugador_quiere_hacer_dash() && _segundos_de_espera_para_volver_a_esquivar <= 0.f) { // Si presiono Shift y el cooldown termino
         if (direccion_que_quiere_el_jugador.x != 0.f || direccion_que_quiere_el_jugador.y != 0.f) { // Y esta moviendo el personaje
             _estado_de_animacion_actual = EstadoDeAnimacionDelPersonaje::ESQUIVANDO; // Activa la animacion de dash
             _segundos_que_quedan_de_esquive = _duracion_total_del_esquive; // Carga la duracion del dash
@@ -186,7 +186,7 @@ void Personaje::procesar_el_lanzamiento_de_hechizos(const InputManager& entrada_
         return; // No procesa el hechizo
     }
 
-    if (entrada_del_jugador.getEl_jugador_quiere_saltar()) { // Si presiono la tecla de modo apuntado
+    if (entrada_del_jugador.getEl_jugador_quiere_apuntar()) { // Si presiono la tecla de modo apuntado
         if (_estado_de_animacion_actual == EstadoDeAnimacionDelPersonaje::APUNTANDO) { // Si ya estaba apuntando
             _estado_de_animacion_actual = EstadoDeAnimacionDelPersonaje::QUIETO; // Cancela el modo apuntado
             _numero_de_frame_actual = 0; // Reinicia el frame

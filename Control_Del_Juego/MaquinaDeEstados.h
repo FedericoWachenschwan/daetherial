@@ -19,6 +19,6 @@ enum class PantallaDelJuego {
     MUERTE // pantalla que aparece cuando el jugador muere
 };
 
-void procesar_eventos_segun_la_pantalla(GameManager& gm, sf::Event& evento); // enruta eventos segun pantalla activa
-void actualizar_segun_la_pantalla(GameManager& gm, float tiempo_transcurrido); // actualiza logica segun pantalla activa
-void renderizar_segun_la_pantalla(GameManager& gm); // dibuja en pantalla segun pantalla activa
+void procesar_eventos_segun_la_pantalla(GameManager& gm, sf::Event& evento); // reacciona a acciones puntuales del jugador (teclas, clics) segun la pantalla activa
+void actualizar_segun_la_pantalla(GameManager& gm, float tiempo_transcurrido); // actualiza el estado del juego en base al tiempo transcurrido y lo que ocurre en la pantalla activa
+void renderizar_segun_la_pantalla(GameManager& gm); // dibuja en pantalla los cambios ya calculados por actualizar

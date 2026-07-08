@@ -8,13 +8,12 @@
 // #1
 InputManager::InputManager() {
     _direccion_de_movimiento = sf::Vector2f(0.f, 0.f);
-    _el_jugador_quiere_correr = false;
-    _el_jugador_quiere_saltar = false;
+    _el_jugador_quiere_hacer_dash = false;
+    _el_jugador_quiere_apuntar = false;
     _el_jugador_quiere_interactuar = false;
     _el_jugador_quiere_atacar = false;
     _el_jugador_quiere_disparar = false;
     _el_jugador_quiere_agarrar_oro = false;
-    _el_jugador_quiere_tirar_item = false;
     _el_jugador_quiere_abrir_el_inventario = false;
     _posicion_del_mouse_en_la_pantalla = sf::Vector2i(0, 0);
 }
@@ -44,25 +43,22 @@ void InputManager::actualizar_las_teclas_apretadas_en_este_momento(const sf::Ren
 
     bool la_tecla_de_inventario_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::I);
     bool la_tecla_de_atacar_esta_apretada_ahora = sf::Mouse::isButtonPressed(sf::Mouse::Left);
-    bool la_tecla_de_saltar_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
-    bool la_tecla_de_tirar_item_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::Q);
+    bool la_tecla_de_apuntar_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
     bool la_tecla_de_interactuar_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::F); // F agarra items del suelo (gemas, pociones, etc.)
-    bool la_tecla_de_correr_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
+    bool la_tecla_de_dash_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift);
     bool la_tecla_de_agarrar_oro_esta_apretada_ahora = sf::Keyboard::isKeyPressed(sf::Keyboard::F); // F tambien agarra el oro (misma tecla que items)
 
     _el_jugador_quiere_abrir_el_inventario = (la_tecla_de_inventario_esta_apretada_ahora && !_tecla_de_inventario_estaba_apretada_antes);
     _el_jugador_quiere_atacar = (la_tecla_de_atacar_esta_apretada_ahora && !_tecla_de_atacar_estaba_apretada_antes);
-    _el_jugador_quiere_saltar = (la_tecla_de_saltar_esta_apretada_ahora && !_tecla_de_saltar_estaba_apretada_antes);
-    _el_jugador_quiere_tirar_item = (la_tecla_de_tirar_item_esta_apretada_ahora && !_tecla_de_tirar_item_estaba_apretada_antes);
+    _el_jugador_quiere_apuntar = (la_tecla_de_apuntar_esta_apretada_ahora && !_tecla_de_apuntar_estaba_apretada_antes);
     _el_jugador_quiere_interactuar = (la_tecla_de_interactuar_esta_apretada_ahora && !_tecla_de_interactuar_estaba_apretada_antes);
-    _el_jugador_quiere_correr = (la_tecla_de_correr_esta_apretada_ahora && !_tecla_de_correr_estaba_apretada_antes);
+    _el_jugador_quiere_hacer_dash = (la_tecla_de_dash_esta_apretada_ahora && !_tecla_de_dash_estaba_apretada_antes);
     _el_jugador_quiere_agarrar_oro = (la_tecla_de_agarrar_oro_esta_apretada_ahora && !_tecla_de_agarrar_oro_estaba_apretada_antes);
 
     _tecla_de_inventario_estaba_apretada_antes = la_tecla_de_inventario_esta_apretada_ahora;
     _tecla_de_atacar_estaba_apretada_antes = la_tecla_de_atacar_esta_apretada_ahora;
-    _tecla_de_saltar_estaba_apretada_antes = la_tecla_de_saltar_esta_apretada_ahora;
-    _tecla_de_tirar_item_estaba_apretada_antes = la_tecla_de_tirar_item_esta_apretada_ahora;
+    _tecla_de_apuntar_estaba_apretada_antes = la_tecla_de_apuntar_esta_apretada_ahora;
     _tecla_de_interactuar_estaba_apretada_antes = la_tecla_de_interactuar_esta_apretada_ahora;
-    _tecla_de_correr_estaba_apretada_antes = la_tecla_de_correr_esta_apretada_ahora;
+    _tecla_de_dash_estaba_apretada_antes = la_tecla_de_dash_esta_apretada_ahora;
     _tecla_de_agarrar_oro_estaba_apretada_antes = la_tecla_de_agarrar_oro_esta_apretada_ahora;
 }

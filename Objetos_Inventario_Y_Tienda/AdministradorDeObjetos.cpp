@@ -63,7 +63,8 @@ void AdministradorDeObjetos::dibujar_items(sf::RenderWindow& ventana_del_juego) 
 }
 
 ///=============================================================///
-///   #6 - CHEQUEAR INTERACCIONES
+///   #6 - AGARRAR ITEM DEL SUELO - El jugador presiona F y el
+///   item pasa del mundo a la mochila
 ///=============================================================///
 // #6
 void AdministradorDeObjetos::chequear_interacciones(Personaje& jugador, const InputManager& entrada_del_jugador) {
@@ -92,20 +93,7 @@ void AdministradorDeObjetos::chequear_interacciones(Personaje& jugador, const In
 }
 
 ///=============================================================///
-///   #7 - RECIBIR ITEM SOLTADO
-///=============================================================///
-// #7
-void AdministradorDeObjetos::recibir_item_soltado(const Item& item_soltado) {
-    if (_cantidad_de_items_en_el_mundo >= CANTIDAD_MAXIMA_DE_ITEMS_EN_EL_MUNDO) {
-        std::cout << "ERROR: NO HAY MAS LUGAR PARA ITEMS TIRADOS EN EL MUNDO." << std::endl;
-        return; // No hay espacio para tirar el item
-    }
-    _items_en_el_mundo[_cantidad_de_items_en_el_mundo] = item_soltado; // Agrega el item soltado al array
-    _cantidad_de_items_en_el_mundo++; // Hay un item mas en el mundo
-}
-
-///=============================================================///
-///   #8 - SOLTAR ORO EN EL PISO
+///   #7 - SOLTAR ORO EN EL PISO
 ///=============================================================///
 // #8
 void AdministradorDeObjetos::soltar_oro_en_el_piso(sf::Vector2f posicion, int valor) {

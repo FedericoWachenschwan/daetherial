@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Item.h"
 
-// CASO ESPECIAL (ver regla #32): Inventario necesita conocer a
+// Inventario necesita conocer a
 // Personaje, pero Personaje.h ya incluye a Inventario (composicion:
 // el Personaje TIENE un Inventario). Si pusieramos el include normal
 // aca, se forma un ciclo y no compila. Por eso, solo en este caso

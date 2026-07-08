@@ -47,17 +47,17 @@ public:
  ///=============================================================///
  ///   OTROS METODOS
  ///=============================================================///
- // #5
+ // #4
     void activar(sf::Vector2f posicion_de_inicio, sf::Vector2f posicion_del_objetivo, float rango_en_pixeles);
- // #6
+ // #5
     void actualizar(float tiempo_transcurrido, VisualFX& efectos_visuales);
- // #7
+ // #6
     void dibujar(sf::RenderWindow& ventana_del_juego);
- // #8
+ // #7
     void desactivar() { _la_bola_esta_activa = false; } // Apaga la bola inmediatamente
 
  // Calcula el rectangulo cada vez que se llama (no es un atributo
  // guardado), por eso no lleva "get" adelante
- // #9
+ // #8
     sf::FloatRect calcular_caja_de_colision() const { return _sprite_de_la_bola.getGlobalBounds(); } // Rectangulo que ocupa la bola
 };

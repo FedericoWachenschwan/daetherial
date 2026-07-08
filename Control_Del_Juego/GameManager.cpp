@@ -14,9 +14,8 @@ GameManager::GameManager()
     tienda(sf::Vector2f(100.f, 260.f)), // coloca la tienda en esa posicion del mundo
     menu(1280.f, 720.f) // inicializa el menu con el tamano de la ventana
 {
+ // -- ESTADO GENERAL --
     pantalla_actual = PantallaDelJuego::INTRO; // arranca mostrando la pantalla de intro
-    reloj_de_spawn_de_marcianitos = 0.f; // reinicia el temporizador de aparicion de enemigos
-    intervalo_de_spawn_de_marcianitos = 5.0f; // un enemigo nuevo cada 5 segundos
     partida_ganada = false; // la partida no esta ganada todavia
     enemigos_eliminados = 0; // el jugador no elimino ningun enemigo aun
     la_gema_fue_entregada = false; // la gema todavia no aparecio
@@ -25,22 +24,19 @@ GameManager::GameManager()
     posicion_del_portal_de_victoria = sf::Vector2f(0.f, 0.f); // posicion inicial en el origen del mapa
     timer_respawn_del_portal_de_victoria = 0.f; // temporizador del portal en cero
 
+ // -- MARCIANITOS --
+    reloj_de_spawn_de_marcianitos = 0.f; // reinicia el temporizador de aparicion de enemigos
+    intervalo_de_spawn_de_marcianitos = 5.0f; // un enemigo nuevo cada 5 segundos
+
+ // -- LOGROS --
     logros = std::make_unique<Logro[]>(CANTIDAD_MAXIMA_DE_LOGROS); // reserva memoria para los logros
     strncpy_s(logros[0].nombre, 64, "Primera victoria - Derrotaste al Golem", 63); logros[0].desbloqueado = false; // logro 0: derrotar al Golem
     strncpy_s(logros[1].nombre, 64, "Cazador - Eliminaste 10 enemigos",       63); logros[1].desbloqueado = false; // logro 1: matar 10 enemigos
     strncpy_s(logros[2].nombre, 64, "Masacre - Eliminaste 20 enemigos",       63); logros[2].desbloqueado = false; // logro 2: matar 20 enemigos
     strncpy_s(logros[3].nombre, 64, "Velocista - Ganaste en menos de 3 min",  63); logros[3].desbloqueado = false; // logro 3: ganar rapido
     strncpy_s(logros[4].nombre, 64, "Rico - Tenias 50 o mas de oro al ganar", 63); logros[4].desbloqueado = false; // logro 4: ganar con mucho oro
-    frame_actual_de_la_intro = 0; // comienza en el primer frame de la animacion de intro
-    tiempo_acumulado_del_frame_de_intro = 0.f; // no hay tiempo acumulado en el frame de intro
-    cantidad_de_imagenes_de_la_historia = 0; // todavia no se cargo ninguna imagen de historia
-    imagen_actual_de_la_historia = 0; // empieza desde la primera imagen de la historia
-    tiempo_acumulado_en_la_historia = 0.f; // tiempo transcurrido en la imagen actual es cero
-    el_audio_de_la_historia_termino = false; // el audio de la historia no termino aun
-    la_musica_de_la_historia_se_cargo = false; // todavia no se intento cargar el audio de historia
-    la_historia_ya_empezo_a_reproducirse = false; // la historia no comenzo a reproducirse aun
-    es_la_primera_partida = true; // asume que es la primera vez que se juega
 
+ // -- VENTANA Y MUNDO --
     camara.setLimites_del_mundo(sf::FloatRect(0.f, 0.f, 2000.f, 2000.f)); // la camara no sale del mapa 2000x2000
     ventana.setFramerateLimit(60); // limita el juego a 60 cuadros por segundo
     ventana.setMouseCursorVisible(false); // oculta el cursor del sistema operativo
@@ -50,7 +46,12 @@ GameManager::GameManager()
         ventana.close(); // cierra el juego si el mapa falla, ya que es indispensable
     }
 
+ // -- MUSICA --
     cambiar_musica(0); // reproduce la musica del menu al iniciar
+
+ // -- INTRO --
+    frame_actual_de_la_intro = 0; // comienza en el primer frame de la animacion de intro
+    tiempo_acumulado_del_frame_de_intro = 0.f; // no hay tiempo acumulado en el frame de intro
 
     if (textura_de_la_intro.loadFromFile("assets/Daetherial-spritesheet.png") == false) {
         std::cout << "ERROR: NO SE PUDO CARGAR EL SPRITESHEET DE LA INTRO." << std::endl; // avisa del error
@@ -63,18 +64,14 @@ GameManager::GameManager()
     sprite_de_la_intro.setScale(escala_horizontal_de_la_intro, escala_vertical_de_la_intro); // aplica la escala al sprite
     sprite_de_la_intro.setPosition(0.f, 0.f); // coloca el sprite en la esquina superior izquierda
 
-    Item pocion_de_vida_para_la_tienda(1, "Pocion de Vida", TipoDeItem::CONSUMIBLE_DE_VIDA, 15, 1, 64, true, 10, 0); // crea el item de pocion de vida para vender (15 oro, cura 10 vida)
-    Item pocion_de_mana_para_la_tienda(2, "Pocion de Mana", TipoDeItem::CONSUMIBLE_DE_MANA, 10, 1, 64, true, 0, 20); // crea el item de pocion de mana para vender (10 oro, da 20 mana)
-    Item baculo_para_la_tienda(4, "Baculo Arcano", TipoDeItem::BACULO_ARCANO, 150, 1, 1, false, 0, 0); // crea el baculo magico para vender (requiere gema arcana)
-
-    tienda.agregar_item_en_venta(pocion_de_vida_para_la_tienda); // agrega la pocion de vida al catalogo de la tienda
-    tienda.agregar_item_en_venta(pocion_de_mana_para_la_tienda); // agrega la pocion de mana al catalogo de la tienda
-    tienda.agregar_item_en_venta(baculo_para_la_tienda); // agrega el baculo al catalogo de la tienda
-    tienda.cargar_fuente_y_cartel(); // carga la fuente y el cartel visual de la tienda
-
-    if (fuente_de_textos.loadFromFile("assets/NorthEternal.otf") == false) {
-        std::cout << "ERROR CARGANDO FUENTE DE TEXTOS." << std::endl; // avisa si la fuente no se pudo cargar
-    }
+ // -- HISTORIA --
+    cantidad_de_imagenes_de_la_historia = 0; // todavia no se cargo ninguna imagen de historia
+    imagen_actual_de_la_historia = 0; // empieza desde la primera imagen de la historia
+    tiempo_acumulado_en_la_historia = 0.f; // tiempo transcurrido en la imagen actual es cero
+    el_audio_de_la_historia_termino = false; // el audio de la historia no termino aun
+    la_musica_de_la_historia_se_cargo = false; // todavia no se intento cargar el audio de historia
+    la_historia_ya_empezo_a_reproducirse = false; // la historia no comenzo a reproducirse aun
+    es_la_primera_partida = true; // asume que es la primera vez que se juega
 
     for (int i = 0; i < CANTIDAD_MAXIMA_DE_IMAGENES_DE_HISTORIA; i++) { // recorre los posibles archivos de historia
         std::string numero = std::to_string(i + 1); // convierte el numero de imagen a texto
@@ -91,6 +88,21 @@ GameManager::GameManager()
     la_musica_de_la_historia_se_cargo = musica_de_la_historia.openFromFile("assets/historia.wav"); // intenta cargar el audio de historia
     if (la_musica_de_la_historia_se_cargo == false) {
         std::cout << "AVISO: NO SE ENCONTRO EL AUDIO DE LA HISTORIA (assets/historia.wav)." << std::endl; // avisa que falta el audio
+    }
+
+ // -- ITEMS Y TIENDA --
+    Item pocion_de_vida_para_la_tienda(1, "Pocion de Vida", TipoDeItem::CONSUMIBLE_DE_VIDA, 15, 1, 64, true, 10, 0); // crea el item de pocion de vida para vender (15 oro, cura 10 vida)
+    Item pocion_de_mana_para_la_tienda(2, "Pocion de Mana", TipoDeItem::CONSUMIBLE_DE_MANA, 10, 1, 64, true, 0, 30); // crea el item de pocion de mana para vender (10 oro, da 20 mana)
+    Item baculo_para_la_tienda(4, "Baculo Arcano", TipoDeItem::BACULO_ARCANO, 150, 1, 1, false, 0, 0); // crea el baculo magico para vender (requiere gema arcana)
+
+    tienda.agregar_item_en_venta(pocion_de_vida_para_la_tienda); // agrega la pocion de vida al catalogo de la tienda
+    tienda.agregar_item_en_venta(pocion_de_mana_para_la_tienda); // agrega la pocion de mana al catalogo de la tienda
+    tienda.agregar_item_en_venta(baculo_para_la_tienda); // agrega el baculo al catalogo de la tienda
+    tienda.cargar_fuente_y_cartel(); // carga la fuente y el cartel visual de la tienda
+
+ // -- CREDITOS --
+    if (fuente_de_textos.loadFromFile("assets/NorthEternal.otf") == false) {
+        std::cout << "ERROR CARGANDO FUENTE DE TEXTOS." << std::endl; // avisa si la fuente no se pudo cargar
     }
 
     texto_de_creditos.setFont(fuente_de_textos); // asigna la fuente al texto de creditos

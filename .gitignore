@@ -1,3 +1,6 @@
+# Carpeta de configuracion de Claude Code
+.claude/
+
 # Temporales pesados de Visual Studio
 .vs/
 Debug/

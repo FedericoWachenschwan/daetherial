@@ -8,41 +8,41 @@
 ///   DECLARACIONES ANTICIPADAS - PANTALLA 1: INTRO
 ///=================================================================///
 // #1
-void procesar_eventos_pantalla_intro(GameManager& gm, sf::Event& evento);
+void procesar_eventos_pantalla_intro(GameManager& gm, sf::Event& evento);   // detecta acciones puntuales del jugador (teclas, cierre de ventana)
 // #2
-void actualizar_pantalla_intro(GameManager& gm, float dt);
+void actualizar_pantalla_intro(GameManager& gm, float dt);                  // actualiza la logica en base al tiempo y lo que pasa en la pantalla
 // #3
-void renderizar_pantalla_intro(GameManager& gm);
+void renderizar_pantalla_intro(GameManager& gm);                            // muestra los cambios actualizados en pantalla
 
 ///=================================================================///
 ///   DECLARACIONES ANTICIPADAS - PANTALLA 2: MENU
 ///=================================================================///
 // #4
-void procesar_eventos_pantalla_menu(GameManager& gm, sf::Event& evento);
+void procesar_eventos_pantalla_menu(GameManager& gm, sf::Event& evento);    // detecta acciones puntuales del jugador (teclas, cierre de ventana)
 // #5
-void actualizar_pantalla_menu(GameManager& gm, float dt);
+void actualizar_pantalla_menu(GameManager& gm, float dt);                   // actualiza la logica en base al tiempo y lo que pasa en la pantalla
 // #6
-void renderizar_pantalla_menu(GameManager& gm);
+void renderizar_pantalla_menu(GameManager& gm);                             // muestra los cambios actualizados en pantalla
 
 ///=================================================================///
 ///   DECLARACIONES ANTICIPADAS - PANTALLA 3: HISTORIA
 ///=================================================================///
 // #7
-void procesar_eventos_pantalla_historia(GameManager& gm, sf::Event& evento);
+void procesar_eventos_pantalla_historia(GameManager& gm, sf::Event& evento); // detecta acciones puntuales del jugador (teclas, cierre de ventana)
 // #8
-void actualizar_pantalla_historia(GameManager& gm, float dt);
+void actualizar_pantalla_historia(GameManager& gm, float dt);               // actualiza la logica en base al tiempo y lo que pasa en la pantalla
 // #9
-void renderizar_pantalla_historia(GameManager& gm);
+void renderizar_pantalla_historia(GameManager& gm);                         // muestra los cambios actualizados en pantalla
 
 ///=================================================================///
 ///   DECLARACIONES ANTICIPADAS - PANTALLA 4: JUGANDO
 ///=================================================================///
 // #10
-void procesar_eventos_pantalla_jugando(GameManager& gm, sf::Event& evento);
+void procesar_eventos_pantalla_jugando(GameManager& gm, sf::Event& evento);  // detecta acciones puntuales del jugador (teclas, cierre de ventana)
 // #11
-void actualizar_pantalla_jugando(GameManager& gm, float dt);
+void actualizar_pantalla_jugando(GameManager& gm, float dt);                // actualiza la logica en base al tiempo y lo que pasa en la pantalla
 // #12
-void renderizar_pantalla_jugando(GameManager& gm);
+void renderizar_pantalla_jugando(GameManager& gm);                          // muestra los cambios actualizados en pantalla
 // #13
 void actualizar_horda_y_spawns_de_marcianitos(GameManager& gm, float dt);
 // #14
@@ -52,31 +52,31 @@ void resolver_combate_de_magia_contra_enemigos(GameManager& gm);
 ///   DECLARACIONES ANTICIPADAS - PANTALLA 5: LOGROS
 ///=================================================================///
 // #15
-void procesar_eventos_pantalla_logros(GameManager& gm, sf::Event& evento);
+void procesar_eventos_pantalla_logros(GameManager& gm, sf::Event& evento);   // detecta acciones puntuales del jugador (teclas, cierre de ventana)
 // #16
-void actualizar_pantalla_logros(GameManager& gm, float dt);
+void actualizar_pantalla_logros(GameManager& gm, float dt);                 // actualiza la logica en base al tiempo y lo que pasa en la pantalla
 // #17
-void renderizar_pantalla_logros(GameManager& gm);
+void renderizar_pantalla_logros(GameManager& gm);                           // muestra los cambios actualizados en pantalla
 
 ///=================================================================///
 ///   DECLARACIONES ANTICIPADAS - PANTALLA 6: CREDITOS
 ///=================================================================///
 // #18
-void procesar_eventos_pantalla_creditos(GameManager& gm, sf::Event& evento);
+void procesar_eventos_pantalla_creditos(GameManager& gm, sf::Event& evento); // detecta acciones puntuales del jugador (teclas, cierre de ventana)
 // #19
-void actualizar_pantalla_creditos(GameManager& gm, float dt);
+void actualizar_pantalla_creditos(GameManager& gm, float dt);               // actualiza la logica en base al tiempo y lo que pasa en la pantalla
 // #20
-void renderizar_pantalla_creditos(GameManager& gm);
+void renderizar_pantalla_creditos(GameManager& gm);                         // muestra los cambios actualizados en pantalla
 
 ///=================================================================///
 ///   DECLARACIONES ANTICIPADAS - PANTALLA 7: MUERTE
 ///=================================================================///
 // #21
-void procesar_eventos_pantalla_muerte(GameManager& gm, sf::Event& evento);
+void procesar_eventos_pantalla_muerte(GameManager& gm, sf::Event& evento);   // detecta acciones puntuales del jugador (teclas, cierre de ventana)
 // #22
-void actualizar_pantalla_muerte(GameManager& gm, float dt);
+void actualizar_pantalla_muerte(GameManager& gm, float dt);                 // actualiza la logica en base al tiempo y lo que pasa en la pantalla
 // #23
-void renderizar_pantalla_muerte(GameManager& gm);
+void renderizar_pantalla_muerte(GameManager& gm);                           // muestra los cambios actualizados en pantalla
 
 ///=================================================================///
 ///=================================================================///
@@ -483,14 +483,6 @@ void actualizar_pantalla_jugando(GameManager& gm, float dt) {
 
     if (gm.input.getEl_jugador_quiere_atacar() == true) { // Si el jugador hizo clic para atacar
         gm.hud_inventario.detectar_clic_en_un_casillero(gm.input.getPosicion_del_mouse(), gm.personaje.getMochila(), gm.ventana); // Detecta si hizo clic en el inventario
-    }
-
-    if (gm.input.getEl_jugador_quiere_tirar_item() == true) { // Si el jugador quiere tirar un item
-        Item item_a_tirar = gm.personaje.getMochila().extraer_item_seleccionado();// Extrae el item seleccionado de la mochila
-        if (item_a_tirar.getEsta_vacio() == false) { // Si el slot no estaba vacío
-            item_a_tirar.reposicionar_en_el_mundo(gm.personaje.getPosicion()); // Ubica el item en el mundo
-            gm.administrador_de_objetos.recibir_item_soltado(item_a_tirar); // Lo registra como objeto suelto en el mapa
-        }
     }
 
     gm.personaje.procesar_movimiento_y_entrada_del_jugador(gm.input, gm.mapa, gm.ventana, gm.hud_inventario.getEsta_abierto(), dt); // Mueve al personaje según el input
